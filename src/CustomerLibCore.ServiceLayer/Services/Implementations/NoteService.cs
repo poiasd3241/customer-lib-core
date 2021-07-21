@@ -36,106 +36,117 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Public Methods
 
-		public bool Exists(int noteId)
+		public void Save(Note note)
 		{
-			CheckNumber.NotLessThan(1, noteId, nameof(noteId));
+			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
 
-			var result = _noteRepository.Exists(noteId);
-			return result;
-		}
-
-		public bool Save(Note note)
-		{
 			var validationResult = new NoteValidator().Validate(note);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
 			if (_customerRepository.Exists(note.CustomerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_noteRepository.Create(note);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		public Note Get(int noteId)
+		public Note GetForCustomer(int noteId, int customerId)
 		{
-			CheckNumber.NotLessThan(1, noteId, nameof(noteId));
+			CheckNumber.ValidId(noteId, nameof(noteId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var note = _noteRepository.Read(noteId);
+			var note = _noteRepository.ReadForCustomer(noteId, customerId);
+
+			if (note is null)
+			{
+				throw new NotFoundException();
+			}
+
 			return note;
 		}
 
-		public IReadOnlyCollection<Note> FindByCustomer(int customerId)
+		public IReadOnlyCollection<Note> FindAllForCustomer(int customerId)
 		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var notes = _noteRepository.ReadByCustomer(customerId);
+			using TransactionScope scope = new();
+
+			if (_customerRepository.Exists(customerId) == false)
+			{
+				throw new NotFoundException();
+			}
+
+			var notes = _noteRepository.ReadManyForCustomer(customerId);
+
+			scope.Complete();
+
 			return notes;
 		}
 
-		/// <summary>
-		/// Updates the note.
-		/// </summary>
-		/// <param name="note">The note to update.</param>
-		/// <returns><see langword="true"/> if the update completed successfully; 
-		/// <see langword="false"/> if the provided note is not in the database.</returns>
-
-		public bool Update(Note note)
+		public void UpdateForCustomer(Note note)
 		{
+			CheckNumber.ValidId(note.NoteId, nameof(note.NoteId));
+			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
+
 			var validationResult = new NoteValidator().Validate(note);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
-			if (_noteRepository.Exists(note.NoteId) == false)
+			if (_noteRepository.ExistsForCustomer(note.NoteId, note.CustomerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_noteRepository.Update(note);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		/// <summary>
-		/// Deletes the note.
-		/// </summary>
-		/// <param name="noteId">The ID of the note to delete.</param>
-		/// <returns><see langword="true"/> if the deletion completed successfully; 
-		/// <see langword="false"/> if the provided note (by ID) is not in the database.</returns>
-
-		public bool Delete(int noteId)
+		public void DeleteForCustomer(int noteId, int customerId)
 		{
-			CheckNumber.NotLessThan(1, noteId, nameof(noteId));
+			CheckNumber.ValidId(noteId, nameof(noteId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
-			if (_noteRepository.Exists(noteId) == false)
+			if (_noteRepository.ExistsForCustomer(noteId, customerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_noteRepository.Delete(noteId);
 
 			scope.Complete();
+		}
 
-			return true;
+		public void DeleteAllForCustomer(int customerId)
+		{
+			CheckNumber.ValidId(customerId, nameof(customerId));
+
+			using TransactionScope scope = new();
+
+			if (_customerRepository.Exists(customerId) == false)
+			{
+				throw new NotFoundException();
+			}
+
+			_noteRepository.DeleteManyForCustomer(customerId);
+
+			scope.Complete();
 		}
 
 		#endregion

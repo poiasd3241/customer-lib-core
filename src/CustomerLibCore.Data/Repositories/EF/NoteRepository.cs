@@ -7,61 +7,67 @@ namespace CustomerLibCore.Data.Repositories.EF
 {
 	public class NoteRepository : INoteRepository
 	{
+		#region Private Members
+
 		private readonly CustomerLibDataContext _context;
+
+		#endregion
+
+		#region Constructors
 
 		public NoteRepository(CustomerLibDataContext context)
 		{
 			_context = context;
 		}
 
-		public NoteRepository(DbContextOptions<CustomerLibDataContext> options)
-		{
-			_context = new(options);
-		}
 		public NoteRepository()
 		{
 			_context = new();
 		}
 
-		public bool Exists(int noteId)
-		{
-			var note = _context.Notes.Find(noteId);
+		#endregion
 
-			return note is not null;
-		}
+		#region Public Methods
+
+		public bool Exists(int noteId) =>
+			_context.Notes.Any(note => note.NoteId == noteId);
+
+		public bool ExistsForCustomer(int noteId, int customerId) =>
+			_context.Notes.Any(note =>
+				note.NoteId == noteId &&
+				note.CustomerId == customerId
+			);
 
 		public int Create(Note note)
 		{
-			var created = _context.Notes.Add(note).Entity;
+			var createdNote = _context.Notes.Add(note).Entity;
 
 			_context.SaveChanges();
 
-			return created.NoteId;
+			return createdNote.NoteId;
 		}
 
-		public Note Read(int noteId)
-		{
-			var note = _context.Notes.Find(noteId);
+		public Note Read(int noteId) =>
+			_context.Notes.Find(noteId);
 
-			return note;
-		}
+		public Note ReadForCustomer(int noteId, int customerId) =>
+			_context.Notes.FirstOrDefault(note =>
+				note.NoteId == noteId &&
+				note.CustomerId == customerId);
 
-		public IReadOnlyCollection<Note> ReadByCustomer(int customerId)
-		{
-			var notes = _context.Notes
-				.Where(note => note.CustomerId == customerId)
+		public IReadOnlyCollection<Note> ReadManyForCustomer(int customerId) =>
+			_context.Notes.Where(note => note.CustomerId == customerId)
 				.ToArray();
-
-			return notes;
-		}
 
 		public void Update(Note note)
 		{
-			var found = _context.Notes.Find(note.NoteId);
+			var noteDb = _context.Notes.Find(note.NoteId);
 
-			if (found is not null)
+			if (noteDb is not null)
 			{
-				_context.Entry(found).CurrentValues.SetValues(note);
+				_context.Entry(noteDb).CurrentValues.SetValues(note);
+
+				_context.Entry(noteDb).Property(note => note.CustomerId).IsModified = false;
 
 				_context.SaveChanges();
 			}
@@ -69,23 +75,36 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Delete(int noteId)
 		{
-			var found = _context.Notes.Find(noteId);
+			var noteDb = _context.Notes.Find(noteId);
 
-			if (found is not null)
+			if (noteDb is not null)
 			{
-				_context.Notes.Remove(found);
+				_context.Notes.Remove(noteDb);
 
 				_context.SaveChanges();
 			}
 		}
 
-		public void DeleteByCustomer(int customerId)
+		public void DeleteForCustomer(int noteId, int customerId)
 		{
-			var notes = _context.Notes
-				.Where(note => note.CustomerId == customerId)
+			var noteDb = _context.Notes.FirstOrDefault(note =>
+				note.NoteId == noteId &&
+				note.CustomerId == customerId);
+
+			if (noteDb is not null)
+			{
+				_context.Notes.Remove(noteDb);
+
+				_context.SaveChanges();
+			}
+		}
+
+		public void DeleteManyForCustomer(int customerId)
+		{
+			var notesDb = _context.Notes.Where(note => note.CustomerId == customerId)
 				.ToArray();
 
-			foreach (var note in notes)
+			foreach (var note in notesDb)
 			{
 				_context.Notes.Remove(note);
 			}
@@ -95,9 +114,9 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void DeleteAll()
 		{
-			var notes = _context.Notes.ToArray();
+			var notesDb = _context.Notes.ToArray();
 
-			foreach (var note in notes)
+			foreach (var note in notesDb)
 			{
 				_context.Notes.Remove(note);
 			}
@@ -106,5 +125,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 			_context.SaveChanges();
 		}
+
+		#endregion
 	}
 }

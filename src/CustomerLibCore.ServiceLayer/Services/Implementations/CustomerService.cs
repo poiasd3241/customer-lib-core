@@ -12,13 +12,12 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 {
 	public class CustomerService : ICustomerService
 	{
-		// TODO: extract Addresses and Notes population.
-
 		#region Private Members
 
 		private readonly ICustomerRepository _customerRepository;
-		private readonly IAddressService _addressService;
-		private readonly INoteService _noteService;
+
+		private readonly IAddressRepository _addressRepository;
+		private readonly INoteRepository _noteRepository;
 
 		#endregion
 
@@ -27,66 +26,48 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		public CustomerService()
 		{
 			_customerRepository = new CustomerRepository();
-			_addressService = new AddressService();
-			_noteService = new NoteService();
+
+			_addressRepository = new AddressRepository();
+			_noteRepository = new NoteRepository();
 		}
 
 		public CustomerService(ICustomerRepository customerRepository,
-			IAddressService addressService, INoteService noteService)
+			IAddressRepository addressRepository, INoteRepository noteRepository)
 		{
 			_customerRepository = customerRepository;
-			_addressService = addressService;
-			_noteService = noteService;
+
+			_addressRepository = addressRepository;
+			_noteRepository = noteRepository;
 		}
 
 		#endregion
 
 		#region Public Methods
 
-		public bool Exists(int customerId)
-		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
-
-			var result = _customerRepository.Exists(customerId);
-			return result;
-		}
-
 		public void Save(Customer customer)
 		{
-			var validationResult = new CustomerValidator().Validate(customer);
+			var validationResult = new CustomerValidator().ValidateFull(customer);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
 			if (_customerRepository.IsEmailTaken(customer.Email))
 			{
-				throw new EmailTakenException(customer.Email);
+				throw new EmailTakenException();
 			}
 
 			var customerId = _customerRepository.Create(customer);
-
-			foreach (var address in customer.Addresses)
-			{
-				address.CustomerId = customerId;
-				_addressService.Save(address);
-			}
-
-			foreach (var note in customer.Notes)
-			{
-				note.CustomerId = customerId;
-				_noteService.Save(note);
-			}
 
 			scope.Complete();
 		}
 
 		public Customer Get(int customerId, bool includeAddresses, bool includeNotes)
 		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -94,29 +75,27 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			if (customer is null)
 			{
-				return customer;
+				throw new NotFoundException();
 			}
 
 			if (includeAddresses)
 			{
-				customer.Addresses =
-					_addressService.FindByCustomer(customer.CustomerId).ToList();
+				LoadAddresses(customer);
 			}
 
 			if (includeNotes)
 			{
-				customer.Notes =
-					_noteService.FindByCustomer(customer.CustomerId).ToList();
+				LoadNotes(customer);
 			}
 
 			return customer;
 		}
 
-		public IReadOnlyCollection<Customer> GetAll(bool includeAddresses, bool includeNotes)
+		public IReadOnlyCollection<Customer> FindAll(bool includeAddresses, bool includeNotes)
 		{
 			using TransactionScope scope = new();
 
-			var customers = _customerRepository.ReadAll();
+			var customers = _customerRepository.ReadMany();
 
 			if (customers.Count == 0)
 			{
@@ -125,20 +104,12 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			if (includeAddresses)
 			{
-				foreach (var customer in customers)
-				{
-					customer.Addresses =
-						_addressService.FindByCustomer(customer.CustomerId).ToList();
-				}
+				LoadAddresses(customers);
 			}
 
 			if (includeNotes)
 			{
-				foreach (var customer in customers)
-				{
-					customer.Notes =
-						_noteService.FindByCustomer(customer.CustomerId).ToList();
-				}
+				LoadNotes(customers);
 			}
 
 			return customers;
@@ -146,75 +117,56 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public int GetCount() => _customerRepository.GetCount();
 
-		public IReadOnlyCollection<Customer> GetPage(int page, int pageSize,
-			bool includeAddresses, bool includeNotes,
-			bool checkTotalSame = false, int expectedTotal = 0)
+		public PagedResult<Customer> GetPage(int page, int pageSize,
+			bool includeAddresses, bool includeNotes)
 		{
 			CheckNumber.NotLessThan(1, page, nameof(page));
 			CheckNumber.NotLessThan(1, pageSize, nameof(pageSize));
-			CheckNumber.NotLessThan(0, expectedTotal, nameof(expectedTotal));
 
 			using TransactionScope scope = new();
 
-			if (checkTotalSame)
-			{
-				var totalCustomers = GetCount();
+			var pageCustomers = _customerRepository.ReadPage(page, pageSize);
 
-				if (expectedTotal != totalCustomers)
+			if (pageCustomers.Count == 0)
+			{
+				if (page == 1)
 				{
-					throw new DataChangedWhileProcessingException();
+					return new(pageCustomers, 1, pageSize, 0);
 				}
-			}
 
-			var customers = _customerRepository.ReadPage(page, pageSize);
-
-			if (customers.Count == 0)
-			{
-				return customers;
+				throw new PagedRequestInvalidException(page, pageSize);
 			}
 
 			if (includeAddresses)
 			{
-				foreach (var customer in customers)
-				{
-					customer.Addresses =
-						_addressService.FindByCustomer(customer.CustomerId).ToList();
-				}
+				LoadAddresses(pageCustomers);
 			}
 
 			if (includeNotes)
 			{
-				foreach (var customer in customers)
-				{
-					customer.Notes =
-						_noteService.FindByCustomer(customer.CustomerId).ToList();
-				}
+				LoadNotes(pageCustomers);
 			}
 
-			return customers;
+			return new(pageCustomers, page, pageSize, GetCount());
 		}
 
-		/// <summary>
-		/// Updates the customer (Addresses and Notes are ignored).
-		/// </summary>
-		/// <param name="customer">The customer to update.</param>
-		/// <returns><see langword="true"/> if the update completed successfully; 
-		/// <see langword="false"/> if the provided customer is not in the database.</returns>
-		public bool Update(Customer customer)
+		public void Update(Customer customer)
 		{
+			CheckNumber.ValidId(customer.CustomerId, nameof(customer.CustomerId));
+
 			var validationResult = new CustomerValidator()
 				.ValidateWithoutAddressesAndNotes(customer);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
 			if (_customerRepository.Exists(customer.CustomerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			var (isTaken, takenById) = _customerRepository.IsEmailTakenWithCustomerId(
@@ -222,41 +174,62 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			if (isTaken && takenById != customer.CustomerId)
 			{
-				throw new EmailTakenException(customer.Email);
+				throw new EmailTakenException();
 			}
 
 			_customerRepository.Update(customer);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		/// <summary>
-		/// Deletes the customer, including its Addresses and Notes.
-		/// </summary>
-		/// <param name="customerId">The ID of the customer to delete.</param>
-		/// <returns><see langword="true"/> if the deletion completed successfully; 
-		/// <see langword="false"/> if the provided customer (by ID) is not in the database.
-		/// </returns>
-		public bool Delete(int customerId)
+		public void Delete(int customerId)
 		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
 			if (_customerRepository.Exists(customerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
-			_addressService.DeleteByCustomer(customerId);
+			_addressRepository.DeleteManyForCustomer(customerId);
+			_noteRepository.DeleteManyForCustomer(customerId);
 
 			_customerRepository.Delete(customerId);
 
 			scope.Complete();
+		}
 
-			return true;
+		#endregion
+
+		#region Private Methods
+
+		private void LoadAddresses(Customer customer)
+		{
+			customer.Addresses = _addressRepository.ReadManyForCustomer(customer.CustomerId)
+				.ToList();
+		}
+
+		private void LoadNotes(Customer customer)
+		{
+			customer.Notes = _noteRepository.ReadManyForCustomer(customer.CustomerId).ToList();
+		}
+
+		private void LoadAddresses(IEnumerable<Customer> customers)
+		{
+			foreach (var customer in customers)
+			{
+				LoadAddresses(customer);
+			}
+		}
+
+		private void LoadNotes(IEnumerable<Customer> customers)
+		{
+			foreach (var customer in customers)
+			{
+				LoadNotes(customer);
+			}
 		}
 
 		#endregion

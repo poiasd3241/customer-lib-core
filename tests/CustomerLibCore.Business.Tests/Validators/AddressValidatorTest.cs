@@ -1,7 +1,10 @@
 ﻿using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Business.Enums;
+using CustomerLibCore.Business.Localization;
 using CustomerLibCore.Business.Validators;
+using FluentValidation;
 using Xunit;
+using static CustomerLibCore.TestHelpers.FluentValidation.ValidationTestHelper;
 
 namespace CustomerLibCore.Business.Tests.Validators
 {
@@ -13,135 +16,324 @@ namespace CustomerLibCore.Business.Tests.Validators
 
 		#endregion
 
-		#region Valid
+		#region Invalid property - Line
 
-		private class MockAddressData : TheoryData<Address>
+		private class InvalidLineData : TheoryData<string, string, string>
 		{
-			public MockAddressData()
+			public InvalidLineData()
 			{
-				Add(AddressValidatorFixture.MockAddress());
-				Add(AddressValidatorFixture.MockOptionalAddress());
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(new('a', 101), "max 100 characters",
+					ValidationErrorMessages.TextMaxLength(100));
 			}
 		}
 
 		[Theory]
-		[ClassData(typeof(MockAddressData))]
-		public void ShouldValidateAddressIncludingNullOptionaProperties(Address address)
+		[ClassData(typeof(InvalidLineData))]
+		public void ShouldInvalidateByBadLine(
+			string line, string expectedErrorMessage, string confirmErrorMessage)
 		{
-			var result = _addressValidator.Validate(address);
+			// Given
+			var invalidPropertyName = nameof(Address.Line);
+			var address = AddressValidatorFixture.MockAddress();
+			address.Line = line;
 
-			Assert.True(result.IsValid);
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
 		}
 
 		#endregion
 
-		#region Invalid
+		#region Invalid property - Line2
+
+		private class InvalidLine2Data : TheoryData<string, string, string>
+		{
+			public InvalidLine2Data()
+			{
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(new('a', 101), "max 100 characters",
+					ValidationErrorMessages.TextMaxLength(100));
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidLine2Data))]
+		public void ShouldInvalidateByBadLine2(
+			string line2, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.Line2);
+			var address = AddressValidatorFixture.MockAddress();
+			address.Line2 = line2;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region Invalid property - Type
+
+		private class InvalidTypeData : TheoryData<AddressType, string, string>
+		{
+			public InvalidTypeData()
+			{
+				Add(0, "unknown type", ValidationErrorMessages.ENUM_TYPE_UNKNOWN);
+				Add((AddressType)666, "unknown type", ValidationErrorMessages.ENUM_TYPE_UNKNOWN);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidTypeData))]
+		public void ShouldInvalidateByBadType(
+			AddressType type, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.Type);
+			var address = AddressValidatorFixture.MockAddress();
+			address.Type = type;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region Invalid property - City
+
+		private class InvalidCityData : TheoryData<string, string, string>
+		{
+			public InvalidCityData()
+			{
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(new('a', 51), "max 50 characters", ValidationErrorMessages.TextMaxLength(50));
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidCityData))]
+		public void ShouldInvalidateByBadCity(
+			string city, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.City);
+			var address = AddressValidatorFixture.MockAddress();
+			address.City = city;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region Invalid property - PostalCode
+
+		private class InvalidPostalCodeData : TheoryData<string, string, string>
+		{
+			public InvalidPostalCodeData()
+			{
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or contain whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
+				Add(" ", "cannot be empty or contain whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
+				Add(new('a', 7), "max 6 characters", ValidationErrorMessages.TextMaxLength(6));
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidPostalCodeData))]
+		public void ShouldInvalidateByBadPostalCode(
+			string postalCode, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.PostalCode);
+			var address = AddressValidatorFixture.MockAddress();
+			address.PostalCode = postalCode;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region Invalid property - State
+
+		private class InvalidStateData : TheoryData<string, string, string>
+		{
+			public InvalidStateData()
+			{
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(new('a', 21), "max 20 characters", ValidationErrorMessages.TextMaxLength(20));
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidStateData))]
+		public void ShouldInvalidateByBadState(
+			string state, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.State);
+			var address = AddressValidatorFixture.MockAddress();
+			address.State = state;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region Invalid property - Country
+
+		private class InvalidCountryData : TheoryData<string, string, string>
+		{
+			public InvalidCountryData()
+			{
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add("Japan", "allowed only 'United States', 'Canada'",
+					ValidationErrorMessages.TextAllowedValues(new[] { "United States", "Canada" }));
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(InvalidCountryData))]
+		public void ShouldInvalidateByBadCountry(
+			string country, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			// Given
+			var invalidPropertyName = nameof(Address.Country);
+			var address = AddressValidatorFixture.MockAddress();
+			address.Country = country;
+
+			// When
+			var errors = _addressValidator.Validate(address, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			// Then
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
+		}
+
+		#endregion
+
+		#region All properties
 
 		[Fact]
-		public void ShouldInvalidateAddressByRequiredPropertiesNull()
+		public void ShouldValidateFullAddressWithOptionalPropertiesNotNull()
 		{
 			// Given
 			var address = AddressValidatorFixture.MockAddress();
 
-			address.AddressLine = null;
-			address.City = null;
-			address.PostalCode = null;
-			address.State = null;
-			address.Country = null;
+			Assert.NotNull(address.Line2);
 
 			// When
-			var errors = _addressValidator.Validate(address).Errors;
+			var result = _addressValidator.Validate(address);
 
 			// Then
-			Assert.Equal(5, errors.Count);
-			Assert.Equal("Address line is required.", errors[0].ErrorMessage);
-			Assert.Equal("City is required.", errors[1].ErrorMessage);
-			Assert.Equal("Postal code is required.", errors[2].ErrorMessage);
-			Assert.Equal("State is required.", errors[3].ErrorMessage);
-			Assert.Equal("Country is required.", errors[4].ErrorMessage);
+			Assert.True(result.IsValid);
 		}
 
 		[Fact]
-		public void ShouldInvalidateAddressByWhitespace()
+		public void ShouldValidateFullAddressWithOptionalPropertiesNull()
 		{
 			// Given
-			var whitespace = " ";
-			var address = AddressValidatorFixture.MockAddress();
+			var address = AddressValidatorFixture.MockOptionalAddress();
 
-			address.AddressLine = whitespace;
-			address.AddressLine2 = whitespace;
-			address.City = whitespace;
-			address.PostalCode = whitespace;
-			address.State = whitespace;
-			address.Country = whitespace;
+			Assert.Null(address.Line2);
 
 			// When
-			var errors = _addressValidator.Validate(address).Errors;
+			var result = _addressValidator.Validate(address);
 
 			// Then
-			Assert.Equal(6, errors.Count);
-			Assert.Equal("Address line cannot be empty or whitespace.", errors[0].ErrorMessage);
-			Assert.Equal("Address line2 cannot be empty or whitespace.", errors[1].ErrorMessage);
-			Assert.Equal("City cannot be empty or whitespace.", errors[2].ErrorMessage);
-			Assert.Equal("Postal code cannot be empty or whitespace.", errors[3].ErrorMessage);
-			Assert.Equal("State cannot be empty or whitespace.", errors[4].ErrorMessage);
-			Assert.Equal("Country cannot be empty or whitespace.", errors[5].ErrorMessage);
+			Assert.True(result.IsValid);
 		}
 
 		[Fact]
-		public void ShouldInvalidateAddressByLength()
+		public void ShouldInvalidateFullAddress()
 		{
 			// Given
-			var address = AddressValidatorFixture.MockAddress();
-
-			address.AddressLine = new('a', 101);
-			address.AddressLine2 = new('a', 101);
-			address.City = new('a', 51);
-			address.PostalCode = new('a', 7);
-			address.State = new('a', 21);
+			var address = AddressValidatorFixture.MockInvalidAddress();
 
 			// When
 			var errors = _addressValidator.Validate(address).Errors;
 
 			// Then
-			Assert.Equal(5, errors.Count);
-			Assert.Equal("Address line: max 100 characters.", errors[0].ErrorMessage);
-			Assert.Equal("Address line2: max 100 characters.", errors[1].ErrorMessage);
-			Assert.Equal("City: max 50 characters.", errors[2].ErrorMessage);
-			Assert.Equal("Postal code: max 6 characters.", errors[3].ErrorMessage);
-			Assert.Equal("State: max 20 characters.", errors[4].ErrorMessage);
-		}
+			Assert.Equal(7, errors.Count);
 
-		[Fact]
-		public void ShouldInvalidateAddressByBadType()
-		{
-			// Given
-			var address = AddressValidatorFixture.MockAddress();
-
-			address.Type = (AddressType)666;
-
-			// When
-			var errors = _addressValidator.Validate(address).Errors;
-
-			// Then
-			Assert.Single(errors);
-			Assert.Equal("Unknown type.", errors[0].ErrorMessage);
-		}
-
-		[Fact]
-		public void ShouldInvalidateAddressByAllowedCountry()
-		{
-			// Given
-			var address = AddressValidatorFixture.MockAddress();
-
-			address.Country = "Japan";
-
-			// When
-			var errors = _addressValidator.Validate(address).Errors;
-
-			// Then
-			Assert.Single(errors);
-			Assert.Equal("Country: allowed only United States, Canada.", errors[0].ErrorMessage);
+			AssertValidationFailuresContainPropertyNames(errors, new[]
+			{
+				nameof(Address.Line),
+				nameof(Address.Line2),
+				nameof(Address.Type),
+				nameof(Address.City),
+				nameof(Address.PostalCode),
+				nameof(Address.State),
+				nameof(Address.Country)
+			});
 		}
 
 		#endregion
@@ -153,8 +345,8 @@ namespace CustomerLibCore.Business.Tests.Validators
 		/// (according to <see cref="AddressValidator"/>), optional properties not null.</returns>
 		public static Address MockAddress() => new()
 		{
-			AddressLine = "line",
-			AddressLine2 = "line2",
+			Line = "line",
+			Line2 = "line2",
 			Type = AddressType.Shipping,
 			City = "city",
 			PostalCode = "code",
@@ -162,12 +354,25 @@ namespace CustomerLibCore.Business.Tests.Validators
 			Country = "United States"
 		};
 
+		/// <returns>The mocked address with invalid properties 
+		/// (according to <see cref="AddressValidator"/>).</returns>
+		public static Address MockInvalidAddress() => new()
+		{
+			Line = null,
+			Line2 = "",
+			Type = 0,
+			City = null,
+			PostalCode = null,
+			State = null,
+			Country = null,
+		};
+
 		/// <returns>The mocked address with valid properties 
 		/// (according to <see cref="AddressValidator"/>), optional properties null.</returns>
 		public static Address MockOptionalAddress() => new()
 		{
-			AddressLine = "line",
-			AddressLine2 = null,
+			Line = "line",
+			Line2 = null,
 			Type = AddressType.Shipping,
 			City = "city",
 			PostalCode = "code",

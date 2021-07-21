@@ -7,16 +7,17 @@ namespace CustomerLibCore.Data.Repositories.EF
 {
 	public class AddressRepository : IAddressRepository
 	{
+		#region Private Members
+
 		private readonly CustomerLibDataContext _context;
+
+		#endregion
+
+		#region Constructors
 
 		public AddressRepository(CustomerLibDataContext context)
 		{
 			_context = context;
-		}
-
-		public AddressRepository(DbContextOptions<CustomerLibDataContext> options)
-		{
-			_context = new(options);
 		}
 
 		public AddressRepository()
@@ -24,45 +25,61 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context = new();
 		}
 
-		public bool Exists(int addressId)
-		{
-			var address = _context.Addresses.Find(addressId);
+		#endregion
 
-			return address is not null;
-		}
+		#region Public Methods
+
+		public bool Exists(int addressId) =>
+			_context.Addresses.Any(address => address.AddressId == addressId);
+
+		public bool ExistsForCustomer(int addressId, int customerId) =>
+			_context.Addresses.Any(address =>
+				address.AddressId == addressId &&
+				address.CustomerId == customerId
+			);
 
 		public int Create(Address address)
 		{
-			var created = _context.Addresses.Add(address).Entity;
+			var createdAddress = _context.Addresses.Add(address).Entity;
 
 			_context.SaveChanges();
 
-			return created.AddressId;
+			return createdAddress.AddressId;
 		}
 
-		public Address Read(int addressId)
-		{
-			var address = _context.Addresses.Find(addressId);
+		public Address Read(int addressId) =>
+			_context.Addresses.Find(addressId);
 
-			return address;
-		}
+		public Address ReadForCustomer(int addressId, int customerId)
+			=> _context.Addresses.FirstOrDefault(address =>
+				address.AddressId == addressId &&
+				address.CustomerId == customerId);
 
-		public IReadOnlyCollection<Address> ReadByCustomer(int customerId)
-		{
-			var addresses = _context.Addresses
-				.Where(address => address.CustomerId == customerId)
+		public IReadOnlyCollection<Address> ReadManyForCustomer(int customerId) =>
+			_context.Addresses.Where(address => address.CustomerId == customerId)
 				.ToArray();
-
-			return addresses;
-		}
 
 		public void Update(Address address)
 		{
-			var found = _context.Addresses.Find(address.AddressId);
+			var addressDb = _context.Addresses.Find(address.AddressId);
 
-			if (found is not null)
+			if (addressDb is not null)
 			{
-				_context.Entry(found).CurrentValues.SetValues(address);
+				_context.Entry(addressDb).CurrentValues.SetValues(address);
+
+				_context.SaveChanges();
+			}
+		}
+
+		public void UpdateForCustomer(Address address)
+		{
+			var addressDb = _context.Addresses.FirstOrDefault(repoAddress =>
+				repoAddress.AddressId == address.AddressId &&
+				repoAddress.CustomerId == address.CustomerId);
+
+			if (addressDb is not null)
+			{
+				_context.Entry(addressDb).CurrentValues.SetValues(address);
 
 				_context.SaveChanges();
 			}
@@ -70,17 +87,31 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Delete(int addressId)
 		{
-			var found = _context.Addresses.Find(addressId);
+			var address = _context.Addresses.Find(addressId);
 
-			if (found is not null)
+			if (address is not null)
 			{
-				_context.Addresses.Remove(found);
+				_context.Addresses.Remove(address);
 
 				_context.SaveChanges();
 			}
 		}
 
-		public void DeleteByCustomer(int customerId)
+		public void DeleteForCustomer(int addressId, int customerId)
+		{
+			var address = _context.Addresses.FirstOrDefault(address =>
+				address.AddressId == addressId &&
+				address.CustomerId == customerId);
+
+			if (address is not null)
+			{
+				_context.Addresses.Remove(address);
+
+				_context.SaveChanges();
+			}
+		}
+
+		public void DeleteManyForCustomer(int customerId)
 		{
 			var addresses = _context.Addresses
 				.Where(address => address.CustomerId == customerId);
@@ -106,5 +137,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 			_context.SaveChanges();
 		}
+
+		#endregion
 	}
 }

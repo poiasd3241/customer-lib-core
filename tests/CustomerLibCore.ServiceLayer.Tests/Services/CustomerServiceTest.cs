@@ -2,69 +2,88 @@
 using System.Collections.Generic;
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Business.Exceptions;
+using CustomerLibCore.Business.Validators;
 using CustomerLibCore.Data.Repositories;
 using CustomerLibCore.ServiceLayer.Services;
 using CustomerLibCore.ServiceLayer.Services.Implementations;
+using CustomerLibCore.TestHelpers;
 using Moq;
 using Xunit;
+using static CustomerLibCore.TestHelpers.FluentValidation.ValidationTestHelper;
 
 namespace CustomerLibCore.ServiceLayer.Tests.Services
 {
 	public class CustomerServiceTest
 	{
+		#region Constructors
+
 		[Fact]
-		public void ShouldCreateCustomerService()
+		public void ShouldCreateCustomerServiceDefault()
 		{
 			var customerService = new CustomerService();
 
 			Assert.NotNull(customerService);
 		}
 
-		#region Exists
-
-		public class ExistsByIdData : TheoryData<int, bool>
-		{
-			public ExistsByIdData()
-			{
-				Add(1, true);
-				Add(2, false);
-			}
-		}
-
-		[Theory]
-		[ClassData(typeof(ExistsByIdData))]
-		public void ShouldCheckIfCustomerExistsById(int customerId, bool existsExpected)
-		{
-			// Given
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(existsExpected);
-
-			var service = fixture.CreateService();
-
-			// When
-			var exists = service.Exists(customerId);
-
-			// Then
-			Assert.Equal(existsExpected, exists);
-			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
-		}
-
 		[Fact]
-		public void ShouldThrowOnCheckIfCustomerExistsByBadId()
+		public void ShouldCreateCustomerService()
 		{
-			// Given
-			var service = new CustomerServiceFixture().CreateService();
+			var mockCustomerRepository = new StrictMock<ICustomerRepository>();
 
-			// When
-			var exception = Assert.Throws<ArgumentException>(() => service.Exists(0));
+			var mockAddressRepository = new StrictMock<IAddressRepository>();
+			var mockNoteRepository = new StrictMock<INoteRepository>();
 
-			// Then
-			Assert.Equal("customerId", exception.ParamName);
+			var customerService = new CustomerService(mockCustomerRepository.Object,
+				mockAddressRepository.Object, mockNoteRepository.Object);
+
+			Assert.NotNull(customerService);
 		}
 
 		#endregion
 
 		#region Save
+
+		[Fact]
+		public void ShouldThrowOnSaveWhenProvidedInvalidCustomerIncludingAddressesAndNotes()
+		{
+			// Given
+			var invalidCustomer = new Customer();
+
+			var expectedErrors = new CustomerValidator().ValidateFull(invalidCustomer).Errors;
+
+			var service = new CustomerServiceFixture().CreateService();
+
+			// When
+			var actualErrors = Assert.Throws<InternalValidationException>(() =>
+				service.Save(invalidCustomer)).Errors;
+
+			// Then
+			AssertValidationFailuresEqualByPropertyNameAndErrorMessage(
+				expectedErrors, actualErrors, 3);
+			AssertValidationFailuresContainPropertyNames(actualErrors, new[] {
+				nameof(Customer.LastName),
+				nameof(Customer.Addresses),
+				nameof(Customer.Notes) });
+		}
+
+		[Fact]
+		public void ShouldThrowOnSaveWhenEmailTaken()
+		{
+			// Given
+			var customer = CustomerServiceFixture.MockCustomer();
+			var email = customer.Email;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.IsEmailTaken(email)).Returns(true);
+
+			var service = fixture.CreateService();
+
+			// When
+			Assert.Throws<EmailTakenException>(() => service.Save(customer));
+
+			// Then
+			fixture.MockCustomerRepository.Verify(r => r.IsEmailTaken(email), Times.Once);
+		}
 
 		[Fact]
 		public void ShouldSave()
@@ -77,16 +96,8 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 
 			var fixture = new CustomerServiceFixture();
 			fixture.MockCustomerRepository.Setup(r => r.IsEmailTaken(email)).Returns(false);
-			fixture.MockCustomerRepository.Setup(r => r.Create(customer)).Returns(createdCustomerId);
-
-			var address = customer.Addresses[0];
-			address.CustomerId = createdCustomerId;
-
-			var note = customer.Notes[0];
-			note.CustomerId = createdCustomerId;
-
-			fixture.MockAddressService.Setup(s => s.Save(address)).Returns(true);
-			fixture.MockNoteService.Setup(s => s.Save(note)).Returns(true);
+			fixture.MockCustomerRepository.Setup(r => r.Create(customer))
+				.Returns(createdCustomerId);
 
 			var service = fixture.CreateService();
 
@@ -94,232 +105,236 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 			service.Save(customer);
 
 			// Then
+			fixture.MockCustomerRepository.Verify(r => r.IsEmailTaken(email), Times.Once);
 			fixture.MockCustomerRepository.Verify(r => r.Create(customer), Times.Once);
-			fixture.MockCustomerRepository.Verify(r => r.IsEmailTaken(email), Times.Once);
-			fixture.MockAddressService.Verify(s => s.Save(address), Times.Once);
-			fixture.MockNoteService.Verify(s => s.Save(note), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldThrowOnSaveByBadCustomer()
-		{
-			var service = new CustomerServiceFixture().CreateService();
-
-			Assert.Throws<EntityValidationException>(() => service.Save(new Customer()));
-		}
-
-		[Fact]
-		public void ShouldThrowOnSaveByEmailTaken()
-		{
-			// Given
-			var customer = CustomerServiceFixture.MockCustomer();
-			var email = customer.Email;
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.IsEmailTaken(email)).Returns(true);
-
-			var service = fixture.CreateService();
-
-			// When
-			var exception = Assert.Throws<EmailTakenException>(() => service.Save(customer));
-
-			// Then
-			Assert.Equal(email, exception.Message);
-			fixture.MockCustomerRepository.Verify(r => r.IsEmailTaken(email), Times.Once);
 		}
 
 		#endregion
 
-		#region Get by Id
+		#region Get single
+
+		[Fact]
+		public void ShouldThrowOnGetWhenProvidedBadId()
+		{
+			// Given
+			var badCustomerId = 0;
+			bool includeAddresses = default;
+			bool includeNotes = default;
+
+			var service = new CustomerServiceFixture().CreateService();
+
+			// When
+			var exception = Assert.Throws<ArgumentException>(() =>
+				service.Get(badCustomerId, includeAddresses, includeNotes));
+
+			// Then
+			Assert.Equal("customerId", exception.ParamName);
+		}
+
+		[Fact]
+		public void ShouldThrowOnGetWhenCustomerNotFound()
+		{
+			// Given
+			var customerId = 5;
+			bool includeAddresses = default;
+			bool includeNotes = default;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.Read(customerId)).Returns(() => null);
+
+			var service = fixture.CreateService();
+
+			// When
+			Assert.Throws<NotFoundException>(() =>
+				service.Get(customerId, includeAddresses, includeNotes));
+
+			// Then
+			fixture.MockCustomerRepository.Verify(r => r.Read(customerId), Times.Once);
+		}
 
 		public class AddressesAndNotesData : TheoryData<List<Address>, List<Note>>
 		{
 			public AddressesAndNotesData()
 			{
-				Add(new() { AddressServiceFixture.MockAddress() },
-					new() { NoteServiceFixture.MockNote() });
+				Add(new() { new() }, new() { new() });
 				Add(new(), new());
 			}
 		}
 
 		[Theory]
 		[ClassData(typeof(AddressesAndNotesData))]
-		public void ShouldGetCustomerByIdWithAddressesAndNotes(
+		public void ShouldGetWithAddressesAndNotes(
 			List<Address> addresses, List<Note> notes)
 		{
 			// Given
 			var customerId = 5;
-			var customer = CustomerServiceFixture.MockCustomer();
+			var repoCustomer = CustomerServiceFixture.MockCustomer();
+			repoCustomer.CustomerId = customerId;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.Read(customerId)).Returns(repoCustomer);
+
+			fixture.MockAddressRepository.Setup(s => s.ReadManyForCustomer(customerId))
+				.Returns(addresses);
+			fixture.MockNoteRepository.Setup(s => s.ReadManyForCustomer(customerId)).Returns(notes);
+
+
+			var expectedCustomer = CustomerServiceFixture.MockCustomer();
+			expectedCustomer.CustomerId = customerId;
+			expectedCustomer.Addresses = addresses;
+			expectedCustomer.Notes = notes;
+
+			var service = fixture.CreateService();
+
+			// When
+			var actualCustomer = service.Get(customerId, true, true);
+
+			// Then
+			Assert.True(expectedCustomer.EqualsByValue(actualCustomer));
+
+			fixture.MockCustomerRepository.Verify(r => r.Read(customerId), Times.Once);
+			fixture.MockAddressRepository.Verify(r => r.ReadManyForCustomer(customerId), Times.Once);
+			fixture.MockNoteRepository.Verify(r => r.ReadManyForCustomer(customerId), Times.Once);
+		}
+
+		[Fact]
+		public void ShouldGetWithoutAddressesAndNotes()
+		{
+			// Given
+			var customerId = 5;
+			var customer = CustomerServiceFixture.MockRepoCustomer();
 			customer.CustomerId = customerId;
-			customer.Addresses = addresses;
-			customer.Notes = notes;
 
 			var fixture = new CustomerServiceFixture();
 			fixture.MockCustomerRepository.Setup(r => r.Read(customerId)).Returns(customer);
 
-			fixture.MockAddressService.Setup(s => s.FindByCustomer(customerId)).Returns(addresses);
-			fixture.MockNoteService.Setup(s => s.FindByCustomer(customerId)).Returns(notes);
-
 			var service = fixture.CreateService();
 
 			// When
-			var actualCustomer = service.Get(customer.CustomerId, true, true);
+			var actualCustomer = service.Get(customerId, false, false);
 
 			// Then
 			Assert.Equal(customer, actualCustomer);
+
 			fixture.MockCustomerRepository.Verify(r => r.Read(customerId), Times.Once);
-			fixture.MockAddressService.Verify(s => s.FindByCustomer(customerId), Times.Once);
-			fixture.MockNoteService.Verify(s => s.FindByCustomer(customerId), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldGetCustomerByIdWithoutAddressesAndNotes()
-		{
-			// Given
-			var expectedCustomer = CustomerServiceFixture.MockRepoCustomer();
-			expectedCustomer.CustomerId = 1;
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Read(1)).Returns(expectedCustomer);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customer = service.Get(1, false, false);
-
-			// Then
-			Assert.Equal(expectedCustomer, customer);
-			fixture.MockCustomerRepository.Verify(r => r.Read(1), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldGetNullCustomer()
-		{
-			// Given
-			var customerId = 5;
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Read(customerId)).Returns((Customer)null);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customer = service.Get(customerId, true, true);
-
-			// Then
-			Assert.Null(customer);
-			fixture.MockCustomerRepository.Verify(r => r.Read(customerId), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldThrowOnGetCustomerByBadId()
-		{
-			var service = new CustomerServiceFixture().CreateService();
-
-			var exception = Assert.Throws<ArgumentException>(() => service.Get(0, false, false));
-
-			Assert.Equal("customerId", exception.ParamName);
 		}
 
 		#endregion
 
-		#region Get all
-
-		[Theory]
-		[ClassData(typeof(AddressesAndNotesData))]
-		public void ShouldGetAllCustomersWithAddressesAndNotes(
-			List<Address> addresses, List<Note> notes)
-		{
-			// Given
-			var repoCustomers = new List<Customer>()
-			{
-				CustomerServiceFixture.MockRepoCustomer(),
-				CustomerServiceFixture.MockRepoCustomer()
-			};
-
-			repoCustomers[0].CustomerId = 5;
-			repoCustomers[1].CustomerId = 7;
-
-			var expectedCustomers = new List<Customer>(repoCustomers);
-
-			foreach (var customer in expectedCustomers)
-			{
-				customer.Addresses = addresses;
-				customer.Notes = notes;
-			}
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.ReadAll()).Returns(repoCustomers);
-			fixture.MockAddressService.Setup(s => s.FindByCustomer(5)).Returns(addresses);
-			fixture.MockAddressService.Setup(s => s.FindByCustomer(7)).Returns(addresses);
-			fixture.MockNoteService.Setup(s => s.FindByCustomer(5)).Returns(notes);
-			fixture.MockNoteService.Setup(s => s.FindByCustomer(7)).Returns(notes);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customers = service.GetAll(true, true);
-
-			// Then
-			Assert.Equal(expectedCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.ReadAll(), Times.Once);
-			fixture.MockAddressService.Verify(s => s.FindByCustomer(5), Times.Once);
-			fixture.MockAddressService.Verify(s => s.FindByCustomer(7), Times.Once);
-			fixture.MockNoteService.Verify(s => s.FindByCustomer(5), Times.Once);
-			fixture.MockNoteService.Verify(s => s.FindByCustomer(7), Times.Once);
-		}
+		#region Find all
 
 		[Fact]
-		public void ShouldGetAllCustomersWithoutAddressesAndNotes()
-		{
-			// Given
-			var repoCustomers = new List<Customer>()
-			{
-				CustomerServiceFixture.MockRepoCustomer(),
-				CustomerServiceFixture.MockRepoCustomer()
-			};
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.ReadAll()).Returns(repoCustomers);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customers = service.GetAll(false, false);
-
-			// Then
-			Assert.Equal(repoCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.ReadAll(), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldGetAllCustomersEmpty()
+		public void ShouldFildAllWhenEmpty()
 		{
 			// Given
 			var expectedCustomers = new List<Customer>();
+
+			bool includeAddresses = default;
+			bool includeNotes = default;
+
 			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.ReadAll()).Returns(expectedCustomers);
+			fixture.MockCustomerRepository.Setup(r => r.ReadMany()).Returns(expectedCustomers);
 
 			var service = fixture.CreateService();
 
 			// When
-			var customers = service.GetAll(false, false);
+			var customers = service.FindAll(includeAddresses, includeNotes);
 
 			// Then
 			Assert.Equal(expectedCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.ReadAll(), Times.Once);
+			fixture.MockCustomerRepository.Verify(r => r.ReadMany(), Times.Once);
+		}
+
+		[Theory]
+		[ClassData(typeof(AddressesAndNotesData))]
+		public void ShouldFindAllsWithAddressesAndNotes(
+			List<Address> addresses, List<Note> notes)
+		{
+			// Given
+			var customerId1 = 5;
+			var customerId2 = 7;
+
+			var repoCustomers = new List<Customer>()
+			{
+				new() { CustomerId = customerId1 },
+				new() { CustomerId = customerId2 }
+			};
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.ReadMany()).Returns(repoCustomers);
+
+			var addresses1 = addresses;
+			var addresses2 = new List<Address>(addresses);
+			Assert.NotSame(addresses1, addresses2);
+
+			fixture.MockAddressRepository.Setup(r => r.ReadManyForCustomer(customerId1))
+				.Returns(addresses1);
+			fixture.MockAddressRepository.Setup(r => r.ReadManyForCustomer(customerId2))
+				.Returns(addresses2);
+
+			var notes1 = notes;
+			var notes2 = new List<Note>(notes);
+			Assert.NotSame(notes1, notes2);
+
+			fixture.MockNoteRepository.Setup(r => r.ReadManyForCustomer(customerId1))
+				.Returns(notes1);
+			fixture.MockNoteRepository.Setup(r => r.ReadManyForCustomer(customerId2))
+				.Returns(notes2);
+
+			var expectedCustomers = new List<Customer>(repoCustomers);
+
+			expectedCustomers[0].Addresses = addresses1;
+			expectedCustomers[1].Addresses = addresses2;
+
+			expectedCustomers[0].Notes = notes1;
+			expectedCustomers[1].Notes = notes2;
+
+			var service = fixture.CreateService();
+
+			// When
+			var actualCustomers = service.FindAll(true, true);
+
+			// Then
+			Assert.Equal(expectedCustomers, actualCustomers);
+
+			fixture.MockCustomerRepository.Verify(r => r.ReadMany(), Times.Once);
+
+			fixture.MockAddressRepository.Verify(r => r.ReadManyForCustomer(customerId1), Times.Once);
+			fixture.MockAddressRepository.Verify(r => r.ReadManyForCustomer(customerId2), Times.Once);
+
+			fixture.MockNoteRepository.Verify(r => r.ReadManyForCustomer(customerId1), Times.Once);
+			fixture.MockNoteRepository.Verify(r => r.ReadManyForCustomer(customerId2), Times.Once);
+		}
+
+		[Fact]
+		public void ShouldFindAllWithoutAddressesAndNotes()
+		{
+			// Given
+			var repoCustomers = new List<Customer>() { new() };
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.ReadMany()).Returns(repoCustomers);
+
+			var service = fixture.CreateService();
+
+			// When
+			var customers = service.FindAll(false, false);
+
+			// Then
+			Assert.Equal(repoCustomers, customers);
+			fixture.MockCustomerRepository.Verify(r => r.ReadMany(), Times.Once);
 		}
 
 		#endregion
 
 		#region Get count
 
-		[Fact]
-		public void ShouldGetTotalCustomersCount()
+		[Theory]
+		[InlineData(0)]
+		[InlineData(5)]
+		public void ShouldGetTotalCustomersCount(int expectedCount)
 		{
 			// Given
-			var expectedCount = 5;
-
 			var fixture = new CustomerServiceFixture();
 			fixture.MockCustomerRepository.Setup(r => r.GetCount()).Returns(expectedCount);
 
@@ -338,147 +353,177 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 		#region Get page
 
 		[Theory]
-		[ClassData(typeof(AddressesAndNotesData))]
-		public void ShouldGetPageWithAddressesAndNotes(List<Address> addresses, List<Note> notes)
+		[InlineData(0, 1, "page")]
+		[InlineData(1, 0, "pageSize")]
+		public void ShouldThrowOnGetPageWhenProvidedBadArguments(
+		int page, int pageSize, string paramName)
 		{
-			// Given
-			var page = 2;
-			var pageSize = 10;
+			var service = new CustomerServiceFixture().CreateService();
 
-			var repoCustomers = new List<Customer>()
-			{
-				CustomerServiceFixture.MockRepoCustomer(),
-				CustomerServiceFixture.MockRepoCustomer()
-			};
+			var exception = Assert.Throws<ArgumentException>(() =>
+				service.GetPage(page, pageSize, false, false));
 
-			repoCustomers[0].CustomerId = 5;
-			repoCustomers[1].CustomerId = 7;
-
-			var expectedCustomers = new List<Customer>(repoCustomers);
-
-			foreach (var customer in expectedCustomers)
-			{
-				customer.Addresses = addresses;
-				customer.Notes = notes;
-			}
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
-				.Returns(repoCustomers);
-			fixture.MockAddressService.Setup(s => s.FindByCustomer(5)).Returns(addresses);
-			fixture.MockAddressService.Setup(s => s.FindByCustomer(7)).Returns(addresses);
-			fixture.MockNoteService.Setup(s => s.FindByCustomer(5)).Returns(notes);
-			fixture.MockNoteService.Setup(s => s.FindByCustomer(7)).Returns(notes);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customers = service.GetPage(page, pageSize, true, true);
-
-			// Then
-			Assert.Equal(expectedCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
-			fixture.MockAddressService.Verify(s => s.FindByCustomer(5), Times.Once);
-			fixture.MockAddressService.Verify(s => s.FindByCustomer(7), Times.Once);
-			fixture.MockNoteService.Verify(s => s.FindByCustomer(5), Times.Once);
-			fixture.MockNoteService.Verify(s => s.FindByCustomer(7), Times.Once);
+			Assert.Equal(paramName, exception.ParamName);
 		}
 
 		[Fact]
-		public void ShouldGetPageWithoutAddressesAndNotes()
+		public void ShouldThrowOnGetPageWhenRequestedPageIsInvalidForItems()
 		{
 			// Given
 			var page = 2;
 			var pageSize = 10;
 
-			var repoCustomers = new List<Customer>()
-			{
-				CustomerServiceFixture.MockRepoCustomer(),
-				CustomerServiceFixture.MockRepoCustomer()
-			};
+			bool includeAddresses = default;
+			bool includeNotes = default;
+
+			var expectedCustomers = new List<Customer>();
 
 			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
-				.Returns(repoCustomers);
-
-			var service = fixture.CreateService();
-
-			// When
-			var customers = service.GetPage(page, pageSize, false, false);
-
-			// Then
-			Assert.Equal(repoCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldGetPageWithTotalCustomersCountCheck()
-		{
-			// Given
-			var page = 2;
-			var pageSize = 10;
-			var total = 0;
-			List<Customer> expectedCustomers = new();
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.GetCount()).Returns(total);
 			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
 				.Returns(expectedCustomers);
 
 			var service = fixture.CreateService();
 
 			// When
-			var customers = service.GetPage(page, pageSize, true, true, checkTotalSame: true,
-				expectedTotal: total);
+			var exception = Assert.Throws<PagedRequestInvalidException>(() =>
+				service.GetPage(page, pageSize, includeAddresses, includeNotes));
 
 			// Then
-			Assert.Equal(expectedCustomers, customers);
-			fixture.MockCustomerRepository.Verify(r => r.GetCount(), Times.Once);
+			Assert.Equal(page, exception.Page);
+			Assert.Equal(pageSize, exception.PageSize);
+
 			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
 		}
 
 		[Fact]
-		public void ShouldThrowOnGetPageByTotalCustomersCountChanged()
+		public void ShouldGetPageEmptyWhenNotFoundForFirstPage()
 		{
 			// Given
-			var page = 2;
+			var page = 1;
 			var pageSize = 10;
-			var expectedTotal = 0;
-			var actualTotal = 5;
+
+			bool includeAddresses = default;
+			bool includeNotes = default;
+
+			var expectedCustomers = new List<Customer>();
 
 			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.GetCount()).Returns(actualTotal);
+			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
+				.Returns(expectedCustomers);
 
 			var service = fixture.CreateService();
 
-			// When, Then
-			Assert.Throws<DataChangedWhileProcessingException>(() =>
-				service.GetPage(page, pageSize, true, true, checkTotalSame: true, expectedTotal));
+			// When
+			var result = service.GetPage(page, pageSize, includeAddresses, includeNotes);
 
+			// Then
+			Assert.Equal(expectedCustomers, result.Items);
+			Assert.Equal(page, result.Page);
+			Assert.Equal(pageSize, result.PageSize);
+			Assert.Equal(0, result.TotalCount);
+
+			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
+		}
+
+		[Fact]
+		public void ShouldGetPageNotEmptyWithoutAddressesAndNotes()
+		{
+			// Given
+			var page = 5;
+			var pageSize = 7;
+			var totalCount = 30;
+
+			var expectedCustomers = new List<Customer>() { new(), new() };
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
+				.Returns(expectedCustomers);
+			fixture.MockCustomerRepository.Setup(r => r.GetCount()).Returns(totalCount);
+
+			var service = fixture.CreateService();
+
+			// When
+			var result = service.GetPage(page, pageSize, false, false);
+
+			// Then
+			Assert.Equal(expectedCustomers, result.Items);
+			Assert.Equal(page, result.Page);
+			Assert.Equal(pageSize, result.PageSize);
+			Assert.Equal(totalCount, result.TotalCount);
+
+			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
 			fixture.MockCustomerRepository.Verify(r => r.GetCount(), Times.Once);
 		}
 
-		public class GetPageArgumentsData : TheoryData<int, int, int, string>
-		{
-			public GetPageArgumentsData()
-			{
-				Add(0, 1, 0, "page");
-				Add(1, 0, 0, "pageSize");
-				Add(1, 1, -1, "expectedTotal");
-			}
-		}
-
 		[Theory]
-		[ClassData(typeof(GetPageArgumentsData))]
-		public void ShouldThrowOnGetPageByBadArguments(
-			int page, int pageSize, int expectedTotal, string paramName)
+		[ClassData(typeof(AddressesAndNotesData))]
+		public void ShouldGetPageNotEmptyWithAddressesAndNotes
+			(List<Address> addresses, List<Note> notes)
 		{
-			var service = new CustomerServiceFixture().CreateService();
+			// Given
+			var page = 5;
+			var pageSize = 7;
+			var totalCount = 30;
 
-			var exception = Assert.Throws<ArgumentException>(() =>
-				service.GetPage(page, pageSize, false, false, checkTotalSame: true, expectedTotal));
+			var customerId1 = 5;
+			var customerId2 = 7;
 
-			Assert.Equal(paramName, exception.ParamName);
+			var repoCustomers = new List<Customer>()
+			{
+				new() { CustomerId = customerId1 },
+				new() { CustomerId = customerId2 }
+			};
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.ReadPage(page, pageSize))
+				.Returns(repoCustomers);
+			fixture.MockCustomerRepository.Setup(r => r.GetCount()).Returns(totalCount);
+
+			var addresses1 = addresses;
+			var addresses2 = new List<Address>(addresses);
+			Assert.NotSame(addresses1, addresses2);
+
+			fixture.MockAddressRepository.Setup(r => r.ReadManyForCustomer(customerId1))
+				.Returns(addresses1);
+			fixture.MockAddressRepository.Setup(r => r.ReadManyForCustomer(customerId2))
+				.Returns(addresses2);
+
+			var notes1 = notes;
+			var notes2 = new List<Note>(notes);
+			Assert.NotSame(notes1, notes2);
+
+			fixture.MockNoteRepository.Setup(r => r.ReadManyForCustomer(customerId1))
+				.Returns(notes1);
+			fixture.MockNoteRepository.Setup(r => r.ReadManyForCustomer(customerId2))
+				.Returns(notes2);
+
+			var expectedCustomers = new List<Customer>(repoCustomers);
+
+			expectedCustomers[0].Addresses = addresses1;
+			expectedCustomers[1].Addresses = addresses2;
+
+			expectedCustomers[0].Notes = notes1;
+			expectedCustomers[1].Notes = notes2;
+
+			var service = fixture.CreateService();
+
+			// When
+			var result = service.GetPage(page, pageSize, true, true);
+
+			// Then
+			Assert.Equal(expectedCustomers, result.Items);
+			Assert.Equal(page, result.Page);
+			Assert.Equal(pageSize, result.PageSize);
+			Assert.Equal(totalCount, result.TotalCount);
+
+			fixture.MockCustomerRepository.Verify(r => r.ReadPage(page, pageSize), Times.Once);
+			fixture.MockCustomerRepository.Verify(r => r.GetCount(), Times.Once);
+
+			fixture.MockAddressRepository.Verify(r => r.ReadManyForCustomer(customerId1), Times.Once);
+			fixture.MockAddressRepository.Verify(r => r.ReadManyForCustomer(customerId2), Times.Once);
+
+			fixture.MockNoteRepository.Verify(r => r.ReadManyForCustomer(customerId1), Times.Once);
+			fixture.MockNoteRepository.Verify(r => r.ReadManyForCustomer(customerId2), Times.Once);
 		}
 
 		#endregion
@@ -486,10 +531,99 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 		#region Update
 
 		[Fact]
+		public void ShouldThrowOnUpdateWhenProvidedBadId()
+		{
+			// Given
+			var badCustomerId = 0;
+
+			var service = new CustomerServiceFixture().CreateService();
+
+			// When
+			var exception = Assert.Throws<ArgumentException>(() =>
+				service.Update(new() { CustomerId = badCustomerId }));
+
+			// Then
+			Assert.Equal("CustomerId", exception.ParamName);
+		}
+
+		[Fact]
+		public void ShouldThrowOnUpdateWhenProvidedInvalidCustomerExcludingAddressesAndNotes()
+		{
+			// Given
+			var customerId = 5;
+			var invalidCustomer = new Customer() { CustomerId = customerId };
+
+			var expectedErrors = new CustomerValidator()
+				.ValidateWithoutAddressesAndNotes(invalidCustomer).Errors;
+
+			var service = new CustomerServiceFixture().CreateService();
+
+			// When
+			var actualErrors = Assert.Throws<InternalValidationException>(() =>
+				service.Update(invalidCustomer)).Errors;
+
+			// Then
+			AssertValidationFailuresEqualByPropertyNameAndErrorMessage(
+				expectedErrors, actualErrors, 1);
+			AssertValidationFailuresContainPropertyNames(actualErrors,
+				new[] { nameof(Customer.LastName) });
+
+		}
+
+		[Fact]
+		public void ShouldThrowOnUpdateWhenCustomerNotFound()
+		{
+			// Given
+			var customerId = 5;
+
+			var customer = CustomerServiceFixture.MockCustomer();
+			customer.CustomerId = customerId;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(false);
+
+			var service = fixture.CreateService();
+
+			// When
+			Assert.Throws<NotFoundException>(() => service.Update(customer));
+
+			// Then
+			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
+		}
+
+		[Fact]
+		public void ShouldThrowOnUpdateByEmailTakenByOtherCustomer()
+		{
+			// Given
+			var customerId = 5;
+			var takenById = 666;
+
+			var customer = CustomerServiceFixture.MockCustomer();
+			customer.CustomerId = customerId;
+			var email = customer.Email;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(true);
+			fixture.MockCustomerRepository.Setup(r => r.IsEmailTakenWithCustomerId(email))
+				.Returns((true, takenById));
+
+			var service = fixture.CreateService();
+
+			// When
+			Assert.Throws<EmailTakenException>(() => service.Update(customer));
+
+			// Then
+			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
+			fixture.MockCustomerRepository.Verify(r => r.IsEmailTakenWithCustomerId(email),
+				Times.Once);
+		}
+
+		[Fact]
 		public void ShouldUpdateCustomer()
 		{
 			// Given
 			var customerId = 5;
+
 			var customer = CustomerServiceFixture.MockCustomer();
 			customer.CustomerId = customerId;
 			var email = customer.Email;
@@ -503,69 +637,13 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 			var service = fixture.CreateService();
 
 			// When
-			var result = service.Update(customer);
+			service.Update(customer);
 
 			// Then
-			Assert.True(result);
 			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
 			fixture.MockCustomerRepository.Verify(r => r.IsEmailTakenWithCustomerId(email),
 				Times.Once);
 			fixture.MockCustomerRepository.Verify(r => r.Update(customer), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldNotUpdateNotFoundCustomer()
-		{
-			// Given
-			var customerId = 5;
-			var customer = CustomerServiceFixture.MockCustomer();
-			customer.CustomerId = customerId;
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(false);
-
-			var service = fixture.CreateService();
-
-			// When
-			var result = service.Update(customer);
-
-			// Then
-			Assert.False(result);
-			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
-		}
-
-		[Fact]
-		public void ShouldThrowOnUpdateByEmailTakenByOtherCustomer()
-		{
-			// Given
-			var customerId = 5;
-			var customer = CustomerServiceFixture.MockCustomer();
-			customer.CustomerId = customerId;
-			var email = customer.Email;
-
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(true);
-			fixture.MockCustomerRepository.Setup(r => r.IsEmailTakenWithCustomerId(email))
-				.Returns((true, 3241));
-
-			var service = fixture.CreateService();
-
-			// When
-			var exception = Assert.Throws<EmailTakenException>(() => service.Update(customer));
-
-			// Then
-			Assert.Equal(email, exception.Message);
-			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
-			fixture.MockCustomerRepository.Verify(r => r.IsEmailTakenWithCustomerId(email),
-				Times.Once);
-		}
-
-		[Fact]
-		public void ShouldThrowOnUpdateByBadCustomer()
-		{
-			var service = new CustomerServiceFixture().CreateService();
-
-			Assert.Throws<EntityValidationException>(() => service.Update(new Customer()));
 		}
 
 		#endregion
@@ -573,30 +651,22 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 		#region Delete
 
 		[Fact]
-		public void ShouldDeleteCustomer()
+		public void ShouldThrowOnDeleteWhenProvidedBadId()
 		{
 			// Given
-			var customerId = 5;
+			var badCustomerId = 0;
 
-			var fixture = new CustomerServiceFixture();
-			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(true);
-			fixture.MockCustomerRepository.Setup(r => r.Delete(customerId));
-			fixture.MockAddressService.Setup(s => s.DeleteByCustomer(customerId));
-
-			var service = fixture.CreateService();
+			var service = new CustomerServiceFixture().CreateService();
 
 			// When
-			var result = service.Delete(customerId);
+			var exception = Assert.Throws<ArgumentException>(() => service.Delete(badCustomerId));
 
 			// Then
-			Assert.True(result);
-			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
-			fixture.MockAddressService.Verify(s => s.DeleteByCustomer(customerId), Times.Once);
-			fixture.MockCustomerRepository.Verify(r => r.Delete(customerId), Times.Once);
+			Assert.Equal("customerId", exception.ParamName);
 		}
 
 		[Fact]
-		public void ShouldNotDeleteNotFoundCustomer()
+		public void ShouldThrowOnDeleteWhenCustomerNotFound()
 		{
 			// Given
 			var customerId = 5;
@@ -607,24 +677,37 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 			var service = fixture.CreateService();
 
 			// When
-			var result = service.Delete(customerId);
+			Assert.Throws<NotFoundException>(() => service.Delete(customerId));
 
 			// Then
-			Assert.False(result);
 			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
 		}
 
 		[Fact]
-		public void ShouldThrowOnDeleteByBadId()
+		public void ShouldDeleteIncludingAddressesAndNotes()
 		{
 			// Given
-			var service = new CustomerServiceFixture().CreateService();
+			var customerId = 5;
+
+			var fixture = new CustomerServiceFixture();
+			fixture.MockCustomerRepository.Setup(r => r.Exists(customerId)).Returns(true);
+			fixture.MockCustomerRepository.Setup(r => r.Delete(customerId));
+
+			fixture.MockAddressRepository.Setup(r => r.DeleteManyForCustomer(customerId));
+			fixture.MockNoteRepository.Setup(r => r.DeleteManyForCustomer(customerId));
+
+			var service = fixture.CreateService();
 
 			// When
-			var exception = Assert.Throws<ArgumentException>(() => service.Delete(0));
+			service.Delete(customerId);
 
 			// Then
-			Assert.Equal("customerId", exception.ParamName);
+			fixture.MockCustomerRepository.Verify(r => r.Exists(customerId), Times.Once);
+			fixture.MockCustomerRepository.Verify(r => r.Delete(customerId), Times.Once);
+
+			fixture.MockAddressRepository.Verify(r => r.DeleteManyForCustomer(customerId),
+				Times.Once);
+			fixture.MockNoteRepository.Verify(r => r.DeleteManyForCustomer(customerId), Times.Once);
 		}
 
 		#endregion
@@ -632,41 +715,41 @@ namespace CustomerLibCore.ServiceLayer.Tests.Services
 
 	public class CustomerServiceFixture
 	{
-		public Mock<ICustomerRepository> MockCustomerRepository { get; set; }
-		public Mock<IAddressService> MockAddressService { get; set; }
-		public Mock<INoteService> MockNoteService { get; set; }
+		public StrictMock<ICustomerRepository> MockCustomerRepository { get; set; }
+		public StrictMock<IAddressRepository> MockAddressRepository { get; set; }
+		public StrictMock<INoteRepository> MockNoteRepository { get; set; }
 		public CustomerServiceFixture()
 		{
-			MockCustomerRepository = new(MockBehavior.Strict);
-			MockAddressService = new(MockBehavior.Strict);
-			MockNoteService = new(MockBehavior.Strict);
+			MockCustomerRepository = new();
+			MockAddressRepository = new();
+			MockNoteRepository = new();
 		}
 
 		public CustomerService CreateService() => new(MockCustomerRepository.Object,
-			MockAddressService.Object, MockNoteService.Object);
+			MockAddressRepository.Object, MockNoteRepository.Object);
 
 		/// <returns>The mocked customer with repo-relevant properties
 		/// with valid addresses and notes. Optional properties not null.</returns>
-		public static Customer MockCustomer(string email = "john@doe.com") => new()
+		public static Customer MockCustomer() => new()
 		{
 			FirstName = "a",
 			LastName = "a",
 			Addresses = new() { AddressServiceFixture.MockAddress() },
 			PhoneNumber = "+123",
-			Email = email,
+			Email = "a@a.aa",
 			Notes = new() { NoteServiceFixture.MockNote() },
 			TotalPurchasesAmount = 123,
 		};
 
 		/// <returns>The mocked customer with repo-relevant properties 
 		/// with null addresses and notes. Optional properties not null.</returns>
-		public static Customer MockRepoCustomer(string email = "john@doe.com") => new()
+		public static Customer MockRepoCustomer() => new()
 		{
 			FirstName = "a",
 			LastName = "a",
 			Addresses = null,
 			PhoneNumber = "+123",
-			Email = email,
+			Email = "a@a.aa",
 			Notes = null,
 			TotalPurchasesAmount = 123,
 		};

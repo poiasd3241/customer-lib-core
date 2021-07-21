@@ -15,8 +15,8 @@ namespace CustomerLibCore.Business.Tests.Entities
 
 			Assert.Equal(0, address.AddressId);
 			Assert.Equal(0, address.CustomerId);
-			Assert.Null(address.AddressLine);
-			Assert.Null(address.AddressLine2);
+			Assert.Null(address.Line);
+			Assert.Null(address.Line2);
 			Assert.Equal(0, (int)address.Type);
 			Assert.Null(address.City);
 			Assert.Null(address.PostalCode);
@@ -34,8 +34,8 @@ namespace CustomerLibCore.Business.Tests.Entities
 
 			address.AddressId = 1;
 			address.CustomerId = 1;
-			address.AddressLine = text;
-			address.AddressLine2 = text;
+			address.Line = text;
+			address.Line2 = text;
 			address.Type = type;
 			address.City = text;
 			address.PostalCode = text;
@@ -44,8 +44,8 @@ namespace CustomerLibCore.Business.Tests.Entities
 
 			Assert.Equal(1, address.AddressId);
 			Assert.Equal(1, address.CustomerId);
-			Assert.Equal(text, address.AddressLine);
-			Assert.Equal(text, address.AddressLine2);
+			Assert.Equal(text, address.Line);
+			Assert.Equal(text, address.Line2);
 			Assert.Equal(type, address.Type);
 			Assert.Equal(text, address.City);
 			Assert.Equal(text, address.PostalCode);
@@ -230,8 +230,8 @@ namespace CustomerLibCore.Business.Tests.Entities
 		{
 			AddressId = 5,
 			CustomerId = 8,
-			AddressLine = "one",
-			AddressLine2 = "two",
+			Line = "one",
+			Line2 = "two",
 			Type = AddressType.Shipping,
 			City = "Seattle",
 			PostalCode = "123456",

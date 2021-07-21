@@ -13,7 +13,8 @@ namespace CustomerLibCore.Data.Repositories
 
 		/// <returns>An empty collection if no customers found; 
 		/// otherwise, the found customers.</returns>
-		IReadOnlyCollection<Customer> ReadAll();
+		IReadOnlyCollection<Customer> ReadMany();
+
 		int GetCount();
 
 		/// <returns>An empty collection if no customers found; 

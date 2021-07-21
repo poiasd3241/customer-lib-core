@@ -7,6 +7,7 @@ namespace CustomerLibCore.Business.Entities
 	[Serializable]
 	public class Customer : Person
 	{
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int CustomerId { get; set; }
 		public string PhoneNumber { get; set; }
 		public string Email { get; set; }

@@ -7,16 +7,17 @@ namespace CustomerLibCore.Data.Repositories.EF
 {
 	public class CustomerRepository : ICustomerRepository
 	{
+		#region Private Members
+
 		private readonly CustomerLibDataContext _context;
+
+		#endregion
+
+		#region Constructors
 
 		public CustomerRepository(CustomerLibDataContext context)
 		{
 			_context = context;
-		}
-
-		public CustomerRepository(DbContextOptions<CustomerLibDataContext> options)
-		{
-			_context = new(options);
 		}
 
 		public CustomerRepository()
@@ -24,46 +25,44 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context = new();
 		}
 
-		public bool Exists(int customerId) => _context.Customers.Find(customerId) is not null;
+		#endregion
+
+		#region Public Methods
+
+		public bool Exists(int customerId) =>
+			_context.Customers.Any(customer => customer.CustomerId == customerId);
 
 		public int Create(Customer customer)
 		{
-			var created = _context.Customers.Add(customer).Entity;
+			var createdCustomer = _context.Customers.Add(customer).Entity;
 
 			_context.SaveChanges();
 
-			return created.CustomerId;
+			return createdCustomer.CustomerId;
 		}
 
-		public Customer Read(int customerId) => _context.Customers.Find(customerId);
+		public Customer Read(int customerId) =>
+			_context.Customers.Find(customerId);
 
-		public IReadOnlyCollection<Customer> ReadAll()
-		{
-			var customers = _context.Customers.ToArray();
+		public IReadOnlyCollection<Customer> ReadMany() =>
+			_context.Customers.ToArray();
 
-			return customers;
-		}
+		public int GetCount() =>
+			_context.Customers.Count();
 
-		public int GetCount() => _context.Customers.Count();
-
-		public IReadOnlyCollection<Customer> ReadPage(int page, int pageSize)
-		{
-			var customers = _context.Customers
-				.OrderBy(customer => customer.CustomerId)
+		public IReadOnlyCollection<Customer> ReadPage(int page, int pageSize) =>
+			_context.Customers.OrderBy(customer => customer.CustomerId)
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
 				.ToArray();
 
-			return customers;
-		}
-
 		public void Update(Customer customer)
 		{
-			var found = _context.Customers.Find(customer.CustomerId);
+			var customerDb = _context.Customers.Find(customer.CustomerId);
 
-			if (found is not null)
+			if (customerDb is not null)
 			{
-				_context.Entry(found).CurrentValues.SetValues(customer);
+				_context.Entry(customerDb).CurrentValues.SetValues(customer);
 
 				_context.SaveChanges();
 			}
@@ -71,11 +70,11 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Delete(int customerId)
 		{
-			var found = _context.Customers.Find(customerId);
+			var customer = _context.Customers.Find(customerId);
 
-			if (found is not null)
+			if (customer is not null)
 			{
-				_context.Customers.Remove(found);
+				_context.Customers.Remove(customer);
 
 				_context.SaveChanges();
 			}
@@ -86,8 +85,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public (bool, int) IsEmailTakenWithCustomerId(string email)
 		{
-			var customerWithEmail = _context.Customers.FirstOrDefault(
-				customer => customer.Email == email);
+			var customerWithEmail = _context.Customers.FirstOrDefault(customer =>
+				customer.Email == email);
 
 			var isTaken = customerWithEmail is not null;
 			var takenById = isTaken ? customerWithEmail.CustomerId : 0;
@@ -113,5 +112,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 			_context.SaveChanges();
 		}
+
+		#endregion
 	}
 }

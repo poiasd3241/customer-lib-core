@@ -1,59 +1,79 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using CustomerLibCore.Api.DTOs;
+using CustomerLibCore.Api.Filters;
+using CustomerLibCore.Data.Repositories;
+using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.ServiceLayer.Services;
+using CustomerLibCore.ServiceLayer.Services.Implementations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace CustomerLibCore.Api
 {
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+	public class Startup
+	{
+		public Startup(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
 
-        public IConfiguration Configuration { get; }
+		public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
+		// This method gets called by the runtime. Use this method to add services to the container.
+		public void ConfigureServices(IServiceCollection services)
+		{
+			// SqlServer db context
+			services.AddDbContext<CustomerLibDataContext>(options =>
+				options.UseSqlServer(Configuration.GetConnectionString("CustomerLibDb")));
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "CustomerLibCore.Api", Version = "v1" });
-            });
-        }
+			services.AddTransient<INoteRepository, NoteRepository>();
+			services.AddTransient<IAddressRepository, AddressRepository>();
+			services.AddTransient<ICustomerRepository, CustomerRepository>();
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CustomerLibCore.Api v1"));
-            }
+			// Services
+			services.AddTransient<INoteService, NoteService>();
+			services.AddTransient<IAddressService, AddressService>();
+			services.AddTransient<ICustomerService, CustomerService>();
 
-            app.UseHttpsRedirection();
+			// AutoMapper
+			services.AddAutoMapper(typeof(AutoMapperApiProfile));
 
-            app.UseRouting();
+			// Controllers
+			services.AddControllers((options) => options.Filters.Add(new ExceptionFilter()))
+				.AddControllersAsServices();
 
-            app.UseAuthorization();
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1",
+					new OpenApiInfo { Title = "CustomerLibCore.Api", Version = "v1" });
+			});
+		}
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
-    }
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		{
+			if (env.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI(c =>
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "CustomerLibCore.Api v1"));
+			}
+
+			app.UseHttpsRedirection();
+
+			app.UseRouting();
+
+			app.UseAuthorization();
+
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+			});
+		}
+	}
 }

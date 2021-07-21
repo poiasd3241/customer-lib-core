@@ -3,11 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 {
-	public class DbContextOptionsHelper
+	public class DbContextHelper
 	{
 		private static DbContextOptions<CustomerLibDataContext> _options;
+		private static CustomerLibDataContext _context;
 
-		public static DbContextOptions<CustomerLibDataContext> CustomerLibDbContextOptions
+		public static DbContextOptions<CustomerLibDataContext> Options
 		{
 			get
 			{
@@ -20,6 +21,19 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				}
 
 				return _options;
+			}
+		}
+
+		public static CustomerLibDataContext Context
+		{
+			get
+			{
+				if (_context is null)
+				{
+					_context = new(Options);
+				}
+
+				return _context;
 			}
 		}
 	}

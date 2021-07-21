@@ -37,112 +37,117 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Public Methods
 
-		public bool Exists(int addressId)
+		public void Save(Address address)
 		{
-			CheckNumber.NotLessThan(1, addressId, nameof(addressId));
+			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
 
-			var result = _addressRepository.Exists(addressId);
-			return result;
-		}
-
-		public bool Save(Address address)
-		{
 			var validationResult = new AddressValidator().Validate(address);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
 			if (_customerRepository.Exists(address.CustomerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_addressRepository.Create(address);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		public Address Get(int addressId)
+		public Address GetForCustomer(int addressId, int customerId)
 		{
-			CheckNumber.NotLessThan(1, addressId, nameof(addressId));
+			CheckNumber.ValidId(addressId, nameof(addressId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var address = _addressRepository.Read(addressId);
+			var address = _addressRepository.ReadForCustomer(addressId, customerId);
+
+			if (address is null)
+			{
+				throw new NotFoundException();
+			}
+
 			return address;
 		}
 
-		public IReadOnlyCollection<Address> FindByCustomer(int customerId)
+		public IReadOnlyCollection<Address> FindAllForCustomer(int customerId)
 		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var addresses = _addressRepository.ReadByCustomer(customerId);
+			using TransactionScope scope = new();
+
+			if (_customerRepository.Exists(customerId) == false)
+			{
+				throw new NotFoundException();
+			}
+
+			var addresses = _addressRepository.ReadManyForCustomer(customerId);
+
+			scope.Complete();
+
 			return addresses;
 		}
 
-		/// <summary>
-		/// Updates the address.
-		/// </summary>
-		/// <param name="address">The address to update.</param>
-		/// <returns><see langword="true"/> if the update completed successfully; 
-		/// <see langword="false"/> if the provided address is not in the database.</returns>
-		public bool Update(Address address)
+		public void UpdateForCustomer(Address address)
 		{
+			CheckNumber.ValidId(address.AddressId, nameof(address.AddressId));
+			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
+
 			var validationResult = new AddressValidator().Validate(address);
 
 			if (validationResult.IsValid == false)
 			{
-				throw new EntityValidationException(validationResult.ToString());
+				throw new InternalValidationException(validationResult.Errors);
 			}
 
 			using TransactionScope scope = new();
 
-			if (_addressRepository.Exists(address.AddressId) == false)
+			if (_addressRepository.ExistsForCustomer(address.AddressId, address.CustomerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_addressRepository.Update(address);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		/// <summary>
-		/// Deletes the address.
-		/// </summary>
-		/// <param name="addressId">The ID of the address to delete.</param>
-		/// <returns><see langword="true"/> if the deletion completed successfully; 
-		/// <see langword="false"/> if the provided address (by ID) is not in the database.
-		/// </returns>
-		public bool Delete(int addressId)
+		public void DeleteForCustomer(int addressId, int customerId)
 		{
-			CheckNumber.NotLessThan(1, addressId, nameof(addressId));
+			CheckNumber.ValidId(addressId, nameof(addressId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
-			if (_addressRepository.Exists(addressId) == false)
+			if (_addressRepository.ExistsForCustomer(addressId, customerId) == false)
 			{
-				return false;
+				throw new NotFoundException();
 			}
 
 			_addressRepository.Delete(addressId);
 
 			scope.Complete();
-
-			return true;
 		}
 
-		public void DeleteByCustomer(int customerId)
+		public void DeleteAllForCustomer(int customerId)
 		{
-			CheckNumber.NotLessThan(1, customerId, nameof(customerId));
+			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			_addressRepository.DeleteByCustomer(customerId);
+			using TransactionScope scope = new();
+
+			if (_customerRepository.Exists(customerId) == false)
+			{
+				throw new NotFoundException();
+			}
+
+			_addressRepository.DeleteManyForCustomer(customerId);
+
+			scope.Complete();
 		}
 
 		#endregion

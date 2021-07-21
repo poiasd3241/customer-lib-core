@@ -30,5 +30,12 @@ namespace CustomerLibCore.Business.Entities
 
 		public static bool ListsEqualByValues(IEnumerable<Note> list1, IEnumerable<Note> list2) =>
 			EntitiesHelper.ListsEqualByValues(list1, list2);
+
+		public Note Copy() => new()
+		{
+			NoteId = NoteId,
+			CustomerId = CustomerId,
+			Content = Content
+		};
 	}
 }

@@ -7,6 +7,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="TestResults\**" />
+	  <EmbeddedResource Remove="TestResults\**" />
+	  <None Remove="TestResults\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="coverlet.msbuild" Version="3.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,6 +32,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Business.csproj" />
+		<ProjectReference Include="..\CustomerLibCore.TestHelpers\CustomerLibCore.TestHelpers.csproj" />
 	</ItemGroup>
 
 </Project>

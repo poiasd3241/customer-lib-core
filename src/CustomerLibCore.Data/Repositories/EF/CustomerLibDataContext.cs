@@ -12,5 +12,12 @@ namespace CustomerLibCore.Data.Repositories.EF
 		public DbSet<Customer> Customers { set; get; }
 		public DbSet<Address> Addresses { set; get; }
 		public DbSet<Note> Notes { set; get; }
+
+		//protected override void OnModelCreating(ModelBuilder modelBuilder)
+		//{
+		//	//modelBuilder.Entity<Customer>().Property(e => e.CustomerId).ValueGeneratedNever();
+		//	modelBuilder.Entity<Address>().Property(e => e.AddressId).ValueGeneratedNever();
+		//	modelBuilder.Entity<Note>().Property(e => e.NoteId).ValueGeneratedNever();
+		//}
 	}
 }

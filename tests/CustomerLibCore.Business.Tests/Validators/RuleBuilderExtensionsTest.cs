@@ -13,18 +13,15 @@ namespace CustomerLibCore.Business.Tests.Validators
 		{
 			public TestModelValidator()
 			{
-				RuleFor(model => model.NotEmptyNorWhitespace)
-					.NotEmptyNorWhitespace().WithMessage("bad NotEmptyNorWhitespace text");
 				RuleFor(model => model.PhoneNumberFormatE164Text)
 					.PhoneNumberFormatE164().WithMessage("bad PhoneNumberFormatE164Text");
 				RuleFor(model => model.EmailText)
-					.Email().WithMessage("bad EmailText");
+					.EmailFormat().WithMessage("bad EmailText");
 			}
 		}
 
 		private class TestModel
 		{
-			public string NotEmptyNorWhitespace { get; set; }
 			public string PhoneNumberFormatE164Text { get; set; }
 			public string EmailText { get; set; }
 		}
@@ -33,7 +30,6 @@ namespace CustomerLibCore.Business.Tests.Validators
 		{
 			return new TestModel()
 			{
-				NotEmptyNorWhitespace = "a",
 				PhoneNumberFormatE164Text = "+123",
 				EmailText = "my@email.com",
 			};
@@ -48,7 +44,6 @@ namespace CustomerLibCore.Business.Tests.Validators
 		{
 			TestModel model = new();
 
-			Assert.Null(model.NotEmptyNorWhitespace);
 			Assert.Null(model.PhoneNumberFormatE164Text);
 			Assert.Null(model.EmailText);
 		}
@@ -60,11 +55,9 @@ namespace CustomerLibCore.Business.Tests.Validators
 
 			TestModel model = new();
 
-			model.NotEmptyNorWhitespace = text;
 			model.PhoneNumberFormatE164Text = text;
 			model.EmailText = text;
 
-			Assert.Equal(text, model.NotEmptyNorWhitespace);
 			Assert.Equal(text, model.PhoneNumberFormatE164Text);
 			Assert.Equal(text, model.EmailText);
 		}
@@ -101,23 +94,6 @@ namespace CustomerLibCore.Business.Tests.Validators
 			Assert.Equal(2, errors.Count);
 			Assert.Equal("bad PhoneNumberFormatE164Text", errors[0].ErrorMessage);
 			Assert.Equal("bad EmailText", errors[1].ErrorMessage);
-		}
-
-		[Theory]
-		[InlineData("")]
-		[InlineData(" ")]
-		public void ShouldInvalidateTestModelByEmptyOrWhitespace(string text)
-		{
-			// Given
-			var invalidModel = GetValidTestModel();
-			invalidModel.NotEmptyNorWhitespace = text;
-
-			// When
-			var errors = _testModelValidator.Validate(invalidModel).Errors;
-
-			// Then
-			Assert.Single(errors);
-			Assert.Equal("bad NotEmptyNorWhitespace text", errors[0].ErrorMessage);
 		}
 
 		#endregion

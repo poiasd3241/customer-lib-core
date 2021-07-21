@@ -1,12 +1,8 @@
 using System;
-using System.Configuration;
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Business.Enums;
 using CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers;
 using CustomerLibCore.Data.Repositories.EF;
-using CustomerLibCore.Data.IntegrationTests;
-using CustomerLibCore.Data.IntegrationTests.Repositories.EF;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.CustomerRepositoryTest;
 
@@ -15,8 +11,10 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 	[Collection(nameof(NotDbSafeResourceCollection))]
 	public class AddressRepositoryTest
 	{
+		#region Constructors
+
 		[Fact]
-		public void ShouldCreateAddressRepositoryDefaultConstructor()
+		public void ShouldCreateAddressRepositoryDefault()
 		{
 			var repo = new AddressRepository();
 
@@ -33,15 +31,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.NotNull(repo);
 		}
 
-		[Fact]
-		public void ShouldCreateAddressRepositoryWithOptions()
-		{
-			var options = DbContextOptionsHelper.CustomerLibDbContextOptions;
+		#endregion
 
-			var repo = new AddressRepository(options);
-
-			Assert.NotNull(repo);
-		}
+		#region Exists
 
 		[Theory]
 		[InlineData(2, true)]
@@ -59,6 +51,29 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Equal(expectedExists, exists);
 		}
 
+		[Theory]
+		[InlineData(2, 1, true)]
+		[InlineData(2, 55, false)]
+		[InlineData(3, 1, false)]
+		[InlineData(3, 55, false)]
+		public void ShouldCheckIfNoteExistsForCustomerId(
+			int addressId, int customerId, bool expectedExists)
+		{
+			// Given
+			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
+			AddressRepositoryFixture.CreateMockAddress(amount: 2);
+
+			// When
+			var exists = repo.ExistsForCustomer(addressId, customerId);
+
+			// Then
+			Assert.Equal(expectedExists, exists);
+		}
+
+		#endregion
+
+		#region Create
+
 		[Fact]
 		public void ShouldCreateAddress()
 		{
@@ -74,6 +89,10 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			// Then
 			Assert.Equal(1, createdId);
 		}
+
+		#endregion
+
+		#region Read by Id
 
 		[Fact]
 		public void ShouldReadAddressNotFound()
@@ -111,8 +130,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			// Then
 			Assert.Equal(1, readAddress.AddressId);
 			Assert.Equal(address.CustomerId, readAddress.CustomerId);
-			Assert.Equal(address.AddressLine, readAddress.AddressLine);
-			Assert.Equal(address.AddressLine2, readAddress.AddressLine2);
+			Assert.Equal(address.Line, readAddress.Line);
+			Assert.Equal(address.Line2, readAddress.Line2);
 			Assert.Equal(address.Type, readAddress.Type);
 			Assert.Equal(address.City, readAddress.City);
 			Assert.Equal(address.PostalCode, readAddress.PostalCode);
@@ -120,15 +139,69 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Equal(address.Country, readAddress.Country);
 		}
 
+		#endregion
+
+		#region Read by customer
+
 		[Fact]
-		public void ShouldReadAllAddressesByCustomer()
+		public void ShouldReadSingleForCustomerNotFound()
+		{
+			// Given
+			var addressId = 5;
+			var customerId = 7;
+
+			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
+
+			// When
+			var readAddress = repo.ReadForCustomer(addressId, customerId);
+
+			// Then
+			Assert.Null(readAddress);
+		}
+
+		[Fact]
+		public void ShouldReadSingleForCustomer()
+		{
+			// Given
+			var addressId1 = 1;
+			var addressId2 = 2;
+			var customerId1 = 1;
+			var customerId2 = 2;
+
+			var city1 = "one";
+			var city2 = "two";
+
+			var expectedAddress1 = AddressRepositoryFixture.MockAddress(customerId1);
+			expectedAddress1.City = city1;
+
+			var expectedAddress2 = AddressRepositoryFixture.MockAddress(customerId2);
+			expectedAddress2.City = city2;
+
+			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
+			expectedAddress1.AddressId = repo.Create(expectedAddress1);
+			expectedAddress2.AddressId = repo.Create(expectedAddress2);
+
+			// When
+			var readAddress1 = repo.ReadForCustomer(addressId1, customerId1);
+			var readAddress2 = repo.ReadForCustomer(addressId2, customerId2);
+
+			// Then
+			Assert.Equal(addressId1, readAddress1.AddressId);
+			Assert.Equal(addressId2, readAddress2.AddressId);
+
+			Assert.True(expectedAddress1.EqualsByValue(readAddress1));
+			Assert.True(expectedAddress2.EqualsByValue(readAddress2));
+		}
+
+		[Fact]
+		public void ShouldReadManyForCustomer()
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
 			var address = AddressRepositoryFixture.CreateMockAddress(2);
 
 			// When
-			var readAddresses = repo.ReadByCustomer(address.CustomerId);
+			var readAddresses = repo.ReadManyForCustomer(address.CustomerId);
 
 			// Then
 			Assert.Equal(2, readAddresses.Count);
@@ -136,8 +209,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			foreach (var readAddress in readAddresses)
 			{
 				Assert.Equal(address.CustomerId, readAddress.CustomerId);
-				Assert.Equal(address.AddressLine, readAddress.AddressLine);
-				Assert.Equal(address.AddressLine2, readAddress.AddressLine2);
+				Assert.Equal(address.Line, readAddress.Line);
+				Assert.Equal(address.Line2, readAddress.Line2);
 				Assert.Equal(address.Type, readAddress.Type);
 				Assert.Equal(address.City, readAddress.City);
 				Assert.Equal(address.PostalCode, readAddress.PostalCode);
@@ -149,81 +222,283 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		[Theory]
 		[InlineData(1)]
 		[InlineData(2)]
-		public void ShouldReadAllAddressesByCustomerBothNotFoundAndEmpty(int customerId)
+		public void ShouldReadManyForCustomerBothNotFoundAndEmpty(int customerId)
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
 
 			// When
-			var readAddresses = repo.ReadByCustomer(customerId);
+			var readAddresses = repo.ReadManyForCustomer(customerId);
 
 			// Then
 			Assert.Empty(readAddresses);
 		}
 
+		#endregion
+
+		#region Update
+
 		[Fact]
-		public void ShouldUpdateAddress()
+		public void ShouldUpdateAddressWithCustomerChange()
+		{
+			// Given
+			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
+			AddressRepositoryFixture.CreateMockAddress();
+			var addressId = 1;
+
+			var newCustomerId = 2;
+			var newLine = "New line!";
+
+			var readAddress = repo.Read(addressId);
+
+			var address = readAddress.Copy();
+			var beforeUpdate = readAddress.Copy();
+
+			address.CustomerId = newCustomerId;
+			address.Line = newLine;
+
+			// When
+			repo.Update(address);
+
+			// Then
+			var afterUpdate = repo.Read(addressId);
+
+			// CustomerId - updated
+			var customerIdBeforeUpdate = beforeUpdate.CustomerId;
+			Assert.Equal(1, customerIdBeforeUpdate);
+			Assert.NotEqual(customerIdBeforeUpdate, newCustomerId);
+
+			Assert.Equal(newCustomerId, afterUpdate.CustomerId);
+
+			// Line - updated
+			var addressLineBeforeUpdate = beforeUpdate.Line;
+			Assert.Equal("one", addressLineBeforeUpdate);
+			Assert.NotEqual(addressLineBeforeUpdate, newLine);
+
+			Assert.Equal(newLine, afterUpdate.Line);
+
+			// Other properties untouched
+			Assert.Equal(addressId, beforeUpdate.AddressId);
+			Assert.Equal(beforeUpdate.AddressId, afterUpdate.AddressId);
+
+			Assert.Equal(beforeUpdate.Line2, afterUpdate.Line2);
+			Assert.Equal(beforeUpdate.Type, afterUpdate.Type);
+			Assert.Equal(beforeUpdate.City, afterUpdate.City);
+			Assert.Equal(beforeUpdate.PostalCode, afterUpdate.PostalCode);
+			Assert.Equal(beforeUpdate.State, afterUpdate.State);
+			Assert.Equal(beforeUpdate.Country, afterUpdate.Country);
+		}
+
+		[Fact]
+		public void ShouldUpdateAddressForCustomerWhenCustomerIdNotModified()
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			var address = AddressRepositoryFixture.CreateMockAddress();
+			AddressRepositoryFixture.CreateMockAddress();
+			var addressId = 1;
 
-			var createdAddress = repo.Read(1);
-			createdAddress.AddressLine = "New line!";
+			var newLine = "New line!";
+
+			var readAddress = repo.Read(addressId);
+
+			var address = readAddress.Copy();
+			var beforeUpdate = readAddress.Copy();
+
+			address.Line = newLine;
 
 			// When
-			repo.Update(createdAddress);
+			repo.UpdateForCustomer(address);
 
 			// Then
-			var updatedAddress = repo.Read(1);
+			var afterUpdate = repo.Read(addressId);
 
-			Assert.Equal(1, createdAddress.AddressId);
-			Assert.Equal(createdAddress.AddressId, updatedAddress.AddressId);
+			// CustomerId - untouched
+			var customerIdBeforeUpdate = beforeUpdate.CustomerId;
+			Assert.Equal(1, customerIdBeforeUpdate);
+			Assert.Equal(customerIdBeforeUpdate, afterUpdate.CustomerId);
 
-			Assert.Equal(address.CustomerId, updatedAddress.CustomerId);
-			Assert.Equal("New line!", updatedAddress.AddressLine);
-			Assert.Equal(address.AddressLine2, updatedAddress.AddressLine2);
-			Assert.Equal(address.Type, updatedAddress.Type);
-			Assert.Equal(address.City, updatedAddress.City);
-			Assert.Equal(address.PostalCode, updatedAddress.PostalCode);
-			Assert.Equal(address.State, updatedAddress.State);
-			Assert.Equal(address.Country, updatedAddress.Country);
+			// Line - updated
+			var addressLineBeforeUpdate = beforeUpdate.Line;
+			Assert.Equal("one", addressLineBeforeUpdate);
+			Assert.NotEqual(addressLineBeforeUpdate, newLine);
+
+			Assert.Equal(newLine, afterUpdate.Line);
+
+			// Other properties untouched
+			Assert.Equal(addressId, beforeUpdate.AddressId);
+			Assert.Equal(beforeUpdate.AddressId, afterUpdate.AddressId);
+
+			Assert.Equal(beforeUpdate.Line2, afterUpdate.Line2);
+			Assert.Equal(beforeUpdate.Type, afterUpdate.Type);
+			Assert.Equal(beforeUpdate.City, afterUpdate.City);
+			Assert.Equal(beforeUpdate.PostalCode, afterUpdate.PostalCode);
+			Assert.Equal(beforeUpdate.State, afterUpdate.State);
+			Assert.Equal(beforeUpdate.Country, afterUpdate.Country);
 		}
+
+		[Fact]
+		public void ShouldNotUpdateAddressForCustomerWhenTryingToChangeCustomerId()
+		{
+			// Given
+			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
+			AddressRepositoryFixture.CreateMockAddress();
+			var addressId = 1;
+
+			var newCustomerIdTry = 2;
+			var newLine = "New line!";
+
+			var readAddress = repo.Read(addressId);
+
+			var address = readAddress.Copy();
+			var beforeUpdate = readAddress.Copy();
+
+			address.CustomerId = newCustomerIdTry;
+			address.Line = newLine;
+
+			// When
+			repo.UpdateForCustomer(address);
+
+			// Then
+			var afterUpdate = repo.Read(addressId);
+
+			// CustomerId - untouched
+			var customerIdBeforeUpdate = beforeUpdate.CustomerId;
+			Assert.Equal(1, customerIdBeforeUpdate);
+			Assert.NotEqual(customerIdBeforeUpdate, newCustomerIdTry);
+
+			Assert.Equal(customerIdBeforeUpdate, afterUpdate.CustomerId);
+
+			// Line - untouched
+			var addressLineBeforeUpdate = beforeUpdate.Line;
+			Assert.Equal("one", addressLineBeforeUpdate);
+			Assert.NotEqual(addressLineBeforeUpdate, newLine);
+
+			Assert.Equal(addressLineBeforeUpdate, afterUpdate.Line);
+
+			// All properties untouched
+			Assert.Equal(addressId, beforeUpdate.AddressId);
+
+			Assert.True(afterUpdate.EqualsByValue(beforeUpdate));
+		}
+
+		#endregion
+
+		#region Delete
 
 		[Fact]
 		public void ShouldDeleteAddress()
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			AddressRepositoryFixture.CreateMockAddress();
+			AddressRepositoryFixture.CreateMockAddress(2);
 
-			var createdAddress = repo.Read(1);
-			Assert.NotNull(createdAddress);
+			var createdAddress1 = repo.Read(1);
+			var createdAddress2 = repo.Read(2);
+			Assert.NotNull(createdAddress1);
+			Assert.NotNull(createdAddress2);
 
 			// When
 			repo.Delete(1);
 
 			// Then
 			var deletedAddress = repo.Read(1);
+			var untouchedAddress = repo.Read(2);
+
 			Assert.Null(deletedAddress);
+
+			Assert.NotNull(untouchedAddress);
+			Assert.True(untouchedAddress.EqualsByValue(createdAddress2));
 		}
 
 		[Fact]
-		public void ShouldDeleteAddressesByCustomerId()
+		public void ShouldDeleteAddressForCustomerId()
+		{
+			// Given
+			var customerId1 = 1;
+			var customerId2 = 2;
+
+			var addressRepo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
+
+			AddressRepositoryFixture.CreateMockAddress(amount: 2, customerId1);
+			AddressRepositoryFixture.CreateMockAddress(amount: 1, customerId2);
+
+			var readAddresses1 = addressRepo.ReadManyForCustomer(customerId1);
+			var readAddresses2 = addressRepo.ReadManyForCustomer(customerId2);
+
+			Assert.Equal(2, readAddresses1.Count);
+			Assert.Single(readAddresses2);
+
+			var addressId = 1;
+			var customerId = 1;
+
+			Assert.True(addressRepo.ExistsForCustomer(addressId, customerId));
+
+			// When
+			addressRepo.DeleteForCustomer(addressId, customerId);
+
+			// Then
+			var leftoverAddresses = addressRepo.ReadManyForCustomer(customerId1);
+			var untouchedAddresses = addressRepo.ReadManyForCustomer(customerId2);
+
+			var leftoverAddress = Assert.Single(leftoverAddresses);
+			Assert.Equal(2, leftoverAddress.AddressId);
+			Assert.Equal(1, leftoverAddress.CustomerId);
+
+			var untouchedAddress = Assert.Single(untouchedAddresses);
+			Assert.Equal(3, untouchedAddress.AddressId);
+			Assert.Equal(2, untouchedAddress.CustomerId);
+		}
+
+		[Fact]
+		public void ShouldNotDeleteAddressForCustomerIdWhenNotFound()
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			AddressRepositoryFixture.CreateMockAddress(2);
+			AddressRepositoryFixture.CreateMockAddress();
 
-			var createdAddresses = repo.ReadByCustomer(1);
-			Assert.Equal(2, createdAddresses.Count);
+			var customerId = 1;
+			var addressId = 666;
+
+			var createdAddress1 = repo.Read(customerId);
+			Assert.NotNull(createdAddress1);
+
+			Assert.False(repo.ExistsForCustomer(addressId, customerId));
 
 			// When
-			repo.DeleteByCustomer(1);
+			repo.DeleteForCustomer(addressId, customerId);
 
 			// Then
-			var deletedAddresses = repo.ReadByCustomer(1);
+			var untouchedAddress = repo.Read(1);
+			Assert.True(untouchedAddress.EqualsByValue(createdAddress1));
+		}
+
+		[Fact]
+		public void ShouldDeleteManyAddressesForCustomerId()
+		{
+			// Given
+			var customerId1 = 1;
+			var customerId2 = 2;
+
+			var addressRepo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
+
+			AddressRepositoryFixture.CreateMockAddress(amount: 2, customerId1);
+			AddressRepositoryFixture.CreateMockAddress(amount: 3, customerId2);
+
+			var readAddresses1 = addressRepo.ReadManyForCustomer(customerId1);
+			var readAddresses2 = addressRepo.ReadManyForCustomer(customerId2);
+
+			Assert.Equal(2, readAddresses1.Count);
+			Assert.Equal(3, readAddresses2.Count);
+
+			// When
+			addressRepo.DeleteManyForCustomer(customerId1);
+
+			// Then
+			var deletedAddresses = addressRepo.ReadManyForCustomer(customerId1);
+			var untouchedAddresses = addressRepo.ReadManyForCustomer(customerId2);
+
 			Assert.Empty(deletedAddresses);
+			Assert.Equal(3, untouchedAddresses.Count);
 		}
 
 		[Fact]
@@ -233,32 +508,36 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
 			AddressRepositoryFixture.CreateMockAddress(2);
 
-			var createdAddresses = repo.ReadByCustomer(1);
+			var createdAddresses = repo.ReadManyForCustomer(1);
 			Assert.Equal(2, createdAddresses.Count);
 
 			// When
 			repo.DeleteAll();
 
 			// Then
-			var deletedAddresses = repo.ReadByCustomer(1);
+			var deletedAddresses = repo.ReadManyForCustomer(1);
 			Assert.Empty(deletedAddresses);
 		}
+
+		#endregion
 
 		public class AddressRepositoryFixture
 		{
 			/// <summary>
-			/// Creates the empty repository, containing a single customer
-			/// with <see cref="Customer.CustomerId"/> = 1 and no addresses.
+			/// Creates the empty repository, containing the specified amount of customers
+			/// (<see cref="Customer.CustomerId"/> = 1 for the first customer and
+			/// +1 for every next customer) and no addresses.
 			/// <br/>
 			/// Also repopulates the <see cref="AddressType"/> table.
 			/// </summary>
 			/// <returns>The empty address repository.</returns>
-			public static AddressRepository CreateEmptyRepositoryWithCustomer()
+			public static AddressRepository CreateEmptyRepositoryWithCustomer(
+				int customersAmount = 1)
 			{
-				CustomerRepositoryFixture.CreateMockCustomer();
+				CustomerRepositoryFixture.CreateMockCustomer(amount: customersAmount);
 				AddressTypeHelperRepository.UnsafeRepopulateAddressTypes();
 
-				return new(DbContextOptionsHelper.CustomerLibDbContextOptions);
+				return new(DbContextHelper.Context);
 			}
 
 			/// <summary>
@@ -267,18 +546,18 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// <see cref="Address.CustomerId"/> = 1.
 			/// </summary>
 			/// <param name="amount">The amount of addresses to create.</param>
+			/// <param name="customerId">The Id of the customer for created addresses.</param>
 			/// <returns>The mocked address with repo-relevant valid properties, 
 			/// optional properties null, <see cref="Address.CustomerId"/> = 1.</returns>
-			public static Address CreateMockAddress(int amount = 1)
+			public static Address CreateMockAddress(int amount = 1, int customerId = 1)
 			{
-				var repo = new AddressRepository(
-					DbContextOptionsHelper.CustomerLibDbContextOptions);
+				var repo = new AddressRepository(DbContextHelper.Context);
 
 				Address address;
 
 				for (int i = 0; i < amount; i++)
 				{
-					address = MockAddress();
+					address = MockAddress(customerId);
 					repo.Create(address);
 				}
 
@@ -293,8 +572,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// optional properties null, <see cref="Address.CustomerId"/> = 1.</returns>
 			public static Address CreateMockOptionalAddress()
 			{
-				var repo = new AddressRepository(
-					DbContextOptionsHelper.CustomerLibDbContextOptions);
+				var repo = new AddressRepository(DbContextHelper.Context);
 
 				var address = MockOptionalAddress();
 
@@ -308,8 +586,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			public static Address MockAddress(int customerId = 1) => new()
 			{
 				CustomerId = customerId,
-				AddressLine = "one",
-				AddressLine2 = "two",
+				Line = "one",
+				Line2 = "two",
 				Type = AddressType.Shipping,
 				City = "Seattle",
 				PostalCode = "123456",
@@ -322,7 +600,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			public static Address MockOptionalAddress(int customerId = 1)
 			{
 				var mockAddress = MockAddress(customerId);
-				mockAddress.AddressLine2 = null;
+				mockAddress.Line2 = null;
 				return mockAddress;
 			}
 		}

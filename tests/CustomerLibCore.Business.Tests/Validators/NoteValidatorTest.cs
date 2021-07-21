@@ -1,5 +1,7 @@
 ﻿using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Business.Localization;
 using CustomerLibCore.Business.Validators;
+using FluentValidation;
 using Xunit;
 namespace CustomerLibCore.Business.Tests.Validators
 {
@@ -11,49 +13,68 @@ namespace CustomerLibCore.Business.Tests.Validators
 
 		#endregion
 
-		#region Valid
+		#region Invalid property - Content
 
-		[Fact]
-		public void ShouldValidateNote()
+		private class InvalidContentData : TheoryData<string, string, string>
 		{
-			var result = _noteValidator.Validate(NoteValidatorFixture.MockNote());
+			public InvalidContentData()
+			{
+				Add(null, "required", ValidationErrorMessages.REQUIRED);
+				Add("", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(" ", "cannot be empty or whitespace",
+					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+				Add(new('a', 1001), "max 1000 characters",
+					ValidationErrorMessages.TextMaxLength(1000));
+			}
+		}
 
-			Assert.True(result.IsValid);
+		[Theory]
+		[ClassData(typeof(InvalidContentData))]
+		public void ShouldInvalidateByBadContent(
+			string content, string expectedErrorMessage, string confirmErrorMessage)
+		{
+			var invalidPropertyName = nameof(Note.Content);
+			var note = NoteValidatorFixture.MockNote();
+			note.Content = content;
+
+			var errors = _noteValidator.Validate(note, options =>
+				options.IncludeProperties(invalidPropertyName)).Errors;
+
+			var error = Assert.Single(errors);
+			Assert.Equal(invalidPropertyName, error.PropertyName);
+			Assert.Equal(expectedErrorMessage, error.ErrorMessage);
+			Assert.Equal(expectedErrorMessage, confirmErrorMessage);
 		}
 
 		#endregion
 
-		#region Invalid
+		#region All properties
 
-		[Theory]
-		[InlineData(null)]
-		[InlineData("")]
-		[InlineData(" ")]
-		public void ShouldInvalidateNoteByContentNullEmptyOrWhitespace(string content)
+		[Fact]
+		public void ShouldValidateNoteAllProperties()
 		{
-			// Given
-			var note = new Note() { Content = content };
+			var note = NoteValidatorFixture.MockNote();
 
-			// When
-			var errors = _noteValidator.Validate(note).Errors;
+			var result = _noteValidator.Validate(note);
 
-			// Then
-			Assert.Single(errors);
-			Assert.Equal("Note cannot be empty or whitespace.", errors[0].ErrorMessage);
+			Assert.True(result.IsValid);
 		}
 
 		[Fact]
-		public void ShouldInvalidateNoteByContentTooLong()
+		public void ShouldInvalidateNoteByAllProperties()
 		{
 			// Given
-			var note = new Note() { Content = new('a', 1001) };
+			var note = NoteValidatorFixture.MockNote();
+			note.Content = null;
 
 			// When
 			var errors = _noteValidator.Validate(note).Errors;
 
 			// Then
-			Assert.Single(errors);
-			Assert.Equal("Note: max 1000 characters.", errors[0].ErrorMessage);
+			var error = Assert.Single(errors);
+			Assert.Equal(nameof(Note.Content), error.PropertyName);
+			Assert.Equal(ValidationErrorMessages.REQUIRED, error.ErrorMessage);
 		}
 
 		#endregion

@@ -1,17 +1,21 @@
 using System;
 using System.Linq;
+using System.Net.Sockets;
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Data.Repositories.EF;
-using CustomerLibCore.Data.IntegrationTests.Repositories.EF;
 using Xunit;
+using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.AddressRepositoryTest;
+using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.NoteRepositoryTest;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 {
 	[Collection(nameof(NotDbSafeResourceCollection))]
 	public class CustomerRepositoryTest
 	{
+		#region Constructors
+
 		[Fact]
-		public void ShouldCreateCustomerRepositoryDefaultConstructor()
+		public void ShouldCreateCustomerRepositoryDefault()
 		{
 			var repo = new CustomerRepository();
 
@@ -28,15 +32,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.NotNull(repo);
 		}
 
-		[Fact]
-		public void ShouldCreateCustomerRepositoryWithOptions()
-		{
-			var options = DbContextOptionsHelper.CustomerLibDbContextOptions;
-
-			var repo = new CustomerRepository(options);
-
-			Assert.NotNull(repo);
-		}
+		#endregion
 
 		#region Exists
 
@@ -46,7 +42,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldCheckIfCustomerExistsById(int customerId, bool expectedExists)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
 
 			// When
@@ -58,64 +54,35 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
-		#region Create, update, delete
+		#region Create 
 
 		[Fact]
-		public void ShouldCreateCustomer()
+		public void ShouldCreateCustomerIncludingAddressesAndNotes()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 			var customer = CustomerRepositoryFixture.MockCustomer();
+
+			var address = AddressRepositoryFixture.MockAddress();
+			var note = NoteRepositoryFixture.MockNote();
+
+			customer.Addresses = new() { address };
+			customer.Notes = new() { note };
+
+			var addressRepo = new AddressRepository(DbContextHelper.Context);
+			var noteRepo = new NoteRepository(DbContextHelper.Context);
 
 			// When
 			var createdId = repo.Create(customer);
 
 			// Then
 			Assert.Equal(1, createdId);
-		}
 
-		[Fact]
-		public void ShouldUpdateCustomer()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
-			var customer = CustomerRepositoryFixture.CreateMockCustomer();
+			var createdAddress = addressRepo.ReadForCustomer(1, createdId);
+			var createdNote = noteRepo.ReadForCustomer(1, createdId);
 
-			var createdCustomer = repo.Read(1);
-			createdCustomer.FirstName = "New FN";
-
-			// When
-			repo.Update(createdCustomer);
-
-			// Then
-			var updatedCustomer = repo.Read(1);
-
-			Assert.Equal("New FN", updatedCustomer.FirstName);
-			Assert.Equal(customer.LastName, updatedCustomer.LastName);
-			Assert.Equal(customer.PhoneNumber, updatedCustomer.PhoneNumber);
-			Assert.Equal(customer.Email, updatedCustomer.Email);
-			Assert.Equal(customer.TotalPurchasesAmount, updatedCustomer.TotalPurchasesAmount);
-
-			Assert.Null(createdCustomer.Addresses);
-			Assert.Null(createdCustomer.Notes);
-		}
-
-		[Fact]
-		public void ShouldDeleteCustomer()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
-			CustomerRepositoryFixture.CreateMockCustomer();
-
-			var createdCustomer = repo.Read(1);
-			Assert.NotNull(createdCustomer);
-
-			// When
-			repo.Delete(1);
-
-			// Then
-			var deletedCustomer = repo.Read(1);
-			Assert.Null(deletedCustomer);
+			Assert.Equal(address, createdAddress);
+			Assert.Equal(note, createdNote);
 		}
 
 		#endregion
@@ -149,7 +116,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldReadCustomerIncludingNullOptionalFields(Func<Customer> createMockCustomer)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			var customer = createMockCustomer.Invoke();
 
 			// When
@@ -169,17 +136,17 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
-		#region Read all
+		#region Read many
 
 		[Fact]
-		public void ShouldReadAllCustomers()
+		public void ShouldReadManyCustomers()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			var customer = CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
 
 			// When
-			var readCustomers = repo.ReadAll();
+			var readCustomers = repo.ReadMany();
 
 			// Then
 			Assert.Equal(2, readCustomers.Count);
@@ -198,13 +165,13 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		}
 
 		[Fact]
-		public void ShouldReadAllCustomersNotFound()
+		public void ShouldReadManyCustomersNotFound()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 
 			// When
-			var readCustomers = repo.ReadAll();
+			var readCustomers = repo.ReadMany();
 
 			// Then
 			Assert.Empty(readCustomers);
@@ -218,7 +185,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldGetTotalCustomerCount()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
 
 			// When
@@ -249,7 +216,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldReadPageOfCustomersFromSinglePage()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer(amount: 5);
 
 			// When
@@ -263,7 +230,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldReadPageOfCustomersFromMultiplePages()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer(amount: 5);
 
 			// When
@@ -278,7 +245,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		}
 
 		[Fact]
-		public void ShouldReadPageOfCustomersNotFound()
+		public void ShouldReadPageOfCustomersNotFoundEmptyCollection()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
@@ -288,6 +255,76 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 			// Then
 			Assert.Empty(readCustomers);
+		}
+
+		#endregion
+
+		#region Update
+
+		[Fact]
+		public void ShouldUpdateCustomer()
+		{
+			// Given
+			var repo = new CustomerRepository(DbContextHelper.Context);
+			var customer = CustomerRepositoryFixture.CreateMockCustomer();
+
+			var createdCustomer = repo.Read(1);
+			createdCustomer.FirstName = "New FN";
+
+			// When
+			repo.Update(createdCustomer);
+
+			// Then
+			var updatedCustomer = repo.Read(1);
+
+			Assert.Equal("New FN", updatedCustomer.FirstName);
+			Assert.Equal(customer.LastName, updatedCustomer.LastName);
+			Assert.Equal(customer.PhoneNumber, updatedCustomer.PhoneNumber);
+			Assert.Equal(customer.Email, updatedCustomer.Email);
+			Assert.Equal(customer.TotalPurchasesAmount, updatedCustomer.TotalPurchasesAmount);
+
+			Assert.Null(createdCustomer.Addresses);
+			Assert.Null(createdCustomer.Notes);
+		}
+
+		#endregion
+
+		#region Delete
+
+		[Fact]
+		public void ShouldDeleteCustomer()
+		{
+			// Given
+			var repo = new CustomerRepository(DbContextHelper.Context);
+			CustomerRepositoryFixture.CreateMockCustomer();
+
+			var createdCustomer = repo.Read(1);
+			Assert.NotNull(createdCustomer);
+
+			// When
+			repo.Delete(1);
+
+			// Then
+			var deletedCustomer = repo.Read(1);
+			Assert.Null(deletedCustomer);
+		}
+
+		[Fact]
+		public void ShouldDeleteAllCustomers()
+		{
+			// Given
+			var repo = new CustomerRepository(DbContextHelper.Context);
+			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
+
+			var createdCustomers = repo.ReadMany();
+			Assert.Equal(2, createdCustomers.Count);
+
+			// When
+			repo.DeleteAll();
+
+			// Then
+			var deletedCustomers = repo.ReadMany();
+			Assert.Empty(deletedCustomers);
 		}
 
 		#endregion
@@ -308,7 +345,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldCheckForEmailTaken(string email, bool isTakenExpected)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer("taken@asd.com");
 
 			// When
@@ -323,7 +360,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldCheckForEmailTakenWithCustomerId(string email, bool isTakenExpected)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var repo = new CustomerRepository(DbContextHelper.Context);
 			CustomerRepositoryFixture.CreateMockCustomer("taken@asd.com");
 
 			// When
@@ -336,23 +373,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
-		[Fact]
-		public void ShouldDeleteAllCustomers()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextOptionsHelper.CustomerLibDbContextOptions);
-			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
-
-			var createdCustomers = repo.ReadAll();
-			Assert.Equal(2, createdCustomers.Count);
-
-			// When
-			repo.DeleteAll();
-
-			// Then
-			var deletedCustomers = repo.ReadAll();
-			Assert.Empty(deletedCustomers);
-		}
 
 		public class CustomerRepositoryFixture
 		{
@@ -362,8 +382,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// <returns>The empty customer repository.</returns>
 			public static CustomerRepository CreateEmptyRepository()
 			{
-				var repo = new CustomerRepository(
-					DbContextOptionsHelper.CustomerLibDbContextOptions);
+				var repo = new CustomerRepository(DbContextHelper.Context);
 				repo.DeleteAll();
 
 				return repo;

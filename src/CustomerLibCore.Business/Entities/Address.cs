@@ -11,8 +11,8 @@ namespace CustomerLibCore.Business.Entities
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int AddressId { get; set; }
 		public int CustomerId { get; set; }
-		public string AddressLine { get; set; }
-		public string AddressLine2 { get; set; }
+		public string Line { get; set; }
+		public string Line2 { get; set; }
 
 		[Column("AddressTypeId")]
 		public AddressType Type { get; set; }
@@ -34,8 +34,8 @@ namespace CustomerLibCore.Business.Entities
 			return
 				AddressId == address.AddressId &&
 				CustomerId == address.CustomerId &&
-				AddressLine == address.AddressLine &&
-				AddressLine2 == address.AddressLine2 &&
+				Line == address.Line &&
+				Line2 == address.Line2 &&
 				Type == address.Type &&
 				City == address.City &&
 				PostalCode == address.PostalCode &&
@@ -46,5 +46,19 @@ namespace CustomerLibCore.Business.Entities
 		public static bool ListsEqualByValues(
 			IEnumerable<Address> list1, IEnumerable<Address> list2) =>
 				EntitiesHelper.ListsEqualByValues(list1, list2);
+
+		public Address Copy() => new()
+		{
+			AddressId = AddressId,
+			CustomerId = CustomerId,
+			Line = Line,
+			Line2 = Line2,
+			Type = Type,
+			City = City,
+			PostalCode = PostalCode,
+			State = State,
+			Country = Country
+		};
+
 	}
 }

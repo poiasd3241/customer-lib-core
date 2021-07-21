@@ -28,5 +28,27 @@ namespace CustomerLibCore.Business.Tests.ArgumentCheckHelpers
 
 			Assert.Equal(paramName, exception.ParamName);
 		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldNotThrowWhenValidId(int value)
+		{
+			var paramName = "whatever";
+
+			CheckNumber.ValidId(value, paramName);
+		}
+
+		[Fact]
+		public void ShouldThrowWhenNotValidId()
+		{
+			var paramName = "whatever";
+			var value = 0;
+
+			var exception = Assert.Throws<ArgumentException>(() =>
+				CheckNumber.ValidId(value, paramName));
+
+			Assert.Equal(paramName, exception.ParamName);
+		}
 	}
 }

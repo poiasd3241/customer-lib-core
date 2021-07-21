@@ -5,14 +5,17 @@ namespace CustomerLibCore.ServiceLayer.Services
 {
 	public interface INoteService
 	{
-		bool Exists(int noteId);
-		bool Save(Note note);
-		Note Get(int noteId);
+		void Save(Note note);
+
+		Note GetForCustomer(int noteId, int customerId);
 
 		/// <returns>An empty collection if no notes found; 
 		/// otherwise, the found notes.</returns>
-		IReadOnlyCollection<Note> FindByCustomer(int customerId);
-		bool Update(Note note);
-		bool Delete(int noteId);
+		IReadOnlyCollection<Note> FindAllForCustomer(int customerId);
+
+		void UpdateForCustomer(Note note);
+
+		void DeleteForCustomer(int noteId, int customerId);
+		void DeleteAllForCustomer(int customerId);
 	}
 }

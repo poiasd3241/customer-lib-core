@@ -1,9 +1,6 @@
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using CustomerLibCore.Business.Enums;
-using CustomerLibCore.Data.Repositories;
-using CustomerLibCore.Data.IntegrationTests;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers
 {

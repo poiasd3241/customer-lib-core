@@ -1,5 +1,5 @@
-using CustomerLibCore.Data.Repositories.EF;
 using CustomerLibCore.Data.IntegrationTests.Repositories.EF;
+using CustomerLibCore.Data.Repositories.EF;
 using Xunit;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers
@@ -11,8 +11,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers
 		public void ShouldUnsafeRepopulateAddressTypes()
 		{
 			// Free up FK.
-			var addressRepository = new AddressRepository(
-				DbContextOptionsHelper.CustomerLibDbContextOptions);
+			var addressRepository = new AddressRepository(DbContextHelper.Context);
 			addressRepository.DeleteAll();
 
 			AddressTypeHelperRepository.UnsafeRepopulateAddressTypes();

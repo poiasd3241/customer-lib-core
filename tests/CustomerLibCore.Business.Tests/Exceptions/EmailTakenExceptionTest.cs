@@ -1,5 +1,4 @@
-﻿using System;
-using CustomerLibCore.Business.Exceptions;
+﻿using CustomerLibCore.Business.Exceptions;
 using Xunit;
 
 namespace CustomerLibCore.Business.Tests.Exceptions
@@ -9,20 +8,9 @@ namespace CustomerLibCore.Business.Tests.Exceptions
 		[Fact]
 		public void ShouldCreateEmailTakenException()
 		{
-			var message = "oops";
-			var inner = new Exception();
+			var ex = new EmailTakenException();
 
-			var defaultConstructor = new EmailTakenException();
-			var messageConstructor = new EmailTakenException(message);
-
-			var messageWithInnerConstructor = new EmailTakenException(message, inner);
-
-			Assert.NotNull(defaultConstructor);
-
-			Assert.Equal(message, messageConstructor.Message);
-
-			Assert.Equal(message, messageWithInnerConstructor.Message);
-			Assert.Equal(inner, messageWithInnerConstructor.InnerException);
+			Assert.NotNull(ex);
 		}
 
 		// TODO: test Serialization...
