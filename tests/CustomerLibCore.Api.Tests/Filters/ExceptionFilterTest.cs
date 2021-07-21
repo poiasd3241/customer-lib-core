@@ -156,8 +156,8 @@ namespace CustomerLibCore.Api.Tests.Filters
 			Assert.Equal(statusCode, result.StatusCode);
 			Assert.Equal(statusCode, errorModel.Code);
 
-			Assert.Equal("Body validation errors:\r\n" +
-				" -- name1: msg1\r\n" +
+			Assert.Equal($"Body validation errors:{Environment.NewLine}" +
+				$" -- name1: msg1{Environment.NewLine}" +
 				" -- name2: msg2",
 				errorModel.Message);
 		}
