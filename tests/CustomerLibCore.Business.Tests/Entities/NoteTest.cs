@@ -203,6 +203,18 @@ namespace CustomerLibCore.Business.Tests.Entities
 
 		#endregion
 
+		[Fact]
+		public void ShouldCopyAddress()
+		{
+			var note = MockNote();
+
+			var copy = note.Copy();
+
+			Assert.NotEqual(note, copy);
+
+			Assert.True(note.EqualsByValue(copy));
+		}
+
 		private static Note MockNote() => new()
 		{
 			NoteId = 5,

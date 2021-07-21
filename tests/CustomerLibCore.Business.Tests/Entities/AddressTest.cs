@@ -226,6 +226,18 @@ namespace CustomerLibCore.Business.Tests.Entities
 
 		#endregion
 
+		[Fact]
+		public void ShouldCopyAddress()
+		{
+			var address = MockAddress();
+
+			var copy = address.Copy();
+
+			Assert.NotEqual(address, copy);
+
+			Assert.True(address.EqualsByValue(copy));
+		}
+
 		private static Address MockAddress() => new()
 		{
 			AddressId = 5,
