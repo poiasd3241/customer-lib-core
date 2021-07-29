@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using CustomerLibCore.Business.ArgumentCheckHelpers;
@@ -23,14 +24,6 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Constructors
 
-		public CustomerService()
-		{
-			_customerRepository = new CustomerRepository();
-
-			_addressRepository = new AddressRepository();
-			_noteRepository = new NoteRepository();
-		}
-
 		public CustomerService(ICustomerRepository customerRepository,
 			IAddressRepository addressRepository, INoteRepository noteRepository)
 		{
@@ -46,12 +39,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public void Save(Customer customer)
 		{
-			var validationResult = new CustomerValidator().ValidateFull(customer);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			new CustomerValidator().ValidateFull(customer).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -91,30 +79,6 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			return customer;
 		}
 
-		public IReadOnlyCollection<Customer> FindAll(bool includeAddresses, bool includeNotes)
-		{
-			using TransactionScope scope = new();
-
-			var customers = _customerRepository.ReadMany();
-
-			if (customers.Count == 0)
-			{
-				return customers;
-			}
-
-			if (includeAddresses)
-			{
-				LoadAddresses(customers);
-			}
-
-			if (includeNotes)
-			{
-				LoadNotes(customers);
-			}
-
-			return customers;
-		}
-
 		public int GetCount() => _customerRepository.GetCount();
 
 		public PagedResult<Customer> GetPage(int page, int pageSize,
@@ -131,7 +95,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			{
 				if (page == 1)
 				{
-					return new(pageCustomers, 1, pageSize, 0);
+					return new(pageCustomers, 1, pageSize, 1);
 				}
 
 				throw new PagedRequestInvalidException(page, pageSize);
@@ -147,20 +111,18 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				LoadNotes(pageCustomers);
 			}
 
-			return new(pageCustomers, page, pageSize, GetCount());
+			var lastPage = (int)Math.Ceiling((double)GetCount() / pageSize);
+
+			return new(pageCustomers, page, pageSize, lastPage);
 		}
 
 		public void Update(Customer customer)
 		{
 			CheckNumber.ValidId(customer.CustomerId, nameof(customer.CustomerId));
 
-			var validationResult = new CustomerValidator()
-				.ValidateWithoutAddressesAndNotes(customer);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			// TODO: replace with CustomerBasicDetailsValidator!?
+			new CustomerValidator().ValidateWithoutAddressesAndNotes(customer)
+				.WithInternalValidationException();
 
 			using TransactionScope scope = new();
 

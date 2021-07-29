@@ -3,6 +3,7 @@ using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Business.Enums;
 using CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers;
 using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.TestHelpers;
 using Xunit;
 using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.CustomerRepositoryTest;
 
@@ -11,22 +12,14 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 	[Collection(nameof(NotDbSafeResourceCollection))]
 	public class AddressRepositoryTest
 	{
-		#region Constructors
-
-		[Fact]
-		public void ShouldCreateAddressRepositoryDefault()
-		{
-			var repo = new AddressRepository();
-
-			Assert.NotNull(repo);
-		}
+		#region Constructor
 
 		[Fact]
 		public void ShouldCreateAddressRepository()
 		{
-			var context = new CustomerLibDataContext();
+			var context = new StrictMock<CustomerLibDataContext>();
 
-			var repo = new AddressRepository(context);
+			var repo = new AddressRepository(context.Object);
 
 			Assert.NotNull(repo);
 		}
@@ -122,7 +115,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		{
 			// Given
 			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			var address = createMockAddress.Invoke();
+			var address = createMockAddress();
 
 			// When
 			var readAddress = repo.Read(1);

@@ -20,11 +20,6 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context = context;
 		}
 
-		public AddressRepository()
-		{
-			_context = new();
-		}
-
 		#endregion
 
 		#region Public Methods
@@ -35,8 +30,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 		public bool ExistsForCustomer(int addressId, int customerId) =>
 			_context.Addresses.Any(address =>
 				address.AddressId == addressId &&
-				address.CustomerId == customerId
-			);
+				address.CustomerId == customerId);
 
 		public int Create(Address address)
 		{
@@ -61,11 +55,15 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Update(Address address)
 		{
+			//var addressDb = _context.Addresses.First(a => a.AddressId == 1);
+
 			var addressDb = _context.Addresses.Find(address.AddressId);
 
 			if (addressDb is not null)
 			{
 				_context.Entry(addressDb).CurrentValues.SetValues(address);
+
+				_context.Update(addressDb);
 
 				_context.SaveChanges();
 			}

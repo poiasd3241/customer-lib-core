@@ -20,12 +20,6 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Constructors
 
-		public NoteService()
-		{
-			_customerRepository = new CustomerRepository();
-			_noteRepository = new NoteRepository();
-		}
-
 		public NoteService(ICustomerRepository customerRepository, INoteRepository noteRepository)
 		{
 			_customerRepository = customerRepository;
@@ -40,12 +34,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		{
 			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
 
-			var validationResult = new NoteValidator().Validate(note);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			new NoteValidator().Validate(note).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -97,12 +86,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(note.NoteId, nameof(note.NoteId));
 			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
 
-			var validationResult = new NoteValidator().Validate(note);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			new NoteValidator().Validate(note).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 

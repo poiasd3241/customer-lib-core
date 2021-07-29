@@ -1,103 +1,112 @@
-﻿using System.Collections.Generic;
-using AutoMapper;
-using CustomerLibCore.Api.DTOs;
-using CustomerLibCore.Api.DTOs.Validators;
-using CustomerLibCore.Business.Entities;
-using CustomerLibCore.ServiceLayer.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿//using System.Collections.Generic;
+//using AutoMapper;
+//using CustomerLibCore.Api.Dtos;
+//using CustomerLibCore.Api.Dtos.Notes;
+//using CustomerLibCore.Api.Dtos.Validators;
+//using CustomerLibCore.Api.Dtos.Validators.Notes;
+//using CustomerLibCore.Business.Entities;
+//using CustomerLibCore.Business.Validators;
+//using CustomerLibCore.ServiceLayer.Services;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.AspNetCore.Mvc.Routing;
 
-namespace CustomerLibCore.Api.Controllers
-{
-	[Route("api/customers/{customerId:int}/notes")]
-	[ApiController]
-	public class NotesController : ControllerBase
-	{
-		private readonly NoteDtoValidator _noteDtoValidator = new();
+//namespace CustomerLibCore.Api.Controllers
+//{
+//	[Route("api/customers/{customerId:int}/notes")]
+//	[ApiController]
+//	public class NotesController : ControllerBase
+//	{
+//		private readonly NoteDtoValidator _noteDtoValidator = new();
+//		private readonly NoteRequestValidator _noteRequestValidator = new();
+//		private readonly NoteDetailsValidator _noteDetailsValidator = new();
 
-		private readonly INoteService _noteService;
-		private readonly IMapper _mapper;
+//		private readonly INoteService _noteService;
+//		private readonly IMapper _mapper;
 
-		public NotesController(INoteService noteService, IMapper mapper)
-		{
-			_noteService = noteService;
-			_mapper = mapper;
-		}
+//		public NotesController(INoteService noteService, IMapper mapper)
+//		{
+//			_noteService = noteService;
+//			_mapper = mapper;
+//		}
 
-		// GET: api/customers/5/notes
-		[HttpGet]
-		public ActionResult<IEnumerable<NoteDto>> FindAllForCustomer([FromRoute] int customerId)
-		{
-			CheckRouteArgument.ValidId(customerId, nameof(customerId));
+//		// GET: api/customers/5/notes
+//		[HttpGet]
+//		public ActionResult<NoteListResponse> FindAllForCustomer([FromRoute] int customerId)
+//		{
+//			CheckRouteArgument.ValidId(customerId, nameof(customerId));
 
-			var notes = _noteService.FindAllForCustomer(customerId);
+//			var notes = _noteService.FindAllForCustomer(customerId);
 
-			var notesDto = _mapper.Map<IEnumerable<NoteDto>>(notes);
+//			var noteListResponse = _mapper.Map<NoteListResponse>(notes);
+//			noteListResponse.Self = LinkHelper.Notes(customerId);
 
-			return Ok(notesDto);
-		}
+//			return Ok(noteListResponse);
+//		}
 
-		// GET api/customers/5/notes/7
-		[HttpGet("{noteId:int}")]
-		public ActionResult<NoteDto> GetForCustomer(
-			[FromRoute] int customerId, [FromRoute] int noteId)
-		{
-			CheckRouteArgument.ValidId(customerId, nameof(customerId));
-			CheckRouteArgument.ValidId(noteId, nameof(noteId));
+//		// GET api/customers/5/notes/7
+//		[HttpGet("{noteId:int}")]
+//		public ActionResult<NoteResponse> GetForCustomer(
+//			[FromRoute] int customerId, [FromRoute] int noteId)
+//		{
+//			CheckRouteArgument.ValidId(customerId, nameof(customerId));
+//			CheckRouteArgument.ValidId(noteId, nameof(noteId));
 
-			var note = _noteService.GetForCustomer(noteId, customerId);
+//			var note = _noteService.GetForCustomer(noteId, customerId);
 
-			var noteDto = _mapper.Map<NoteDto>(note);
+//			var noteResponse = _mapper.Map<NoteResponse>(note);
 
-			return Ok(noteDto);
-		}
+//			//TODO: add validation
 
-		// POST api/customers/5/notes
-		[HttpPost]
-		public IActionResult Save(int customerId, [FromBody] NoteDto noteDto)
-		{
-			CheckRouteArgument.ValidId(customerId, nameof(customerId));
+//			return Ok(noteResponse);
+//		}
 
-			_noteDtoValidator.Validate(noteDto).WithInvalidBodyException();
+//		// POST api/customers/5/notes
+//		[HttpPost]
+//		public IActionResult Save(int customerId, [FromBody] NoteRequest noteRequest)
+//		{
+//			CheckRouteArgument.ValidId(customerId, nameof(customerId));
 
-			var note = _mapper.Map<Note>(noteDto);
+//			_noteRequestValidator.Validate(noteRequest).WithInvalidBodyException();
 
-			note.CustomerId = customerId;
+//			var note = _mapper.Map<Note>(noteRequest);
 
-			_noteService.Save(note);
+//			note.CustomerId = customerId;
 
-			return Ok();
-		}
+//			_noteService.Save(note);
 
-		// PUT api/customers/5/notes/7
-		[HttpPut("{noteId:int}")]
-		public IActionResult Update([FromRoute] int customerId, [FromRoute] int noteId,
-			[FromBody] NoteDto noteDto)
-		{
-			CheckRouteArgument.ValidId(customerId, nameof(customerId));
-			CheckRouteArgument.ValidId(noteId, nameof(noteId));
+//			return Ok();
+//		}
 
-			_noteDtoValidator.Validate(noteDto).WithInvalidBodyException();
+//		// PUT api/customers/5/notes/7
+//		[HttpPut("{noteId:int}")]
+//		public IActionResult Update([FromRoute] int customerId, [FromRoute] int noteId,
+//			[FromBody] NoteDto noteDto)
+//		{
+//			CheckRouteArgument.ValidId(customerId, nameof(customerId));
+//			CheckRouteArgument.ValidId(noteId, nameof(noteId));
 
-			var note = _mapper.Map<Note>(noteDto);
+//			_noteDtoValidator.Validate(noteDto).WithInvalidBodyException();
 
-			note.NoteId = noteId;
-			note.CustomerId = customerId;
+//			var note = _mapper.Map<Note>(noteDto);
 
-			_noteService.UpdateForCustomer(note);
+//			note.NoteId = noteId;
+//			note.CustomerId = customerId;
 
-			return Ok();
-		}
+//			_noteService.UpdateForCustomer(note);
 
-		// DELETE api/customers/5/notes/7
-		[HttpDelete("{noteId:int}")]
-		public IActionResult Delete([FromRoute] int customerId, [FromRoute] int noteId)
-		{
-			CheckRouteArgument.ValidId(customerId, nameof(customerId));
-			CheckRouteArgument.ValidId(noteId, nameof(noteId));
+//			return Ok();
+//		}
 
-			_noteService.DeleteForCustomer(noteId, customerId);
+//		// DELETE api/customers/5/notes/7
+//		[HttpDelete("{noteId:int}")]
+//		public IActionResult Delete([FromRoute] int customerId, [FromRoute] int noteId)
+//		{
+//			CheckRouteArgument.ValidId(customerId, nameof(customerId));
+//			CheckRouteArgument.ValidId(noteId, nameof(noteId));
 
-			return Ok();
-		}
-	}
-}
+//			_noteService.DeleteForCustomer(noteId, customerId);
+
+//			return Ok();
+//		}
+//	}
+//}

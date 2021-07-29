@@ -20,12 +20,6 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Constructors
 
-		public AddressService()
-		{
-			_customerRepository = new CustomerRepository();
-			_addressRepository = new AddressRepository();
-		}
-
 		public AddressService(ICustomerRepository customerRepository,
 			IAddressRepository addressRepository)
 		{
@@ -41,12 +35,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		{
 			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
 
-			var validationResult = new AddressValidator().Validate(address);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			new AddressValidator().Validate(address).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -98,12 +87,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(address.AddressId, nameof(address.AddressId));
 			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
 
-			var validationResult = new AddressValidator().Validate(address);
-
-			if (validationResult.IsValid == false)
-			{
-				throw new InternalValidationException(validationResult.Errors);
-			}
+			new AddressValidator().Validate(address).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 

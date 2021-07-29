@@ -65,11 +65,6 @@ namespace CustomerLibCore.Business.Validators
 				.MaximumLength(maxLength).WithMessage(
 					ValidationErrorMessages.TextMaxLength(maxLength));
 
-		public static IRuleBuilderOptions<T, string> NumberDecimal<T>(
-			this IRuleBuilder<T, string> ruleBuilder) =>
-			ruleBuilder
-				.Must(property => decimal.TryParse(property, out _)).WithMessage(
-					ValidationErrorMessages.NUMBER_DECIMAL);
 
 		public static IRuleBuilderOptions<T, string> TextNotEmptyNorContainsWhitespace<T>(
 			this IRuleBuilder<T, string> ruleBuilder) =>
@@ -79,53 +74,64 @@ namespace CustomerLibCore.Business.Validators
 					property.Contains(' ') == false)
 				.WithMessage(ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
 
+		#region Number
+
+		public static IRuleBuilderOptions<T, string> NumberDecimal<T>(
+			this IRuleBuilder<T, string> ruleBuilder) =>
+			ruleBuilder
+				.Must(property => decimal.TryParse(property, out _)).WithMessage(
+					ValidationErrorMessages.NUMBER_DECIMAL);
+
+		public static IRuleBuilderOptions<T, TProperty> NumberGreaterThan<T, TProperty>(
+			this IRuleBuilder<T, TProperty> ruleBuilder, TProperty valueToCompare)
+				where TProperty : struct, IComparable<TProperty>, IComparable =>
+			ruleBuilder.
+				GreaterThan(valueToCompare).WithMessage(
+					ValidationErrorMessages.NumberGreaterThan(valueToCompare.ToString()));
+
+		#endregion
 
 
 		#region Customer
 
 		public static IRuleBuilderOptions<T, string> CustomerFirstName<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_customer_first_name_max_length);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerLastName<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_customer_last_name_max_length);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerPhoneNumber<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.TextNotEmptyNorContainsWhitespace()
 				.PhoneNumberFormatE164().WithMessage(
 					ValidationErrorMessages.PHONE_NUMBER_FORMAT_E164);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerEmail<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.TextNotEmptyNorContainsWhitespace()
 				.EmailFormat().WithMessage(ValidationErrorMessages.EMAIL_FORMAT);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerTotalPurchasesAmount<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.TextNotEmptyNorContainsWhitespace()
 				.NumberDecimal();
 		}
@@ -135,20 +141,18 @@ namespace CustomerLibCore.Business.Validators
 		#region Address
 
 		public static IRuleBuilderOptions<T, string> AddressLine<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_address_line_max_length);
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressLine2<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_address_line2_max_length);
 		}
@@ -162,10 +166,9 @@ namespace CustomerLibCore.Business.Validators
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressCity<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_address_city_max_length);
@@ -173,30 +176,27 @@ namespace CustomerLibCore.Business.Validators
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressPostalCode<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorContainsWhitespace()
 				.TextMaxLength(_address_postalCode_max_length);
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressState<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_address_state_max_length);
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressCountry<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.Must(country => _address_country_allowed.Contains(country)).WithMessage(
@@ -208,15 +208,27 @@ namespace CustomerLibCore.Business.Validators
 		#region Note
 
 		public static IRuleBuilderOptions<T, string> NoteContent<T>(
-			this IRuleBuilderInitial<T, string> ruleBuilder,
-			CascadeMode cascadeMode = CascadeMode.Stop)
+			this IRuleBuilder<T, string> ruleBuilder)
 		{
-			return ruleBuilder.Cascade(cascadeMode)
+			return ruleBuilder
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.TextMaxLength(_note_content_max_length);
 		}
 
 		#endregion
+
+		public static IRuleBuilderOptions<T, string> HrefLink<T>(
+			this IRuleBuilder<T, string> ruleBuilder)
+		{
+			return ruleBuilder
+				.Required()
+				.TextNotEmptyNorContainsWhitespace();
+		}
+
+		public static IRuleBuilderOptions<T, string> CannotHaveValue<T>(
+			this IRuleBuilder<T, string> ruleBuilder) => 
+			ruleBuilder
+				.Null().WithMessage(ValidationErrorMessages.CANNOT_HAVE_VALUE);
 	}
 }

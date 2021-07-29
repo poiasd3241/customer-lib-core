@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Sockets;
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.TestHelpers;
 using Xunit;
 using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.AddressRepositoryTest;
 using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.NoteRepositoryTest;
@@ -12,22 +13,14 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 	[Collection(nameof(NotDbSafeResourceCollection))]
 	public class CustomerRepositoryTest
 	{
-		#region Constructors
-
-		[Fact]
-		public void ShouldCreateCustomerRepositoryDefault()
-		{
-			var repo = new CustomerRepository();
-
-			Assert.NotNull(repo);
-		}
+		#region Constructor
 
 		[Fact]
 		public void ShouldCreateCustomerRepository()
 		{
-			var context = new CustomerLibDataContext();
+			var context = new StrictMock<CustomerLibDataContext>();
 
-			var repo = new CustomerRepository(context);
+			var repo = new CustomerRepository(context.Object);
 
 			Assert.NotNull(repo);
 		}
@@ -117,7 +110,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		{
 			// Given
 			var repo = new CustomerRepository(DbContextHelper.Context);
-			var customer = createMockCustomer.Invoke();
+			var customer = createMockCustomer();
 
 			// When
 			var readCustomer = repo.Read(1);
@@ -150,6 +143,11 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 			// Then
 			Assert.Equal(2, readCustomers.Count);
+
+			var a1 = repo.ReadMany();
+			var a2 = repo.ReadMany();
+			var a3 = repo.ReadMany();
+			var a4 = repo.ReadMany();
 
 			foreach (var readCustomer in readCustomers)
 			{
@@ -431,7 +429,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				LastName = "Doe",
 				PhoneNumber = "+12345",
 				Email = email,
-				TotalPurchasesAmount = 123
+				TotalPurchasesAmount = 123,
+				Addresses = new() { AddressRepositoryFixture.MockAddress(0) },
+				Notes = new() { NoteRepositoryFixture.MockNote(0) }
 			};
 
 			/// <returns>The mocked customer with repo-relevant valid properties,

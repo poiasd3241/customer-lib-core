@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using CustomerLibCore.Api.DTOs.Validators;
+﻿using CustomerLibCore.Api.Dtos.Validators;
 using CustomerLibCore.Api.Exceptions;
 using FluentValidation.Results;
+using System.Collections.Generic;
 using Xunit;
 
-namespace CustomerLibCore.Api.Tests.DTOs.Validators
+namespace CustomerLibCore.Api.Tests.Dtos.Validators
 {
 	public class ValidationResultExtensionsTest
 	{

@@ -1,13 +1,41 @@
-﻿using AutoMapper;
-using CustomerLibCore.Api.DTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AutoMapper;
+using CustomerLibCore.Api.Controllers;
+using CustomerLibCore.Api.Dtos;
+using CustomerLibCore.Api.Dtos.Addresses;
+using CustomerLibCore.Api.Dtos.Customers;
+using CustomerLibCore.Api.Dtos.Notes;
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Business.Enums;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.DTOs
 {
 	public class AutoMapperApiProfileTest
 	{
+		private IMapper _mapper;
+
+		public IMapper Mapper
+		{
+			get
+			{
+				if (_mapper is null)
+				{
+					var config = new MapperConfiguration(cfg =>
+					{
+						cfg.AddProfile(new AutoMapperApiProfile());
+					});
+
+					_mapper = config.CreateMapper();
+				}
+
+				return _mapper;
+			}
+		}
+
 		#region Constructor
 
 		[Fact]
@@ -20,362 +48,534 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region Note - NoteDto
+		#region Address -> AddressResponse, IEnumerable -> AddressListResponse
 
 		[Fact]
-		public void ShouldMapFromNoteToNoteDto()
+		public void ShouldMapFromAddressToAddressResponse()
 		{
 			// Given
-			var note = MockNote();
+			var address = MockAddress();
+			var expectedSelf = LinkHelper.Address(address.CustomerId, address.AddressId);
 
 			// When
-			var noteDto = CreateMapper().Map<NoteDto>(note);
+			var addressResponse = Mapper.Map<AddressResponse>(address);
 
 			// Then
-			Assert.Equal(note.Content, noteDto.Content);
+			Assert.Equal(expectedSelf, addressResponse.Self);
+			Assert.Equal(address.Line, addressResponse.Line);
+			Assert.Equal(address.Line2, addressResponse.Line2);
+			Assert.Equal(address.Type.ToString(), addressResponse.Type);
+			Assert.Equal(address.City, addressResponse.City);
+			Assert.Equal(address.PostalCode, addressResponse.PostalCode);
+			Assert.Equal(address.State, addressResponse.State);
+			Assert.Equal(address.Country, addressResponse.Country);
 		}
 
 		[Fact]
-		public void ShouldMapFromNoteDtoToNote()
+		public void ShouldMapFromAddressesToAddressListResponse()
 		{
 			// Given
-			var noteDto = MockNoteDto();
+			var address = MockAddress();
+			var addressResponse = Mapper.Map<AddressResponse>(address);
+
+			var addresses = new List<Address>() { address };
 
 			// When
-			var note = CreateMapper().Map<Note>(noteDto);
+			var addressListResponse = Mapper.Map<AddressListResponse>(addresses);
 
 			// Then
-			Assert.Equal(0, note.NoteId);
-			Assert.Equal(0, note.CustomerId);
-			Assert.Equal(noteDto.Content, note.Content);
+			Assert.Null(addressListResponse.Self);
+
+			Assert.True(AddressResponsesEqualByValues(
+				addressResponse, addressListResponse.Items.ElementAt(0)));
 		}
 
 		#endregion
 
-		#region Address - AddressDto
+		#region AddressRequest -> Address
 
-		[Fact]
-		public void ShouldMapFromAddressToAddressDto()
+		[Theory]
+		[InlineData("0")]
+		[InlineData("1")]
+		[InlineData("2")]
+		[InlineData("666")]
+		[InlineData("whatever")]
+		public void ShouldThrowOnMapFromAddressRequestToAddressForBadType(string type)
 		{
 			// Given
-			var address = MockAddress();
+			var addressRequest = MockAddressRequest();
+			addressRequest.Type = type;
 
 			// When
-			var addressDto = CreateMapper().Map<AddressDto>(address);
+			var ex = Assert.Throws<AutoMapperMappingException>(() =>
+				Mapper.Map<Address>(addressRequest));
 
 			// Then
-			Assert.Equal(address.Line, addressDto.Line);
-			Assert.Equal(address.Line2, addressDto.Line2);
-			Assert.Equal(address.Type.ToString(), addressDto.Type);
-			Assert.Equal(address.City, addressDto.City);
-			Assert.Equal(address.PostalCode, addressDto.PostalCode);
-			Assert.Equal(address.State, addressDto.State);
-			Assert.Equal(address.Country, addressDto.Country);
+			Assert.Equal($"the Type must be a name of a defined {nameof(AddressType)} enum",
+				ex.InnerException.Message);
 		}
 
 		[Fact]
-		public void ShouldMapFromAddressDtoToAddress()
+		public void ShouldMapFromAddressRequestToAddress()
 		{
 			// Given
-			var addressDto = MockAddressDto();
+			var addressRequest = MockAddressRequest();
 
 			// When
-			var address = CreateMapper().Map<Address>(addressDto);
+			var address = Mapper.Map<Address>(addressRequest);
 
 			// Then
 			Assert.Equal(0, address.AddressId);
 			Assert.Equal(0, address.CustomerId);
-			Assert.Equal(addressDto.Line, address.Line);
-			Assert.Equal(addressDto.Line2, address.Line2);
+
+			Assert.Equal(addressRequest.Line, address.Line);
+			Assert.Equal(addressRequest.Line2, address.Line2);
 			Assert.Equal(AddressType.Shipping, address.Type);
-			Assert.Equal(addressDto.City, address.City);
-			Assert.Equal(addressDto.PostalCode, address.PostalCode);
-			Assert.Equal(addressDto.State, address.State);
-			Assert.Equal(addressDto.Country, address.Country);
-		}
-
-		[Theory]
-		[InlineData("0")]
-		[InlineData("555")]
-		[InlineData("whatever")]
-		public void ShouldMapFromAddressDtoToAddressTypeDefaultShipping(string type)
-		{
-			// Given
-			var addressDto = MockAddressDto();
-			addressDto.Type = type;
-
-			// When
-			var address = CreateMapper().Map<Address>(addressDto);
-
-			// Then
-			Assert.Equal(AddressType.Shipping, address.Type);
+			Assert.Equal(addressRequest.City, address.City);
+			Assert.Equal(addressRequest.PostalCode, address.PostalCode);
+			Assert.Equal(addressRequest.State, address.State);
+			Assert.Equal(addressRequest.Country, address.Country);
 		}
 
 		#endregion
 
-		#region Customer - CustomerDto
+		#region Note -> NoteResponse, IEnumerable -> NoteListResponse
 
 		[Fact]
-		public void ShouldMapFromCustomerToCustomerDto()
+		public void ShouldMapFromNoteToNoteResponse()
 		{
 			// Given
+			var note = MockNote();
+			var expectedSelf = LinkHelper.Note(note.CustomerId, note.NoteId);
+
+			// When
+			var noteResponse = Mapper.Map<NoteResponse>(note);
+
+			// Then
+			Assert.Equal(expectedSelf, noteResponse.Self);
+			Assert.Equal(note.Content, noteResponse.Content);
+		}
+
+		[Fact]
+		public void ShouldMapFromNoteesToNoteListResponse()
+		{
+			// Given
+			var note = MockNote();
+			var noteResponse = Mapper.Map<NoteResponse>(note);
+
+			var notes = new List<Note>() { note };
+
+			// When
+			var noteListResponse = Mapper.Map<NoteListResponse>(notes);
+
+			// Then
+			Assert.Null(noteListResponse.Self);
+
+			Assert.True(NoteResponsesEqualByValues(
+				noteResponse, noteListResponse.Items.ElementAt(0)));
+		}
+
+		#endregion
+
+		#region NoteRequest -> Note
+
+		[Fact]
+		public void ShouldMapFromNoteRequestToNote()
+		{
+			// Given
+			var notRequeste = MockNoteRequest();
+
+			// When
+			var note = Mapper.Map<Note>(notRequeste);
+
+			// Then
+			Assert.Equal(0, note.NoteId);
+			Assert.Equal(0, note.CustomerId);
+
+			Assert.Equal(notRequeste.Content, note.Content);
+		}
+
+		#endregion
+
+		#region Customer -> CustomerResponse
+
+		private class TotalPurchasesAmountData : TheoryData<string, decimal?>
+		{
+			public TotalPurchasesAmountData()
+			{
+				Add(null, null);
+				Add("0", 0);
+				Add("1", 1);
+				Add("1.1", 1.1M);
+				Add("-2.22", -2.22M);
+				Add("666", 666);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(TotalPurchasesAmountData))]
+		public void ShouldMapFromCustomerToCustomerResponse(
+			string totalPurchasesAmountText, decimal? totalPurchasesAmountNumber)
+		{
+			// Given
+			var customer = MockCustomer();
+			customer.TotalPurchasesAmount = totalPurchasesAmountNumber;
+
 			var address = MockAddress();
 			var note = MockNote();
 
-			var customer = MockCustomer();
 			customer.Addresses = new() { address };
 			customer.Notes = new() { note };
 
-			// When
-			var customerDto = CreateMapper().Map<CustomerDto>(customer);
+			var addressResponse = Mapper.Map<AddressResponse>(address);
+			var noteResponse = Mapper.Map<NoteResponse>(note);
 
-			// Then
-			Assert.Equal(customer.FirstName, customerDto.FirstName);
-			Assert.Equal(customer.LastName, customerDto.LastName);
-			Assert.Equal(customer.PhoneNumber, customerDto.PhoneNumber);
-			Assert.Equal(customer.Email, customerDto.Email);
-			Assert.Equal(customer.TotalPurchasesAmount.ToString(),
-				customerDto.TotalPurchasesAmount);
-
-			var addressDto = Assert.Single(customerDto.Addresses);
-			Assert.True(AddressAndDtoEqualByValues(address, addressDto));
-
-			var noteDto = Assert.Single(customerDto.Notes);
-			Assert.True(NoteAndDtoEqualByValues(note, noteDto));
-		}
-
-		[Fact]
-		public void ShouldMapFromCustomerDtoToCustomer()
-		{
-			// Given
-			var addressDto = MockAddressDto();
-			var noteDto = MockNoteDto();
-
-			var customerDto = MockCustomerDto();
-			customerDto.Addresses = new() { addressDto };
-			customerDto.Notes = new() { noteDto };
+			var expectedSelf = LinkHelper.Customer(customer.CustomerId);
+			var expectedAddressesSelf = LinkHelper.Addresses(customer.CustomerId);
+			var expectedNotesSelf = LinkHelper.Notes(customer.CustomerId);
 
 			// When
-			var customer = CreateMapper().Map<Customer>(customerDto);
+			var customerResponse = Mapper.Map<CustomerResponse>(customer);
 
 			// Then
-			Assert.Equal(0, customer.CustomerId);
-			Assert.Equal(customerDto.FirstName, customer.FirstName);
-			Assert.Equal(customerDto.LastName, customer.LastName);
-			Assert.Equal(customerDto.PhoneNumber, customer.PhoneNumber);
-			Assert.Equal(customerDto.Email, customer.Email);
-			Assert.Equal(customerDto.TotalPurchasesAmount,
-				customer.TotalPurchasesAmount.ToString());
+			Assert.Equal(expectedSelf, customerResponse.Self);
+			Assert.Equal(customer.FirstName, customerResponse.FirstName);
+			Assert.Equal(customer.LastName, customerResponse.LastName);
+			Assert.Equal(customer.PhoneNumber, customerResponse.PhoneNumber);
+			Assert.Equal(customer.Email, customerResponse.Email);
+			Assert.Equal(totalPurchasesAmountText, customerResponse.TotalPurchasesAmount);
 
-			var address = Assert.Single(customer.Addresses);
-			Assert.True(AddressAndDtoEqualByValues(address, addressDto));
+			var addressListResponse = customerResponse.Addresses;
+			var noteListResponse = customerResponse.Notes;
 
-			var note = Assert.Single(customer.Notes);
-			Assert.True(NoteAndDtoEqualByValues(note, noteDto));
-		}
+			Assert.Equal(expectedAddressesSelf, addressListResponse.Self);
 
-		[Fact]
-		public void ShouldMapFromCustomerDtoToCustomerTotalPurchasesAmountNull()
-		{
-			// Given
-			var customerDto = MockCustomerDto();
-			customerDto.TotalPurchasesAmount = null;
+			var actualAddressListResponse = Assert.Single(addressListResponse.Items);
+			Assert.True(AddressResponsesEqualByValues(addressResponse, actualAddressListResponse));
 
-			// When
-			var customer = CreateMapper().Map<Customer>(customerDto);
+			Assert.Equal(expectedNotesSelf, noteListResponse.Self);
 
-			// Then
-			Assert.Null(customer.TotalPurchasesAmount);
-		}
-
-		[Theory]
-		[InlineData("")]
-		[InlineData(" ")]
-		[InlineData("1.1.1")]
-		public void ShouldThrowOnMapFromCustomerDtoToCustomerTotalPurchasesAmount(
-			string totalPurchasesAmount)
-		{
-			// Given
-			var mapper = CreateMapper();
-
-			var customerDto = MockCustomerDto();
-			customerDto.TotalPurchasesAmount = totalPurchasesAmount;
-
-			// When, Then
-			Assert.Throws<AutoMapperMappingException>(() => mapper.Map<Customer>(customerDto));
+			var actualNoteListResponse = Assert.Single(noteListResponse.Items);
+			Assert.True(NoteResponsesEqualByValues(noteResponse, actualNoteListResponse));
 		}
 
 		#endregion
 
-		#region Customer - CustomerBasicDetailsDto
+		#region PagedResult<Customer> -> CustomerPagedResponse
 
 		[Fact]
-		public void ShouldMapFromCustomerToCustomerBasicDetailsDto()
+		public void ShouldMapFromPagedResultCustomerToCustomerPagedResponse()
 		{
 			// Given
+			var page = 2;
+			var pageSize = 5;
+			var lastPage = 3;
 			var customer = MockCustomer();
 
-			// When
-			var customerBasicDetailsDto = CreateMapper().Map<CustomerBasicDetailsDto>(customer);
+			var customerResponse = Mapper.Map<CustomerResponse>(customer);
 
-			// Then
-			Assert.Equal(customer.FirstName, customerBasicDetailsDto.FirstName);
-			Assert.Equal(customer.LastName, customerBasicDetailsDto.LastName);
-			Assert.Equal(customer.PhoneNumber, customerBasicDetailsDto.PhoneNumber);
-			Assert.Equal(customer.Email, customerBasicDetailsDto.Email);
-			Assert.Equal(customer.TotalPurchasesAmount.ToString(),
-				customerBasicDetailsDto.TotalPurchasesAmount);
-		}
+			var pagedResult = MockCustomerPagedResult();
+			pagedResult.Page = page;
+			pagedResult.PageSize = pageSize;
+			pagedResult.LastPage = lastPage;
+			pagedResult.Items = new[] { customer };
 
-		[Fact]
-		public void ShouldMapFromCustomerBasicDetailsDtoToCustomer()
-		{
-			// Given
-			var customerBasicDetailsDto = MockCustomerBasicDetailsDto();
+			var expectedSelf = LinkHelper.CustomersPage(page, pageSize);
+			var expectedPrevious = LinkHelper.CustomersPage(page - 1, pageSize);
+			var expectedNext = LinkHelper.CustomersPage(page + 1, pageSize);
 
 			// When
-			var customer = CreateMapper().Map<Customer>(customerBasicDetailsDto);
+			var pagedResponse = Mapper.Map<CustomerPagedResponse>(pagedResult);
 
 			// Then
-			Assert.Equal(0, customer.CustomerId);
-			Assert.Equal(customerBasicDetailsDto.FirstName, customer.FirstName);
-			Assert.Equal(customerBasicDetailsDto.LastName, customer.LastName);
-			Assert.Equal(customerBasicDetailsDto.PhoneNumber, customer.PhoneNumber);
-			Assert.Equal(customerBasicDetailsDto.Email, customer.Email);
-			Assert.Equal(customerBasicDetailsDto.TotalPurchasesAmount,
-				customer.TotalPurchasesAmount.ToString());
+			Assert.Equal(expectedSelf, pagedResponse.Self);
+			Assert.Equal(expectedPrevious, pagedResponse.Previous);
+			Assert.Equal(expectedNext, pagedResponse.Next);
 
-			Assert.Null(customer.Addresses);
-			Assert.Null(customer.Notes);
-		}
+			Assert.Equal(page, pagedResponse.Page);
+			Assert.Equal(pageSize, pagedResponse.PageSize);
+			Assert.Equal(lastPage, pagedResponse.LastPage);
 
-		[Fact]
-		public void ShouldMapFromCustomerBasicDetailsDtoToCustomerTotalPurchasesAmountNull()
-		{
-			// Given
-			var customerBasicDetailsDto = MockCustomerBasicDetailsDto();
-			customerBasicDetailsDto.TotalPurchasesAmount = null;
+			var actualCustomerResponse = Assert.Single(pagedResponse.Items);
 
-			// When
-			var customer = CreateMapper().Map<Customer>(customerBasicDetailsDto);
-
-			// Then
-			Assert.Null(customer.TotalPurchasesAmount);
-		}
-
-		[Theory]
-		[InlineData("")]
-		[InlineData(" ")]
-		[InlineData("1.1.1")]
-		public void ShouldThrowOnMapFromCustomerBasicDetailsDtoToCustomerTotalPurchasesAmount(
-			string totalPurchasesAmount)
-		{
-			// Given
-			var mapper = CreateMapper();
-
-			var customerBasicDetailsDto = MockCustomerBasicDetailsDto();
-			customerBasicDetailsDto.TotalPurchasesAmount = totalPurchasesAmount;
-
-			// When, Then
-			Assert.Throws<AutoMapperMappingException>(() =>
-				mapper.Map<Customer>(customerBasicDetailsDto));
+			Assert.True(CustomerResponsesEqualByValues(customerResponse, actualCustomerResponse));
 		}
 
 		#endregion
 
-		public static IMapper CreateMapper()
-		{
-			var config = new MapperConfiguration(cfg =>
-			{
-				cfg.AddProfile(new AutoMapperApiProfile());
-			});
+		#region CustomerCreateRequest - Customer
 
-			return config.CreateMapper();
+		[Theory]
+		[ClassData(typeof(TotalPurchasesAmountData))]
+		public void ShouldMapFromCustomerCreateRequestToCustomer(
+			string totalPurchasesAmountText, decimal? totalPurchasesAmountNumber)
+		{
+			// Given
+			var addressRequest = MockAddressRequest();
+			var noteRequest = MockNoteRequest();
+
+			var customerCreateRequest = MockCustomerCreateRequest();
+			customerCreateRequest.TotalPurchasesAmount = totalPurchasesAmountText;
+			customerCreateRequest.Addresses = new[] { addressRequest };
+			customerCreateRequest.Notes = new[] { noteRequest };
+
+			var address = Mapper.Map<Address>(addressRequest);
+			var note = Mapper.Map<Note>(noteRequest);
+
+			// When
+			var customer = Mapper.Map<Customer>(customerCreateRequest);
+
+			// Then
+			Assert.Equal(0, customer.CustomerId);
+
+			Assert.Equal(customerCreateRequest.FirstName, customer.FirstName);
+			Assert.Equal(customerCreateRequest.LastName, customer.LastName);
+			Assert.Equal(customerCreateRequest.PhoneNumber, customer.PhoneNumber);
+			Assert.Equal(customerCreateRequest.Email, customer.Email);
+			Assert.Equal(totalPurchasesAmountNumber, customer.TotalPurchasesAmount);
+
+			var actualAddress = Assert.Single(customer.Addresses);
+			Assert.True(AddressesEqualByValuesExcludingIds(address, actualAddress));
+
+			var actualNote = Assert.Single(customer.Notes);
+			Assert.True(NotesEqualByValuesExcludingIds(note, actualNote));
 		}
 
-		public static bool NoteAndDtoEqualByValues(Note note, NoteDto noteDto)
-		{
-			return note.Content == noteDto.Content;
-		}
+		#endregion
 
-		public static bool AddressAndDtoEqualByValues(Address address, AddressDto addressDto)
+		#region Equals helpers
+
+		private static bool AddressResponsesEqualByValues(
+			AddressResponse item1, AddressResponse item2)
 		{
 			return
-				address.Line == addressDto.Line &&
-				address.Line2 == addressDto.Line2 &&
-				address.Type.ToString() == addressDto.Type &&
-				address.City == addressDto.City &&
-				address.PostalCode == addressDto.PostalCode &&
-				address.State == addressDto.State &&
-				address.Country == addressDto.Country;
+				item1.Self == item2.Self &&
+				item1.Line == item2.Line &&
+				item1.Line2 == item2.Line2 &&
+				item1.Type == item2.Type &&
+				item1.City == item2.City &&
+				item1.PostalCode == item2.PostalCode &&
+				item1.State == item2.State &&
+				item1.Country == item2.Country;
 		}
+
+		private static bool AddressListResponsesEqualByValues(
+			AddressListResponse item1, AddressListResponse item2)
+		{
+			AddressResponse inner1, inner2;
+
+			for (int i = 0; i < item1.Items.Count(); i++)
+			{
+				inner1 = item1.Items.ElementAt(i);
+				inner2 = item2.Items.ElementAt(i);
+
+				if (AddressResponsesEqualByValues(inner1, inner2) == false)
+				{
+					return false;
+				}
+			}
+
+			return item1.Self == item2.Self;
+		}
+
+		private static bool AddressesEqualByValuesExcludingIds(Address item1, Address item2)
+		{
+			return
+				item1.Line == item2.Line &&
+				item1.Line2 == item2.Line2 &&
+				item1.Type == item2.Type &&
+				item1.City == item2.City &&
+				item1.PostalCode == item2.PostalCode &&
+				item1.State == item2.State &&
+				item1.Country == item2.Country;
+		}
+
+		private static bool NoteResponsesEqualByValues(NoteResponse item1, NoteResponse item2)
+		{
+			return
+				item1.Self == item2.Self &&
+				item1.Content == item2.Content;
+		}
+
+		private static bool NoteListResponsesEqualByValues(
+			NoteListResponse item1, NoteListResponse item2)
+		{
+			NoteResponse inner1, inner2;
+
+			for (int i = 0; i < item1.Items.Count(); i++)
+			{
+				inner1 = item1.Items.ElementAt(i);
+				inner2 = item2.Items.ElementAt(i);
+
+				if (NoteResponsesEqualByValues(inner1, inner2) == false)
+				{
+					return false;
+				}
+			}
+
+			return item1.Self == item2.Self;
+		}
+
+		private static bool NotesEqualByValuesExcludingIds(Note item1, Note item2)
+		{
+			return item1.Content == item2.Content;
+		}
+
+		private static bool CustomerResponsesEqualByValues(
+			CustomerResponse item1, CustomerResponse item2)
+		{
+			return
+				item1.Self == item2.Self &&
+				item1.FirstName == item2.FirstName &&
+				item1.LastName == item2.FirstName &&
+				item1.Email == item2.FirstName &&
+				item1.PhoneNumber == item2.FirstName &&
+				item1.TotalPurchasesAmount == item2.FirstName &&
+
+				AddressListResponsesEqualByValues(item1.Addresses, item2.Addresses) &&
+				NoteListResponsesEqualByValues(item1.Notes, item2.Notes);
+		}
+
+		#endregion
+
+		#region Mocks - Address
 
 		public static Address MockAddress() => new()
 		{
 			AddressId = 2,
 			CustomerId = 3,
-			Line = "line one",
-			Line2 = "line two",
+			Line = "Line1",
+			Line2 = "Line21",
 			Type = AddressType.Shipping,
-			City = "city x",
-			PostalCode = "3241",
-			State = "state x",
-			Country = "Canada"
+			City = "City1",
+			PostalCode = "123456",
+			State = "State1",
+			Country = "United States"
 		};
 
-		public static AddressDto MockAddressDto() => new()
+		public static AddressResponse MockAddressResponse() => new()
 		{
-			Line = "line one",
-			Line2 = "line two",
+			Self = "Self1",
+			Line = "Line1",
+			Line2 = "Line21",
 			Type = "Shipping",
-			City = "city x",
-			PostalCode = "3241",
-			State = "state x",
-			Country = "Canada"
+			City = "City1",
+			PostalCode = "123456",
+			State = "State1",
+			Country = "United States"
 		};
+
+		public static AddressListResponse MockAddressListResponse() => new()
+		{
+			Self = "Self1",
+			Items = new[] { MockAddressResponse() }
+		};
+
+		public static AddressRequest MockAddressRequest() => new()
+		{
+			Line = "Line1",
+			Line2 = "Line21",
+			Type = "Shipping",
+			City = "City1",
+			PostalCode = "123456",
+			State = "State1",
+			Country = "United States"
+		};
+
+		#endregion
+
+		#region Mocks - Note
 
 		public static Note MockNote() => new()
 		{
-			NoteId = 4,
-			CustomerId = 5,
-			Content = "MockNote content"
+			NoteId = 1,
+			CustomerId = 2,
+			Content = "Content1"
 		};
 
-		public static NoteDto MockNoteDto() => new()
+		public static NoteRequest MockNoteRequest() => new()
 		{
-			Content = "MockNoteDto content"
+			Content = "Content1"
 		};
+
+		public static NoteResponse MockNoteResponse() => new()
+		{
+			Self = "Self1",
+			Content = "Content1"
+		};
+
+		public static NoteListResponse MockNoteListResponse() => new()
+		{
+			Self = "Self1",
+			Items = new[] { MockNoteResponse() }
+		};
+
+		#endregion
+
+		#region Mocks - Customer
 
 		public static Customer MockCustomer() => new()
 		{
 			CustomerId = 6,
-			FirstName = "One",
-			LastName = "Two",
-			PhoneNumber = "+123",
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
 			Email = "a@a.aa",
 			TotalPurchasesAmount = 666,
-			Addresses = null,
-			Notes = null
+			Addresses = new() { MockAddress() },
+			Notes = new() { MockNote() }
 		};
 
-		public static CustomerDto MockCustomerDto() => new()
+		public static PagedResult<Customer> MockCustomerPagedResult() => new()
 		{
-			FirstName = "One",
-			LastName = "Two",
-			PhoneNumber = "+123",
+			Page = 2,
+			PageSize = 5,
+			LastPage = 3,
+			Items = new[] { MockCustomer() }
+		};
+
+		public static CustomerCreateRequest MockCustomerCreateRequest() => new()
+		{
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
 			Email = "a@a.aa",
 			TotalPurchasesAmount = "666",
-			Addresses = null,
-			Notes = null
+			Addresses = new[] { MockAddressRequest() },
+			Notes = new[] { MockNoteRequest() },
 		};
 
-		public static CustomerBasicDetailsDto MockCustomerBasicDetailsDto() => new()
+		public static CustomerUpdateRequest MockCustomerUpdateRequest() => new()
 		{
-			FirstName = "One",
-			LastName = "Two",
-			PhoneNumber = "+123",
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
 			Email = "a@a.aa",
 			TotalPurchasesAmount = "666"
 		};
+
+		public static CustomerResponse MockCustomerResponse() => new()
+		{
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
+			Email = "a@a.aa",
+			TotalPurchasesAmount = "666",
+			Addresses = MockAddressListResponse(),
+			Notes = MockNoteListResponse()
+		};
+
+		public static CustomerPagedResponse MockCustomerPagedResponse() => new()
+		{
+			Self = "Self1",
+			Page = 2,
+			PageSize = 5,
+			LastPage = 3,
+			Previous = "Previous1",
+			Next = "Next1",
+			Items = new[] { MockCustomerResponse() }
+		};
+
+		#endregion
 	}
 }

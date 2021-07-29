@@ -8,10 +8,6 @@ namespace CustomerLibCore.ServiceLayer.Services
 		void Save(Customer customer);
 		Customer Get(int customerId, bool includeAddresses, bool includeNotes);
 
-		/// <returns>An empty collection if no customers found; 
-		/// otherwise, the found customers.</returns>
-		IReadOnlyCollection<Customer> FindAll(bool includeAddresses, bool includeNotes);
-
 		int GetCount();
 
 		PagedResult<Customer> GetPage(int page, int pageSize,

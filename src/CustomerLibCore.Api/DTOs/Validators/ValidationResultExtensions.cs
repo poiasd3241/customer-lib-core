@@ -1,13 +1,13 @@
 ﻿using CustomerLibCore.Api.Exceptions;
 using FluentValidation.Results;
 
-namespace CustomerLibCore.Api.DTOs.Validators
+namespace CustomerLibCore.Api.Dtos.Validators
 {
 	public static class ValidationResultExtensions
 	{
 		/// <summary>
-		/// If the result is invalid, throws the <see cref="InvalidBodyException"/> containing the 
-		/// <see cref="ValidationResult.Errors"/> of the result;
+		/// If the result is invalid, throws the <see cref="InvalidBodyException"/> 
+		/// containing the <see cref="ValidationResult.Errors"/> of the result;
 		/// otherwise, does nothing.
 		/// </summary>
 		/// <param name="result">The validation result to check.</param>

@@ -1,4 +1,6 @@
 ﻿using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.TestHelpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
@@ -8,7 +10,12 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		[Fact]
 		public void ShouldCreateDataContext()
 		{
-			var context = new CustomerLibDataContext();
+			var options = new StrictMock<DbContextOptions<CustomerLibDataContext>>();
+
+			var context = new CustomerLibDataContext(options.Object);
+
+			Assert.Equal(QueryTrackingBehavior.NoTracking,
+				context.ChangeTracker.QueryTrackingBehavior);
 
 			Assert.NotNull(context.Customers);
 			Assert.NotNull(context.Addresses);

@@ -1,5 +1,6 @@
 using CustomerLibCore.Business.Entities;
 using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.TestHelpers;
 using Xunit;
 using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.CustomerRepositoryTest;
 
@@ -11,19 +12,11 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Constructors
 
 		[Fact]
-		public void ShouldCreateNoteRepositoryDefault()
-		{
-			var repo = new NoteRepository();
-
-			Assert.NotNull(repo);
-		}
-
-		[Fact]
 		public void ShouldCreateNoteRepository()
 		{
-			var context = new CustomerLibDataContext();
+			var context = new StrictMock<CustomerLibDataContext>();
 
-			var repo = new NoteRepository(context);
+			var repo = new NoteRepository(context.Object);
 
 			Assert.NotNull(repo);
 		}

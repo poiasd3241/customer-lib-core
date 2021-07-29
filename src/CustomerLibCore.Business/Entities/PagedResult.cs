@@ -7,7 +7,7 @@ namespace CustomerLibCore.Business.Entities
 		public IReadOnlyCollection<T> Items { get; set; }
 		public int Page { get; set; }
 		public int PageSize { get; set; }
-		public int TotalCount { get; set; }
+		public int LastPage { get; set; }
 
 		public PagedResult() { }
 
@@ -16,7 +16,7 @@ namespace CustomerLibCore.Business.Entities
 			Items = items;
 			Page = page;
 			PageSize = pageSize;
-			TotalCount = totalCount;
+			LastPage = totalCount;
 		}
 	}
 }

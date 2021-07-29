@@ -34,7 +34,7 @@ namespace CustomerLibCore.Business.Tests.Entities
 			Assert.Null(result.Items);
 			Assert.Equal(0, result.Page);
 			Assert.Equal(0, result.PageSize);
-			Assert.Equal(0, result.TotalCount);
+			Assert.Equal(0, result.LastPage);
 		}
 
 		[Fact]
@@ -50,7 +50,7 @@ namespace CustomerLibCore.Business.Tests.Entities
 			Assert.Equal(items, result.Items);
 			Assert.Equal(page, result.Page);
 			Assert.Equal(pageSize, result.PageSize);
-			Assert.Equal(totalCount, result.TotalCount);
+			Assert.Equal(totalCount, result.LastPage);
 		}
 
 		[Fact]
@@ -66,17 +66,17 @@ namespace CustomerLibCore.Business.Tests.Entities
 			Assert.NotEqual(items, result.Items);
 			Assert.NotEqual(page, result.Page);
 			Assert.NotEqual(pageSize, result.PageSize);
-			Assert.NotEqual(totalCount, result.TotalCount);
+			Assert.NotEqual(totalCount, result.LastPage);
 
 			result.Items = items;
 			result.Page = page;
 			result.PageSize = pageSize;
-			result.TotalCount = totalCount;
+			result.LastPage = totalCount;
 
 			Assert.Equal(items, result.Items);
 			Assert.Equal(page, result.Page);
 			Assert.Equal(pageSize, result.PageSize);
-			Assert.Equal(totalCount, result.TotalCount);
+			Assert.Equal(totalCount, result.LastPage);
 		}
 	}
 }

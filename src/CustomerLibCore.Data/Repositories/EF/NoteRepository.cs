@@ -20,11 +20,6 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context = context;
 		}
 
-		public NoteRepository()
-		{
-			_context = new();
-		}
-
 		#endregion
 
 		#region Public Methods
