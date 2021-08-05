@@ -1,5 +1,5 @@
 ﻿using System;
-using CustomerLibCore.Business.Enums;
+using CustomerLibCore.Domain.Enums;
 using Xunit;
 using System.Linq;
 using System.Collections.Generic;

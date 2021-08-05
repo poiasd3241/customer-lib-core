@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomerLibCore.Business.Enums;
-using CustomerLibCore.Business.Localization;
+using CustomerLibCore.Domain.Enums;
+using CustomerLibCore.Domain.Localization;
 using FluentValidation;
 
-namespace CustomerLibCore.Business.Validators
+namespace CustomerLibCore.Domain.Validators
 {
 	/// <summary>
 	/// Extensions for <see cref="IRuleBuilder{T, TProperty}"/>.

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using CustomerLibCore.Business.Exceptions;
+using CustomerLibCore.Domain.Exceptions;
 using FluentValidation.Results;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.Exceptions
+namespace CustomerLibCore.Domain.Tests.Exceptions
 {
 	public class InternalValidationExceptionTest
 	{

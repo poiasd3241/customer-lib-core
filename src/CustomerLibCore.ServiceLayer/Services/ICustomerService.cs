@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.ServiceLayer.Services
 {

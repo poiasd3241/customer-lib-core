@@ -1,4 +1,4 @@
-﻿using CustomerLibCore.Business.Exceptions;
+﻿using CustomerLibCore.Domain.Exceptions;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Exceptions

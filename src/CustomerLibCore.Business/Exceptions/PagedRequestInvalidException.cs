@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace CustomerLibCore.Business.Exceptions
+namespace CustomerLibCore.Domain.Exceptions
 {
 	/// <summary>
 	/// Throw when the requested page of a resource is greater than 1 and 

@@ -4,8 +4,8 @@
 //using CustomerLibCore.Api.Dtos.Notes;
 //using CustomerLibCore.Api.Dtos.Validators;
 //using CustomerLibCore.Api.Dtos.Validators.Notes;
-//using CustomerLibCore.Business.Entities;
-//using CustomerLibCore.Business.Validators;
+//using CustomerLibCore.Domain.Models;
+//using CustomerLibCore.Domain.Validators;
 //using CustomerLibCore.ServiceLayer.Services;
 //using Microsoft.AspNetCore.Mvc;
 //using Microsoft.AspNetCore.Mvc.Routing;

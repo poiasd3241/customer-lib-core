@@ -35,7 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Business.csproj" />
+		<ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Domain.csproj" />
 		<ProjectReference Include="..\..\src\CustomerLibCore.Data\CustomerLibCore.Data.csproj" />
 		<ProjectReference Include="..\CustomerLibCore.TestHelpers\CustomerLibCore.TestHelpers.csproj" />
 	</ItemGroup>

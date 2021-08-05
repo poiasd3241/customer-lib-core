@@ -1,8 +1,8 @@
-﻿using CustomerLibCore.Business.Entities;
+﻿using CustomerLibCore.Domain.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace CustomerLibCore.Business.Validators
+namespace CustomerLibCore.Domain.Validators
 {
 	/// <summary>
 	/// The fluent validator for <see cref="Customer"/> objects.

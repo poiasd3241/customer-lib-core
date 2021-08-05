@@ -1,4 +1,4 @@
-﻿using CustomerLibCore.Business.Localization;
+﻿using CustomerLibCore.Domain.Localization;
 
 namespace CustomerLibCore.TestHelpers.ValidatorTestData
 {

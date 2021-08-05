@@ -1,4 +1,4 @@
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Domain.Models;
 using CustomerLibCore.Data.Repositories.EF;
 using CustomerLibCore.TestHelpers;
 using Xunit;
@@ -280,68 +280,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		}
 
 		[Fact]
-		public void ShouldDeleteNoteForCustomerId()
-		{
-			// Given
-			var noteRepo = NoteRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
-
-			// Create 2 notes for the customer 1
-			noteRepo.Create(NoteRepositoryFixture.MockNote(1));
-			noteRepo.Create(NoteRepositoryFixture.MockNote(1));
-
-			// Create 1 note for the customer 2
-			noteRepo.Create(NoteRepositoryFixture.MockNote(2));
-
-			var createdNotes1 = noteRepo.ReadManyForCustomer(1);
-			var createdNotes2 = noteRepo.ReadManyForCustomer(2);
-			Assert.Equal(2, createdNotes1.Count);
-			Assert.Single(createdNotes2);
-
-			var noteId = 1;
-			var customerId = 1;
-
-			Assert.True(noteRepo.ExistsForCustomer(noteId, customerId));
-
-			// When
-			noteRepo.DeleteForCustomer(noteId, customerId);
-
-			// Then
-			var leftoverNotes = noteRepo.ReadManyForCustomer(1);
-			var untouchedNotes = noteRepo.ReadManyForCustomer(2);
-
-			var leftoverNote = Assert.Single(leftoverNotes);
-			Assert.Equal(2, leftoverNote.NoteId);
-			Assert.Equal(1, leftoverNote.CustomerId);
-
-			var untouchedNote = Assert.Single(untouchedNotes);
-			Assert.Equal(3, untouchedNote.NoteId);
-			Assert.Equal(2, untouchedNote.CustomerId);
-		}
-
-		[Fact]
-		public void ShouldNotDeleteNoteForCustomerIdWhenNotFound()
-		{
-			// Given
-			var repo = NoteRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			NoteRepositoryFixture.CreateMockNote();
-
-			var customerId = 1;
-			var noteId = 666;
-
-			var createdNote1 = repo.Read(customerId);
-			Assert.NotNull(createdNote1);
-
-			Assert.False(repo.ExistsForCustomer(noteId, customerId));
-
-			// When
-			repo.DeleteForCustomer(noteId, customerId);
-
-			// Then
-			var untouchedNote = repo.Read(1);
-			Assert.True(untouchedNote.EqualsByValue(createdNote1));
-		}
-
-		[Fact]
 		public void ShouldDeleteManyForCustomer()
 		{
 			// Given
@@ -400,6 +338,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// <returns>The empty note repository.</returns>
 			public static NoteRepository CreateEmptyRepositoryWithCustomer(int customersAmount = 1)
 			{
+				DatabaseHelper.Clear();
+
 				CustomerRepositoryFixture.CreateMockCustomer(amount: customersAmount);
 
 				return new(DbContextHelper.Context);
@@ -407,26 +347,23 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 			/// <summary>
 			/// Creates the specified amount of mocked notes
-			/// with repo-relevant valid properties, <see cref="Note.CustomerId"/> = 1.
+			/// with repo-relevant valid properties for the specified customer.
 			/// </summary>
 			/// <param name="amount">The amount of notes to create.</param>
-			/// <param name="customerId">The Id of the customer for created notes.</param>
-			/// <returns>The mocked note with repo-relevant valid properties, 
-			/// <see cref="Note.CustomerId"/> = 1.</returns>
+			/// <param name="customerId">The Id of the customer to create notes for.</param>
+			/// <returns>The mocked note with repo-relevant valid properties.</returns>
 			public static Note CreateMockNote(int amount = 1, int customerId = 1)
 			{
 				var repo = new NoteRepository(DbContextHelper.Context);
 
-				Note note;
+				var note = MockNote(customerId);
 
 				for (int i = 0; i < amount; i++)
 				{
-					note = MockNote(customerId);
-
 					repo.Create(note);
 				}
 
-				return MockNote();
+				return note;
 			}
 
 			/// <returns>The mocked note with repo-relevant valid properties.</returns>

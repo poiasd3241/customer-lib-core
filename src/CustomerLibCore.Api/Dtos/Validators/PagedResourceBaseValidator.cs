@@ -1,5 +1,5 @@
-﻿using CustomerLibCore.Business.Localization;
-using CustomerLibCore.Business.Validators;
+﻿using CustomerLibCore.Domain.Localization;
+using CustomerLibCore.Domain.Validators;
 using FluentValidation;
 
 namespace CustomerLibCore.Api.Dtos.Validators

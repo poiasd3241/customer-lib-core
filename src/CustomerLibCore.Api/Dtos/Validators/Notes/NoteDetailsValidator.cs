@@ -1,5 +1,5 @@
 ﻿using CustomerLibCore.Api.Dtos.Notes;
-using CustomerLibCore.Business.Validators;
+using CustomerLibCore.Domain.Validators;
 using FluentValidation;
 
 namespace CustomerLibCore.Api.Dtos.Validators.Notes

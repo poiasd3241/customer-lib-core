@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using CustomerLibCore.Api.Exceptions;
 using CustomerLibCore.Api.Filters;
-using CustomerLibCore.Business.Exceptions;
+using CustomerLibCore.Domain.Exceptions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

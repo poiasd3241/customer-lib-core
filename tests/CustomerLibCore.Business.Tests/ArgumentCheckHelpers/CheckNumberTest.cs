@@ -1,8 +1,8 @@
 ﻿using System;
-using CustomerLibCore.Business.ArgumentCheckHelpers;
+using CustomerLibCore.Domain.ArgumentCheckHelpers;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.ArgumentCheckHelpers
+namespace CustomerLibCore.Domain.Tests.ArgumentCheckHelpers
 {
 	public class CheckNumberTest
 	{

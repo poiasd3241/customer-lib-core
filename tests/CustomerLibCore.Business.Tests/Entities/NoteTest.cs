@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Domain.Models;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.Entities
+namespace CustomerLibCore.Domain.Tests.Entities
 {
 	public class NoteTest
 	{

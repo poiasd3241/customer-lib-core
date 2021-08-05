@@ -2,8 +2,8 @@
 //using AutoMapper;
 //using CustomerLibCore.Api.Dtos;
 //using CustomerLibCore.Api.Dtos.Validators;
-//using CustomerLibCore.Business.Entities;
-//using CustomerLibCore.Business.Validators;
+//using CustomerLibCore.Domain.Models;
+//using CustomerLibCore.Domain.Validators;
 //using CustomerLibCore.ServiceLayer.Services;
 //using Microsoft.AspNetCore.Mvc;
 

@@ -1,7 +1,7 @@
-﻿using CustomerLibCore.Business.Exceptions;
+﻿using CustomerLibCore.Domain.Exceptions;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.Exceptions
+namespace CustomerLibCore.Domain.Tests.Exceptions
 {
 	public class PagedRequestInvalidExceptionTest
 	{

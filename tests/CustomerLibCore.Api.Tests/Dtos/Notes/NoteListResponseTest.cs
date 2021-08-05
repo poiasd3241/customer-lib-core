@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CustomerLibCore.Api.Dtos.Notes;
+using CustomerLibCore.Api.Dtos.Notes.Response;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Notes

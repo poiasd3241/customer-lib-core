@@ -1,9 +1,9 @@
-﻿//using CustomerLibCore.Business.Entities;
-//using CustomerLibCore.Business.Localization;
-//using CustomerLibCore.Business.Validators;
+﻿//using CustomerLibCore.Domain.Models;
+//using CustomerLibCore.Domain.Localization;
+//using CustomerLibCore.Domain.Validators;
 //using FluentValidation;
 //using Xunit;
-//namespace CustomerLibCore.Business.Tests.Validators
+//namespace CustomerLibCore.Domain.Tests.Validators
 //{
 //	public class NoteValidatorTest
 //	{

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -27,53 +27,48 @@ namespace CustomerLibCore.Data.Repositories.EF
 		public bool Exists(int customerId) =>
 			_context.Customers.Any(customer => customer.CustomerId == customerId);
 
-		public int Create(Customer customer)
+		public int Create(CustomerEntity customer)
 		{
 			var createdCustomer = _context.Customers.Add(customer).Entity;
 
 			_context.SaveChanges();
 
+			_context.ChangeTracker.Clear();
+
 			return createdCustomer.CustomerId;
 		}
 
-		public Customer Read(int customerId) =>
+		public CustomerEntity Read(int customerId) =>
 			_context.Customers.Find(customerId);
 
-		public IReadOnlyCollection<Customer> ReadMany() =>
+		public IReadOnlyCollection<CustomerEntity> ReadMany() =>
 			_context.Customers.ToArray();
 
 		public int GetCount() =>
 			_context.Customers.Count();
 
-		public IReadOnlyCollection<Customer> ReadPage(int page, int pageSize) =>
+		public IReadOnlyCollection<CustomerEntity> ReadPage(int page, int pageSize) =>
 			_context.Customers.OrderBy(customer => customer.CustomerId)
 				.Skip((page - 1) * pageSize)
 				.Take(pageSize)
 				.ToArray();
 
-		public void Update(Customer customer)
+		public void Update(CustomerEntity customer)
 		{
 			var customerDb = _context.Customers.Find(customer.CustomerId);
 
 			if (customerDb is not null)
 			{
 				_context.Entry(customerDb).CurrentValues.SetValues(customer);
+				_context.Entry(customerDb).State = EntityState.Modified;
 
 				_context.SaveChanges();
 			}
 		}
 
-		public void Delete(int customerId)
-		{
-			var customer = _context.Customers.Find(customerId);
-
-			if (customer is not null)
-			{
-				_context.Customers.Remove(customer);
-
-				_context.SaveChanges();
-			}
-		}
+		public void Delete(int customerId) =>
+			_context.Database.ExecuteSqlInterpolated(
+				$"DELETE FROM [dbo].[Customers] WHERE [CustomerId] = {customerId};");
 
 		public bool IsEmailTaken(string email) =>
 			_context.Customers.Any(customer => customer.Email == email);
@@ -89,24 +84,10 @@ namespace CustomerLibCore.Data.Repositories.EF
 			return (isTaken, takenById);
 		}
 
-		public void DeleteAll()
-		{
-			var customers = _context.Customers
-				.Include("Addresses")
-				.Include("Notes");
-
-			foreach (var customer in customers)
-			{
-				_context.Customers.Remove(customer);
-			}
-
+		public void DeleteAll() =>
 			_context.Database.ExecuteSqlRaw(
-				"DBCC CHECKIDENT ('dbo.Addresses', RESEED, 0);" +
-				"DBCC CHECKIDENT ('dbo.Notes', RESEED, 0);" +
+				"DELETE FROM [dbo].[Customers];" +
 				"DBCC CHECKIDENT ('dbo.Customers', RESEED, 0);");
-
-			_context.SaveChanges();
-		}
 
 		#endregion
 	}

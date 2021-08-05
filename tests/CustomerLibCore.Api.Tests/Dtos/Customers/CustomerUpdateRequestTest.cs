@@ -1,4 +1,5 @@
 ﻿using CustomerLibCore.Api.Dtos.Customers;
+using CustomerLibCore.Api.Dtos.Customers.Request;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Customers

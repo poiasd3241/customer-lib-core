@@ -6,7 +6,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 	public class DbContextHelper
 	{
 		private static DbContextOptions<CustomerLibDataContext> _options;
-		private static CustomerLibDataContext _context;
 
 		public static DbContextOptions<CustomerLibDataContext> Options
 		{
@@ -24,17 +23,11 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			}
 		}
 
-		public static CustomerLibDataContext Context
-		{
-			get
-			{
-				if (_context is null)
-				{
-					_context = new(Options);
-				}
+		public static CustomerLibDataContext Context => new(Options);
 
-				return _context;
-			}
+		public static void ClearDatabase()
+		{
+
 		}
 	}
 }

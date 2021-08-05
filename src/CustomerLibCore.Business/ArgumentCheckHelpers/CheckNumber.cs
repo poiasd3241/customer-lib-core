@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomerLibCore.Business.ArgumentCheckHelpers
+namespace CustomerLibCore.Domain.ArgumentCheckHelpers
 {
 	public class CheckNumber
 	{

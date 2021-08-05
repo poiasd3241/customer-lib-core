@@ -5,9 +5,9 @@
 //using CustomerLibCore.Api.Controllers;
 //using CustomerLibCore.Api.Dtos;
 //using CustomerLibCore.Api.Exceptions;
-//using CustomerLibCore.Business.Entities;
-//using CustomerLibCore.Business.Enums;
-//using CustomerLibCore.Business.Exceptions;
+//using CustomerLibCore.Domain.Models;
+//using CustomerLibCore.Domain.Enums;
+//using CustomerLibCore.Domain.Exceptions;
 //using CustomerLibCore.ServiceLayer.Services;
 //using CustomerLibCore.TestHelpers;
 //using Microsoft.AspNetCore.Mvc;

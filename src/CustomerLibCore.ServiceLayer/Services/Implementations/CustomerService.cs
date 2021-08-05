@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
-using CustomerLibCore.Business.ArgumentCheckHelpers;
-using CustomerLibCore.Business.Entities;
-using CustomerLibCore.Business.Exceptions;
-using CustomerLibCore.Business.Validators;
+using CustomerLibCore.Domain.ArgumentCheckHelpers;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Exceptions;
+using CustomerLibCore.Domain.Validators;
 using CustomerLibCore.Data.Repositories;
 using CustomerLibCore.Data.Repositories.EF;
 

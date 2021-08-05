@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Data.Entities;
 
 namespace CustomerLibCore.Data.Repositories
 {
@@ -9,18 +9,17 @@ namespace CustomerLibCore.Data.Repositories
 		bool ExistsForCustomer(int noteId, int customerId);
 
 		/// <returns>The Id of the created item.</returns>
-		int Create(Note note);
+		int Create(NoteEntity note);
 
-		Note Read(int noteId);
-		Note ReadForCustomer(int noteId, int customerId);
+		NoteEntity Read(int noteId);
+		NoteEntity ReadForCustomer(int noteId, int customerId);
 
 		/// <returns>An empty collection if no notes found; otherwise, the found notes.</returns>
-		IReadOnlyCollection<Note> ReadManyForCustomer(int customerId);
+		IReadOnlyCollection<NoteEntity> ReadManyForCustomer(int customerId);
 
-		void Update(Note note);
+		void Update(NoteEntity note);
 
 		void Delete(int noteId);
-		void DeleteForCustomer(int noteId, int customerId);
 		void DeleteManyForCustomer(int customerId);
 	}
 }

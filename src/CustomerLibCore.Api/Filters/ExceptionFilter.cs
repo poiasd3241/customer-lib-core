@@ -1,5 +1,5 @@
 ﻿using CustomerLibCore.Api.Exceptions;
-using CustomerLibCore.Business.Exceptions;
+using CustomerLibCore.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

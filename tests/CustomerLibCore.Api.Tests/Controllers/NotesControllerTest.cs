@@ -3,7 +3,7 @@
 //using CustomerLibCore.Api.Controllers;
 //using CustomerLibCore.Api.Dtos;
 //using CustomerLibCore.Api.Exceptions;
-//using CustomerLibCore.Business.Entities;
+//using CustomerLibCore.Domain.Models;
 //using CustomerLibCore.ServiceLayer.Services;
 //using CustomerLibCore.TestHelpers;
 //using Microsoft.AspNetCore.Mvc;

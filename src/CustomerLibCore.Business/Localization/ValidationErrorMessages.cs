@@ -1,4 +1,4 @@
-﻿namespace CustomerLibCore.Business.Localization
+﻿namespace CustomerLibCore.Domain.Localization
 {
 	public static class ValidationErrorMessages
 	{

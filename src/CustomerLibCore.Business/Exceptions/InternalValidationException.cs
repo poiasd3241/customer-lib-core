@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace CustomerLibCore.Business.Exceptions
+namespace CustomerLibCore.Domain.Exceptions
 {
 	/// <summary>
 	/// Throw when the entity fails validation.

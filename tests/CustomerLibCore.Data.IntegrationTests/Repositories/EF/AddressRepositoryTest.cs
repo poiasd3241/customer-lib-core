@@ -1,7 +1,6 @@
 using System;
-using CustomerLibCore.Business.Entities;
-using CustomerLibCore.Business.Enums;
-using CustomerLibCore.Data.IntegrationTests.Repositories.TestHelpers;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Data.Repositories.EF;
 using CustomerLibCore.TestHelpers;
 using Xunit;
@@ -404,68 +403,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		}
 
 		[Fact]
-		public void ShouldDeleteAddressForCustomerId()
-		{
-			// Given
-			var customerId1 = 1;
-			var customerId2 = 2;
-
-			var addressRepo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer(2);
-
-			AddressRepositoryFixture.CreateMockAddress(amount: 2, customerId1);
-			AddressRepositoryFixture.CreateMockAddress(amount: 1, customerId2);
-
-			var readAddresses1 = addressRepo.ReadManyForCustomer(customerId1);
-			var readAddresses2 = addressRepo.ReadManyForCustomer(customerId2);
-
-			Assert.Equal(2, readAddresses1.Count);
-			Assert.Single(readAddresses2);
-
-			var addressId = 1;
-			var customerId = 1;
-
-			Assert.True(addressRepo.ExistsForCustomer(addressId, customerId));
-
-			// When
-			addressRepo.DeleteForCustomer(addressId, customerId);
-
-			// Then
-			var leftoverAddresses = addressRepo.ReadManyForCustomer(customerId1);
-			var untouchedAddresses = addressRepo.ReadManyForCustomer(customerId2);
-
-			var leftoverAddress = Assert.Single(leftoverAddresses);
-			Assert.Equal(2, leftoverAddress.AddressId);
-			Assert.Equal(1, leftoverAddress.CustomerId);
-
-			var untouchedAddress = Assert.Single(untouchedAddresses);
-			Assert.Equal(3, untouchedAddress.AddressId);
-			Assert.Equal(2, untouchedAddress.CustomerId);
-		}
-
-		[Fact]
-		public void ShouldNotDeleteAddressForCustomerIdWhenNotFound()
-		{
-			// Given
-			var repo = AddressRepositoryFixture.CreateEmptyRepositoryWithCustomer();
-			AddressRepositoryFixture.CreateMockAddress();
-
-			var customerId = 1;
-			var addressId = 666;
-
-			var createdAddress1 = repo.Read(customerId);
-			Assert.NotNull(createdAddress1);
-
-			Assert.False(repo.ExistsForCustomer(addressId, customerId));
-
-			// When
-			repo.DeleteForCustomer(addressId, customerId);
-
-			// Then
-			var untouchedAddress = repo.Read(1);
-			Assert.True(untouchedAddress.EqualsByValue(createdAddress1));
-		}
-
-		[Fact]
 		public void ShouldDeleteManyAddressesForCustomerId()
 		{
 			// Given
@@ -527,42 +464,43 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			public static AddressRepository CreateEmptyRepositoryWithCustomer(
 				int customersAmount = 1)
 			{
+				DatabaseHelper.Clear();
+				DatabaseHelper.UnsafeRepopulateAddressTypes();
+
 				CustomerRepositoryFixture.CreateMockCustomer(amount: customersAmount);
-				AddressTypeHelperRepository.UnsafeRepopulateAddressTypes();
 
 				return new(DbContextHelper.Context);
 			}
 
 			/// <summary>
-			/// Creates the specified amount of mocked addresses 
-			/// with repo-relevant valid properties, optional properties not null, 
-			/// <see cref="Address.CustomerId"/> = 1.
+			/// Creates the specified amount of mocked addresses  with repo-relevant 
+			/// valid properties, optional properties not <see langword="null"/>, 
+			/// for the specified customer.
 			/// </summary>
 			/// <param name="amount">The amount of addresses to create.</param>
-			/// <param name="customerId">The Id of the customer for created addresses.</param>
-			/// <returns>The mocked address with repo-relevant valid properties, 
-			/// optional properties null, <see cref="Address.CustomerId"/> = 1.</returns>
+			/// <param name="customerId">The Id of the customer to create addresses for.</param>
+			/// <returns>The mocked address with repo-relevant valid properties.</returns>
 			public static Address CreateMockAddress(int amount = 1, int customerId = 1)
 			{
 				var repo = new AddressRepository(DbContextHelper.Context);
 
-				Address address;
+				var address = MockAddress(customerId);
 
 				for (int i = 0; i < amount; i++)
 				{
-					address = MockAddress(customerId);
 					repo.Create(address);
 				}
 
-				return MockAddress();
+				return address;
 			}
 
 			/// <summary>
 			/// Creates the mocked address with repo-relevant valid properties,
-			/// optional properties null, <see cref="Address.CustomerId"/> = 1.
+			/// optional properties <see langword="null"/>, <see cref="Address.CustomerId"/> = 1.
 			/// </summary>
 			/// <returns>The mocked address with repo-relevant valid properties, 
-			/// optional properties null, <see cref="Address.CustomerId"/> = 1.</returns>
+			/// optional properties <see langword="null"/>, <see cref="Address.CustomerId"/> = 1.
+			/// </returns>
 			public static Address CreateMockOptionalAddress()
 			{
 				var repo = new AddressRepository(DbContextHelper.Context);
@@ -575,7 +513,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			}
 
 			/// <returns>The mocked address with repo-relevant valid properties,
-			/// optional properties not null.</returns>
+			/// optional properties not <see langword="null"/>.</returns>
 			public static Address MockAddress(int customerId = 1) => new()
 			{
 				CustomerId = customerId,
@@ -589,10 +527,11 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			};
 
 			/// <returns>The mocked address with repo-relevant valid properties,
-			/// optional properties null.</returns>
-			public static Address MockOptionalAddress(int customerId = 1)
+			/// optional properties <see langword="null"/>, <see cref="Address.CustomerId"/> = 1.
+			/// </returns>
+			public static Address MockOptionalAddress()
 			{
-				var mockAddress = MockAddress(customerId);
+				var mockAddress = MockAddress(1);
 				mockAddress.Line2 = null;
 				return mockAddress;
 			}

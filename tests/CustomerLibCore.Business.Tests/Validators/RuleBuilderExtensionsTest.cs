@@ -1,8 +1,8 @@
-﻿using CustomerLibCore.Business.Validators;
+﻿using CustomerLibCore.Domain.Validators;
 using FluentValidation;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.Validators
+namespace CustomerLibCore.Domain.Tests.Validators
 {
 	public class RuleBuilderExtensionsTest
 	{

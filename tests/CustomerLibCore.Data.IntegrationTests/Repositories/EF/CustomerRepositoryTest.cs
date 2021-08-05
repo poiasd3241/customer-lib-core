@@ -1,12 +1,8 @@
 using System;
 using System.Linq;
-using System.Net.Sockets;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Repositories.EF;
-using CustomerLibCore.TestHelpers;
 using Xunit;
-using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.AddressRepositoryTest;
-using static CustomerLibCore.Data.IntegrationTests.Repositories.EF.NoteRepositoryTest;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 {
@@ -18,9 +14,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		[Fact]
 		public void ShouldCreateCustomerRepository()
 		{
-			var context = new StrictMock<CustomerLibDataContext>();
+			var context = DbContextHelper.Context;
 
-			var repo = new CustomerRepository(context.Object);
+			var repo = new CustomerRepository(context);
 
 			Assert.NotNull(repo);
 		}
@@ -30,12 +26,14 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Exists
 
 		[Theory]
+		[InlineData(1, true)]
 		[InlineData(2, true)]
 		[InlineData(3, false)]
 		public void ShouldCheckIfCustomerExistsById(int customerId, bool expectedExists)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+
 			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
 
 			// When
@@ -50,32 +48,17 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Create 
 
 		[Fact]
-		public void ShouldCreateCustomerIncludingAddressesAndNotes()
+		public void ShouldCreateCustomer()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 			var customer = CustomerRepositoryFixture.MockCustomer();
-
-			var address = AddressRepositoryFixture.MockAddress();
-			var note = NoteRepositoryFixture.MockNote();
-
-			customer.Addresses = new() { address };
-			customer.Notes = new() { note };
-
-			var addressRepo = new AddressRepository(DbContextHelper.Context);
-			var noteRepo = new NoteRepository(DbContextHelper.Context);
 
 			// When
 			var createdId = repo.Create(customer);
 
 			// Then
 			Assert.Equal(1, createdId);
-
-			var createdAddress = addressRepo.ReadForCustomer(1, createdId);
-			var createdNote = noteRepo.ReadForCustomer(1, createdId);
-
-			Assert.Equal(address, createdAddress);
-			Assert.Equal(note, createdNote);
 		}
 
 		#endregion
@@ -95,7 +78,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Null(readCustomer);
 		}
 
-		public class CreateMockCustomerData : TheoryData<Func<Customer>>
+		public class CreateMockCustomerData : TheoryData<Func<CustomerEntity>>
 		{
 			public CreateMockCustomerData()
 			{
@@ -106,7 +89,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		[Theory]
 		[ClassData(typeof(CreateMockCustomerData))]
-		public void ShouldReadCustomerIncludingNullOptionalFields(Func<Customer> createMockCustomer)
+		public void ShouldReadCustomerIncludingNullOptionalFields(
+			Func<CustomerEntity> createMockCustomer)
 		{
 			// Given
 			var repo = new CustomerRepository(DbContextHelper.Context);
@@ -122,9 +106,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Equal(customer.PhoneNumber, readCustomer.PhoneNumber);
 			Assert.Equal(customer.Email, readCustomer.Email);
 			Assert.Equal(customer.TotalPurchasesAmount, readCustomer.TotalPurchasesAmount);
-
-			Assert.Null(readCustomer.Addresses);
-			Assert.Null(readCustomer.Notes);
 		}
 
 		#endregion
@@ -156,9 +137,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				Assert.Equal(customer.PhoneNumber, readCustomer.PhoneNumber);
 				Assert.Equal(customer.Email, readCustomer.Email);
 				Assert.Equal(customer.TotalPurchasesAmount, readCustomer.TotalPurchasesAmount);
-
-				Assert.Null(readCustomer.Addresses);
-				Assert.Null(readCustomer.Notes);
 			}
 		}
 
@@ -280,9 +258,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Equal(customer.PhoneNumber, updatedCustomer.PhoneNumber);
 			Assert.Equal(customer.Email, updatedCustomer.Email);
 			Assert.Equal(customer.TotalPurchasesAmount, updatedCustomer.TotalPurchasesAmount);
-
-			Assert.Null(createdCustomer.Addresses);
-			Assert.Null(createdCustomer.Notes);
 		}
 
 		#endregion
@@ -380,40 +355,43 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// <returns>The empty customer repository.</returns>
 			public static CustomerRepository CreateEmptyRepository()
 			{
-				var repo = new CustomerRepository(DbContextHelper.Context);
-				repo.DeleteAll();
-
-				return repo;
+				DatabaseHelper.Clear();
+				return new CustomerRepository(DbContextHelper.Context);
 			}
 
 			/// <summary>
-			/// Deletes all customers, then creates the specified amount of mocked customers 
-			/// with repo-relevant valid properties, optional properties not null.
+			/// Creates the specified amount of mocked customers 
+			/// with repo-relevant valid properties, optional properties not <see langword="null"/>.
 			/// </summary>
 			/// <param name="amount">The amount of customers to create.</param>
 			/// <returns>The mocked customer with repo-relevant valid properties, 
-			/// optional properties not null.</returns>
-			public static Customer CreateMockCustomer(string email = "john@doe.com", int amount = 1)
+			/// optional properties not <see langword="null"/>.</returns>
+			public static CustomerEntity CreateMockCustomer(
+				string email = "john@doe.com", int amount = 1)
 			{
-				var repo = CreateEmptyRepository();
+				var repo = new CustomerRepository(DbContextHelper.Context);
+
+				var customer = MockCustomer(email);
 
 				for (int i = 0; i < amount; i++)
 				{
-					repo.Create(MockCustomer(email));
+					repo.Create(customer);
+					//repo.Create(MockCustomer(email));
 				}
 
-				return MockCustomer(email);
+				//return MockCustomer(email);
+				return customer;
 			}
 
 			/// <summary>
-			/// Deletes all customers, then creates the mocked customer with 
-			/// repo-relevant valid properties, optional properties null.
+			/// Creates the mocked customer with  repo-relevant valid properties, 
+			/// optional properties <see langword="null"/>.
 			/// </summary>
 			/// <returns>The mocked customer with repo-relevant valid properties,
-			/// optional properties null.</returns>
-			public static Customer CreateMockOptionalCustomer()
+			/// optional properties <see langword="null"/>.</returns>
+			public static CustomerEntity CreateMockOptionalCustomer()
 			{
-				var repo = CreateEmptyRepository();
+				var repo = new CustomerRepository(DbContextHelper.Context);
 
 				var customer = MockOptionalCustomer();
 				repo.Create(customer);
@@ -421,28 +399,26 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				return customer;
 			}
 
-			/// <returns>The mocked customer with repo-relevant valid properties,
-			/// optional properties not null.</returns>
-			public static Customer MockCustomer(string email = "john@doe.com") => new()
+			/// <returns>The mocked customer with valid properties,
+			/// optional properties not <see langword="null"/>.</returns>
+			public static CustomerEntity MockCustomer(string email = "john@doe.com") => new()
 			{
 				FirstName = "John",
 				LastName = "Doe",
 				PhoneNumber = "+12345",
 				Email = email,
 				TotalPurchasesAmount = 123,
-				Addresses = new() { AddressRepositoryFixture.MockAddress(0) },
-				Notes = new() { NoteRepositoryFixture.MockNote(0) }
 			};
 
-			/// <returns>The mocked customer with repo-relevant valid properties,
-			/// optional properties null.</returns>
-			public static Customer MockOptionalCustomer() => new()
+			/// <returns>The mocked customer with valid properties,
+			/// optional properties <see langword="null"/>.</returns>
+			public static CustomerEntity MockOptionalCustomer() => new()
 			{
 				FirstName = null,
 				LastName = "Doe",
 				PhoneNumber = null,
 				Email = null,
-				TotalPurchasesAmount = null
+				TotalPurchasesAmount = null,
 			};
 		}
 	}

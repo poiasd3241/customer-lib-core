@@ -4,11 +4,14 @@ using System.Linq;
 using AutoMapper;
 using Castle.Core.Resource;
 using CustomerLibCore.Api.Controllers;
-using CustomerLibCore.Api.Dtos.Addresses;
-using CustomerLibCore.Api.Dtos.Customers;
-using CustomerLibCore.Api.Dtos.Notes;
-using CustomerLibCore.Business.Entities;
-using CustomerLibCore.Business.Enums;
+using CustomerLibCore.Api.Dtos.Addresses.Request;
+using CustomerLibCore.Api.Dtos.Addresses.Response;
+using CustomerLibCore.Api.Dtos.Customers.Request;
+using CustomerLibCore.Api.Dtos.Customers.Response;
+using CustomerLibCore.Api.Dtos.Notes.Request;
+using CustomerLibCore.Api.Dtos.Notes.Response;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
@@ -92,18 +95,34 @@ namespace CustomerLibCore.Api.Dtos
 			}))
 			.ForMember(dest => dest.Addresses, o => o.MapFrom((src, dest, destMember, context) =>
 			{
-				PreventNull(src.Addresses, nameof(src.Addresses));
+				var addresses = src.Addresses;
 
-				destMember = context.Mapper.Map<AddressListResponse>(src.Addresses);
+				if (addresses is null)
+				{
+					destMember = new() { Items = null };
+				}
+				else
+				{
+					destMember = context.Mapper.Map<AddressListResponse>(addresses);
+				}
+
 				destMember.Self = LinkHelper.Addresses(src.CustomerId);
 
 				return destMember;
 			}))
 			.ForMember(dest => dest.Notes, o => o.MapFrom((src, dest, destMember, context) =>
 			{
-				PreventNull(src.Notes, nameof(src.Notes));
+				var notes = src.Notes;
 
-				destMember = context.Mapper.Map<NoteListResponse>(src.Notes);
+				if (notes is null)
+				{
+					destMember = new() { Items = null };
+				}
+				else
+				{
+					destMember = context.Mapper.Map<NoteListResponse>(notes);
+				}
+
 				destMember.Self = LinkHelper.Notes(src.CustomerId);
 
 				return destMember;
@@ -143,22 +162,12 @@ namespace CustomerLibCore.Api.Dtos
 			// CustomerUpdateRequest -> Customer
 			CreateMap<CustomerUpdateRequest, Customer>()
 			.ForMember(dest => dest.CustomerId, o => o.Ignore())
-			.ForMember(dest => dest.Addresses, o => o.Ignore())
-			.ForMember(dest => dest.Notes, o => o.Ignore())
 			.ForMember(dest => dest.TotalPurchasesAmount, o => o.MapFrom((src, dest) =>
 				ConvertToNullableDecimal(
 					src.TotalPurchasesAmount, nameof(src.TotalPurchasesAmount))
-			));
+			 ));
 
 			#endregion
-		}
-
-		private static void PreventNull(object obj, string propertyName)
-		{
-			if (obj is null)
-			{
-				throw new Exception($"the {propertyName} cannot be null");
-			}
 		}
 
 		private static decimal? ConvertToNullableDecimal(string input, string propertyName)

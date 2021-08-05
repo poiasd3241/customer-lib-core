@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CustomerLibCore.Business.Entities;
+using CustomerLibCore.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -32,7 +32,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 				address.AddressId == addressId &&
 				address.CustomerId == customerId);
 
-		public int Create(Address address)
+		public int Create(AddressEntity address)
 		{
 			var createdAddress = _context.Addresses.Add(address).Entity;
 
@@ -41,19 +41,19 @@ namespace CustomerLibCore.Data.Repositories.EF
 			return createdAddress.AddressId;
 		}
 
-		public Address Read(int addressId) =>
+		public AddressEntity Read(int addressId) =>
 			_context.Addresses.Find(addressId);
 
-		public Address ReadForCustomer(int addressId, int customerId)
+		public AddressEntity ReadForCustomer(int addressId, int customerId)
 			=> _context.Addresses.FirstOrDefault(address =>
 				address.AddressId == addressId &&
 				address.CustomerId == customerId);
 
-		public IReadOnlyCollection<Address> ReadManyForCustomer(int customerId) =>
+		public IReadOnlyCollection<AddressEntity> ReadManyForCustomer(int customerId) =>
 			_context.Addresses.Where(address => address.CustomerId == customerId)
 				.ToArray();
 
-		public void Update(Address address)
+		public void Update(AddressEntity address)
 		{
 			//var addressDb = _context.Addresses.First(a => a.AddressId == 1);
 
@@ -62,6 +62,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 			if (addressDb is not null)
 			{
 				_context.Entry(addressDb).CurrentValues.SetValues(address);
+				_context.Entry(addressDb).State = EntityState.Modified;
 
 				_context.Update(addressDb);
 
@@ -69,7 +70,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 			}
 		}
 
-		public void UpdateForCustomer(Address address)
+		public void UpdateForCustomer(AddressEntity address)
 		{
 			var addressDb = _context.Addresses.FirstOrDefault(repoAddress =>
 				repoAddress.AddressId == address.AddressId &&
@@ -83,58 +84,18 @@ namespace CustomerLibCore.Data.Repositories.EF
 			}
 		}
 
-		public void Delete(int addressId)
-		{
-			var address = _context.Addresses.Find(addressId);
+		public void Delete(int addressId) =>
+			_context.Database.ExecuteSqlInterpolated(
+				$"DELETE FROM [dbo].[Addresses] WHERE [AddressId] = {addressId};");
 
-			if (address is not null)
-			{
-				_context.Addresses.Remove(address);
+		public void DeleteManyForCustomer(int customerId) =>
+			_context.Database.ExecuteSqlRaw(
+				$"DELETE FROM [dbo].[Addresses] WHERE [CustomerId] = {customerId};");
 
-				_context.SaveChanges();
-			}
-		}
-
-		public void DeleteForCustomer(int addressId, int customerId)
-		{
-			var address = _context.Addresses.FirstOrDefault(address =>
-				address.AddressId == addressId &&
-				address.CustomerId == customerId);
-
-			if (address is not null)
-			{
-				_context.Addresses.Remove(address);
-
-				_context.SaveChanges();
-			}
-		}
-
-		public void DeleteManyForCustomer(int customerId)
-		{
-			var addresses = _context.Addresses
-				.Where(address => address.CustomerId == customerId);
-
-			foreach (var address in addresses)
-			{
-				_context.Addresses.Remove(address);
-			}
-
-			_context.SaveChanges();
-		}
-
-		public void DeleteAll()
-		{
-			var addresses = _context.Addresses.ToArray();
-
-			foreach (var address in addresses)
-			{
-				_context.Addresses.Remove(address);
-			}
-
-			_context.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('dbo.Addresses', RESEED, 0);");
-
-			_context.SaveChanges();
-		}
+		public void DeleteAll() =>
+			_context.Database.ExecuteSqlRaw(
+				"DELETE FROM [dbo].[Addresses];" +
+				"DBCC CHECKIDENT ('dbo.Addresses', RESEED, 0);");
 
 		#endregion
 	}

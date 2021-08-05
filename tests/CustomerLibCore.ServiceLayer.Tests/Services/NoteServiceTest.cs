@@ -1,8 +1,8 @@
 ﻿//using System;
 //using System.Collections.Generic;
-//using CustomerLibCore.Business.Entities;
-//using CustomerLibCore.Business.Exceptions;
-//using CustomerLibCore.Business.Validators;
+//using CustomerLibCore.Domain.Models;
+//using CustomerLibCore.Domain.Exceptions;
+//using CustomerLibCore.Domain.Validators;
 //using CustomerLibCore.Data.Repositories;
 //using CustomerLibCore.ServiceLayer.Services.Implementations;
 //using CustomerLibCore.TestHelpers;

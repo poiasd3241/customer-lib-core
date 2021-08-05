@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CustomerLibCore.Business\CustomerLibCore.Business.csproj" />
+    <ProjectReference Include="..\CustomerLibCore.Business\CustomerLibCore.Domain.csproj" />
     <ProjectReference Include="..\CustomerLibCore.ServiceLayer\CustomerLibCore.ServiceLayer.csproj" />
   </ItemGroup>
 

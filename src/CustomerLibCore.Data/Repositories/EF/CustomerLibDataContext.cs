@@ -1,4 +1,4 @@
-﻿using CustomerLibCore.Business.Entities;
+﻿using CustomerLibCore.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -11,8 +11,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 			ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 		}
 
-		public DbSet<Customer> Customers { set; get; }
-		public DbSet<Address> Addresses { set; get; }
-		public DbSet<Note> Notes { set; get; }
+		public DbSet<CustomerEntity> Customers { set; get; }
+		public DbSet<AddressEntity> Addresses { set; get; }
+		public DbSet<NoteEntity> Notes { set; get; }
 	}
 }

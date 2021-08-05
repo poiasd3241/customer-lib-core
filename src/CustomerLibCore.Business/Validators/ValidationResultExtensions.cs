@@ -1,7 +1,7 @@
-﻿using CustomerLibCore.Business.Exceptions;
+﻿using CustomerLibCore.Domain.Exceptions;
 using FluentValidation.Results;
 
-namespace CustomerLibCore.Business.Validators
+namespace CustomerLibCore.Domain.Validators
 {
 	public static class ValidationResultExtensions
 	{

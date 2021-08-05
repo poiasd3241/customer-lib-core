@@ -27,7 +27,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\CustomerLibCore.Api\CustomerLibCore.Api.csproj" />
-	  <ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Business.csproj" />
+	  <ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Domain.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CustomerLibCore.Business.Exceptions
+namespace CustomerLibCore.Domain.Exceptions
 {
 	/// <summary>
 	/// Throw when the email is already taken.

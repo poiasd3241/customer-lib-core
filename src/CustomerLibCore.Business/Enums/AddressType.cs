@@ -1,4 +1,4 @@
-﻿namespace CustomerLibCore.Business.Enums
+﻿namespace CustomerLibCore.Domain.Enums
 {
 	public enum AddressType
 	{

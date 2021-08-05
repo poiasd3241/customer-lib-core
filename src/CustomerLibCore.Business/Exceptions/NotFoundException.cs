@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace CustomerLibCore.Business.Exceptions
+namespace CustomerLibCore.Domain.Exceptions
 {
 	[Serializable]
 	public class NotFoundException : Exception

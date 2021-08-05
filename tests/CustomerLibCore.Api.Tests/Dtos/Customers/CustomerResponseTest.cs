@@ -1,6 +1,9 @@
 ﻿using CustomerLibCore.Api.Dtos.Addresses;
+using CustomerLibCore.Api.Dtos.Addresses.Response;
 using CustomerLibCore.Api.Dtos.Customers;
+using CustomerLibCore.Api.Dtos.Customers.Response;
 using CustomerLibCore.Api.Dtos.Notes;
+using CustomerLibCore.Api.Dtos.Notes.Response;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Customers

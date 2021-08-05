@@ -1,4 +1,4 @@
-﻿using CustomerLibCore.Business.Localization;
+﻿using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;

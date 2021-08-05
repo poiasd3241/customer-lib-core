@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using CustomerLibCore.Business.Entities;
-using CustomerLibCore.Business.Enums;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Enums;
 using Xunit;
 
-namespace CustomerLibCore.Business.Tests.Entities
+namespace CustomerLibCore.Domain.Tests.Entities
 {
 	public class AddressTest
 	{

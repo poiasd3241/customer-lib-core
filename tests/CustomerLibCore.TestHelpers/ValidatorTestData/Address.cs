@@ -1,5 +1,5 @@
-﻿using CustomerLibCore.Business.Enums;
-using CustomerLibCore.Business.Localization;
+﻿using CustomerLibCore.Domain.Enums;
+using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;
