@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using CustomerLibCore.Domain.Enums;
+using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
 	[Serializable]
-	public class AddressEntity : IEntity<AddressEntity>
+	public class AddressEntity : IAddressDetails<AddressType>, IEntity<AddressEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int AddressId { get; set; }

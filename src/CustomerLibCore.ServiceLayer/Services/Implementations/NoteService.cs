@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Transactions;
-using CustomerLibCore.Domain.ArgumentCheckHelpers;
-using CustomerLibCore.Domain.Models;
-using CustomerLibCore.Domain.Exceptions;
-using CustomerLibCore.Domain.Validators;
+using AutoMapper;
+using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Repositories;
-using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.Domain.ArgumentCheckHelpers;
+using CustomerLibCore.Domain.Exceptions;
+using CustomerLibCore.Domain.FluentValidation;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Models.Validators;
 
 namespace CustomerLibCore.ServiceLayer.Services.Implementations
 {
@@ -15,15 +18,20 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		private readonly ICustomerRepository _customerRepository;
 		private readonly INoteRepository _noteRepository;
+		private readonly IMapper _mapper;
+
+		private readonly NoteValidator _validator = new();
 
 		#endregion
 
 		#region Constructors
 
-		public NoteService(ICustomerRepository customerRepository, INoteRepository noteRepository)
+		public NoteService(ICustomerRepository customerRepository, INoteRepository noteRepository,
+			IMapper mapper)
 		{
 			_customerRepository = customerRepository;
 			_noteRepository = noteRepository;
+			_mapper = mapper;
 		}
 
 		#endregion
@@ -34,7 +42,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		{
 			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
 
-			new NoteValidator().Validate(note).WithInternalValidationException();
+			_validator.Validate(note).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -43,7 +51,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			_noteRepository.Create(note);
+			var noteEntity = _mapper.Map<NoteEntity>(note);
+
+			_noteRepository.Create(noteEntity);
 
 			scope.Complete();
 		}
@@ -53,12 +63,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(noteId, nameof(noteId));
 			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var note = _noteRepository.ReadForCustomer(noteId, customerId);
+			var noteEntity = _noteRepository.ReadForCustomer(noteId, customerId);
 
-			if (note is null)
+			if (noteEntity is null)
 			{
 				throw new NotFoundException();
 			}
+
+			var note = _mapper.Map<Note>(noteEntity);
 
 			return note;
 		}
@@ -74,11 +86,13 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			var notes = _noteRepository.ReadManyForCustomer(customerId);
+			var noteEntities = _noteRepository.ReadManyForCustomer(customerId);
 
 			scope.Complete();
 
-			return notes;
+			var notes = _mapper.Map<IEnumerable<Note>>(noteEntities);
+
+			return notes.ToArray();
 		}
 
 		public void UpdateForCustomer(Note note)
@@ -86,7 +100,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(note.NoteId, nameof(note.NoteId));
 			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
 
-			new NoteValidator().Validate(note).WithInternalValidationException();
+			_validator.Validate(note).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -95,7 +109,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			_noteRepository.Update(note);
+			var noteEntity = _mapper.Map<NoteEntity>(note);
+
+			_noteRepository.Update(noteEntity);
 
 			scope.Complete();
 		}

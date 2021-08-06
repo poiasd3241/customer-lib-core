@@ -1,5 +1,4 @@
 ﻿using CustomerLibCore.Api.Dtos.Notes.Response;
-using FluentValidation;
 
 namespace CustomerLibCore.Api.Dtos.Validators.Notes.Response
 {
@@ -12,12 +11,4 @@ namespace CustomerLibCore.Api.Dtos.Validators.Notes.Response
 		{
 		}
 	}
-	//public class NoteListResponseValidator : AbstractValidator<NoteListResponse>
-	//{
-	//	public NoteListResponseValidator(bool areItemsRequired)
-	//	{
-	//		Include(new ListResponseValidator<NoteResponse>(
-	//			new NoteResponseValidator(), areItemsRequired));
-	//	}
-	//}
 }

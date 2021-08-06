@@ -421,5 +421,61 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				TotalPurchasesAmount = null,
 			};
 		}
+
+		public class CustomerRepositoryFixtureTest
+		{
+			[Fact]
+			public void ShouldValidateCustomerWithOptionalPropertiesNotNull()
+			{
+				// Given
+				var customer = CustomerRepositoryFixture.MockCustomer();
+
+				Assert.NotNull(customer.FirstName);
+				Assert.NotNull(customer.Email);
+				Assert.NotNull(customer.PhoneNumber);
+				Assert.NotNull(customer.TotalPurchasesAmount);
+
+				// When
+				var result = new .Validate(customer);
+
+				// Then
+				Assert.True(result.IsValid);
+			}
+
+			[Fact]
+			public void ShouldValidateCustomerWithOptionalPropertiesNull()
+			{
+				// Given
+				var customer = new CustomerCreateRequestValidatorFixture().MockValidOptional();
+
+				Assert.Null(customer.FirstName);
+				Assert.Null(customer.Email);
+				Assert.Null(customer.PhoneNumber);
+				Assert.Null(customer.TotalPurchasesAmount);
+
+				// When
+				var result = _validator.Validate(customer);
+
+				// Then
+				Assert.True(result.IsValid);
+			}
+			[Fact]
+			public void ShouldValidateCustomerWithOptionalPropertiesNotNull()
+			{
+				// Given
+				var repo = new CustomerRepository(DbContextHelper.Context);
+				CustomerRepositoryFixture.CreateMockCustomer();
+
+				var createdCustomer = repo.Read(1);
+				Assert.NotNull(createdCustomer);
+
+				// When
+				repo.Delete(1);
+
+				// Then
+				var deletedCustomer = repo.Read(1);
+				Assert.Null(deletedCustomer);
+			}
+		}
 	}
 }

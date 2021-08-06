@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
-using CustomerLibCore.Domain.ArgumentCheckHelpers;
-using CustomerLibCore.Domain.Models;
-using CustomerLibCore.Domain.Exceptions;
-using CustomerLibCore.Domain.Validators;
+using AutoMapper;
+using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Data.Repositories;
-using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.Domain.ArgumentCheckHelpers;
+using CustomerLibCore.Domain.Exceptions;
+using CustomerLibCore.Domain.FluentValidation;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Models.Validators;
 
 namespace CustomerLibCore.ServiceLayer.Services.Implementations
 {
@@ -16,21 +19,24 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		#region Private Members
 
 		private readonly ICustomerRepository _customerRepository;
-
 		private readonly IAddressRepository _addressRepository;
 		private readonly INoteRepository _noteRepository;
+		private readonly IMapper _mapper;
+
+		private readonly CustomerValidator _validator = new();
 
 		#endregion
 
 		#region Constructors
 
 		public CustomerService(ICustomerRepository customerRepository,
-			IAddressRepository addressRepository, INoteRepository noteRepository)
+			IAddressRepository addressRepository, INoteRepository noteRepository, IMapper mapper)
 		{
 			_customerRepository = customerRepository;
 
 			_addressRepository = addressRepository;
 			_noteRepository = noteRepository;
+			_mapper = mapper;
 		}
 
 		#endregion
@@ -39,7 +45,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public void Save(Customer customer)
 		{
-			new CustomerValidator().ValidateFull(customer).WithInternalValidationException();
+			_validator.ValidateFull(customer).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -48,7 +54,30 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new EmailTakenException();
 			}
 
-			var customerId = _customerRepository.Create(customer);
+			var customerEntity = _mapper.Map<CustomerEntity>(customer);
+
+			var customerId = _customerRepository.Create(customerEntity);
+
+			// Save child properties.
+			AddressEntity addressEntity;
+
+			foreach (var address in customer.Addresses)
+			{
+				addressEntity = _mapper.Map<AddressEntity>(address);
+				addressEntity.CustomerId = customerId;
+
+				_addressRepository.Create(addressEntity);
+			}
+
+			NoteEntity noteEntity;
+
+			foreach (var note in customer.Notes)
+			{
+				noteEntity = _mapper.Map<NoteEntity>(note);
+				noteEntity.CustomerId = customerId;
+
+				_noteRepository.Create(noteEntity);
+			}
 
 			scope.Complete();
 		}
@@ -59,12 +88,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			using TransactionScope scope = new();
 
-			var customer = _customerRepository.Read(customerId);
+			var customerEntity = _customerRepository.Read(customerId);
 
-			if (customer is null)
+			if (customerEntity is null)
 			{
 				throw new NotFoundException();
 			}
+
+			var customer = _mapper.Map<Customer>(customerEntity);
 
 			if (includeAddresses)
 			{
@@ -89,17 +120,19 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			using TransactionScope scope = new();
 
-			var pageCustomers = _customerRepository.ReadPage(page, pageSize);
+			var pageCustomerEntities = _customerRepository.ReadPage(page, pageSize);
 
-			if (pageCustomers.Count == 0)
+			if (pageCustomerEntities.Count == 0)
 			{
 				if (page == 1)
 				{
-					return new(pageCustomers, 1, pageSize, 1);
+					return new(Array.Empty<Customer>(), 1, pageSize, 1);
 				}
 
 				throw new PagedRequestInvalidException(page, pageSize);
 			}
+
+			var pageCustomers = _mapper.Map<IEnumerable<Customer>>(pageCustomerEntities);
 
 			if (includeAddresses)
 			{
@@ -113,15 +146,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 			var lastPage = (int)Math.Ceiling((double)GetCount() / pageSize);
 
-			return new(pageCustomers, page, pageSize, lastPage);
+			return new(pageCustomers.ToArray(), page, pageSize, lastPage);
 		}
 
 		public void Update(Customer customer)
 		{
 			CheckNumber.ValidId(customer.CustomerId, nameof(customer.CustomerId));
 
-			// TODO: replace with CustomerBasicDetailsValidator!?
-			new CustomerValidator().ValidateWithoutAddressesAndNotes(customer)
+			_validator.ValidateWithoutAddressesAndNotes(customer)
 				.WithInternalValidationException();
 
 			using TransactionScope scope = new();
@@ -139,7 +171,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new EmailTakenException();
 			}
 
-			_customerRepository.Update(customer);
+			var customerEntity = _mapper.Map<CustomerEntity>(customer);
+
+			_customerRepository.Update(customerEntity);
 
 			scope.Complete();
 		}
@@ -155,6 +189,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
+			// First delete child properties.
 			_addressRepository.DeleteManyForCustomer(customerId);
 			_noteRepository.DeleteManyForCustomer(customerId);
 
@@ -169,13 +204,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		private void LoadAddresses(Customer customer)
 		{
-			customer.Addresses = _addressRepository.ReadManyForCustomer(customer.CustomerId)
-				.ToList();
+			var addressEntities = _addressRepository.ReadManyForCustomer(customer.CustomerId);
+			customer.Addresses = _mapper.Map<IEnumerable<Address>>(addressEntities);
 		}
 
 		private void LoadNotes(Customer customer)
 		{
-			customer.Notes = _noteRepository.ReadManyForCustomer(customer.CustomerId).ToList();
+			var noteEntities = _noteRepository.ReadManyForCustomer(customer.CustomerId);
+			customer.Notes = _mapper.Map<IEnumerable<Note>>(noteEntities);
 		}
 
 		private void LoadAddresses(IEnumerable<Customer> customers)

@@ -1,4 +1,4 @@
-﻿using CustomerLibCore.Domain.Validators;
+﻿using CustomerLibCore.Domain.FluentValidation;
 using FluentValidation;
 
 namespace CustomerLibCore.Api.Dtos.Validators

@@ -1,6 +1,8 @@
-﻿namespace CustomerLibCore.Api.Dtos.Addresses.Response
+﻿using CustomerLibCore.Domain.Models;
+
+namespace CustomerLibCore.Api.Dtos.Addresses.Response
 {
-	public class AddressResponse : IResponse, IAddressDetails
+	public class AddressResponse : IResponse, IDtoAddressDetails
 	{
 		public string Self { get; set; }
 		public string Line { get; set; }

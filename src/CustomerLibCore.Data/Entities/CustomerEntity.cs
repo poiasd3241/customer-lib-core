@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
 	[Serializable]
-	public class CustomerEntity : IEntity<CustomerEntity>
+	public class CustomerEntity : ICustomerDetails<decimal?>, IEntity<CustomerEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int CustomerId { get; set; }

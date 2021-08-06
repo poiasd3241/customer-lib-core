@@ -7,9 +7,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="TestResults\**" />
-	  <EmbeddedResource Remove="TestResults\**" />
-	  <None Remove="TestResults\**" />
+		<Compile Remove="TestResults\**" />
+		<EmbeddedResource Remove="TestResults\**" />
+		<None Remove="TestResults\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -35,18 +35,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\CustomerLibCore.Business\CustomerLibCore.Domain.csproj" />
+		<ProjectReference Include="..\..\src\CustomerLibCore.Domain\CustomerLibCore.Domain.csproj" />
 		<ProjectReference Include="..\..\src\CustomerLibCore.Data\CustomerLibCore.Data.csproj" />
 		<ProjectReference Include="..\CustomerLibCore.TestHelpers\CustomerLibCore.TestHelpers.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="App.config">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="appsettings.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<None Update="App.config">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="appsettings.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

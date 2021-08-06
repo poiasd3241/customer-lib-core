@@ -15,7 +15,7 @@
 //public class CustomersController : ControllerBase
 //{
 //	private readonly CustomerDtoValidator _customerDtoValidator = new();
-//	private readonly CustomerBasicDetailsDtoValidator _customerBasicDetailsDtoValidator = new();
+//	private readonly CustomerDetailsDtoValidator _customerDetailsDtoValidator = new();
 
 //	private readonly ICustomerService _customerService;
 //	private readonly IMapper _mapper;
@@ -78,14 +78,14 @@
 //	// PUT api/customers/5
 //	[HttpPut("{customerId:int}")]
 //	public IActionResult Update([FromRoute] int customerId,
-//		[FromBody] CustomerBasicDetailsDto customerBasicDetailsDto)
+//		[FromBody] CustomerDetailsDto customerDetailsDto)
 //	{
 //		CheckRouteArgument.ValidId(customerId, nameof(customerId));
 
-//		_customerBasicDetailsDtoValidator.Validate(customerBasicDetailsDto)
+//		_customerDetailsDtoValidator.Validate(customerDetailsDto)
 //			.WithInvalidBodyException();
 
-//		var customer = _mapper.Map<Customer>(customerBasicDetailsDto);
+//		var customer = _mapper.Map<Customer>(customerDetailsDto);
 
 //		customer.CustomerId = customerId;
 
@@ -96,7 +96,7 @@
 //		catch (EmailTakenException)
 //		{
 //			throw ConflictWithExistingException.EmailTaken(
-//				nameof(CustomerBasicDetailsDto.Email), customerBasicDetailsDto.Email);
+//				nameof(CustomerDetailsDto.Email), customerDetailsDto.Email);
 //		}
 
 //		return Ok();

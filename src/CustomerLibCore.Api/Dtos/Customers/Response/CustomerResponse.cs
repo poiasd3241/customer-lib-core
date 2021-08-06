@@ -3,7 +3,7 @@ using CustomerLibCore.Api.Dtos.Notes.Response;
 
 namespace CustomerLibCore.Api.Dtos.Customers.Response
 {
-	public class CustomerResponse : IResponse, ICustomerBasicDetails
+	public class CustomerResponse : IResponse, IDtoCustomerDetails
 	{
 		public string Self { get; set; }
 		public string FirstName { get; set; }

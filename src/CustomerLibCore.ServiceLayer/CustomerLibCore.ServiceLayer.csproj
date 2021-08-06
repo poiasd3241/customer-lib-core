@@ -5,7 +5,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\CustomerLibCore.Business\CustomerLibCore.Domain.csproj" />
+	  <PackageReference Include="AutoMapper" Version="10.1.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\CustomerLibCore.Domain\CustomerLibCore.Domain.csproj" />
 		<ProjectReference Include="..\CustomerLibCore.Data\CustomerLibCore.Data.csproj" />
 	</ItemGroup>
 

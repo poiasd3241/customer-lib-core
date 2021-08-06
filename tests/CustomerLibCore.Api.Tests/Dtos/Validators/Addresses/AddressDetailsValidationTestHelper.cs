@@ -8,37 +8,43 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 {
 	public class AddressDetailsValidationTestHelper
 	{
-		public static void AssertSinglePropertyInvalid(IAddressDetails address,
-			Func<IAddressDetails, IEnumerable<ValidationFailure>> errorsSource,
-			string propertyName, string propertyValue,
-			(string expected, string confirm) errorMessages)
+		public static void AssignProperty(IDtoAddressDetails address,
+		string propertyName, string propertyValue)
 		{
 			switch (propertyName)
 			{
-				case nameof(IAddressDetails.Line):
+				case nameof(IDtoAddressDetails.Line):
 					address.Line = propertyValue;
 					break;
-				case nameof(IAddressDetails.Line2):
+				case nameof(IDtoAddressDetails.Line2):
 					address.Line2 = propertyValue;
 					break;
-				case nameof(IAddressDetails.Type):
+				case nameof(IDtoAddressDetails.Type):
 					address.Type = propertyValue;
 					break;
-				case nameof(IAddressDetails.City):
+				case nameof(IDtoAddressDetails.City):
 					address.City = propertyValue;
 					break;
-				case nameof(IAddressDetails.PostalCode):
+				case nameof(IDtoAddressDetails.PostalCode):
 					address.PostalCode = propertyValue;
 					break;
-				case nameof(IAddressDetails.State):
+				case nameof(IDtoAddressDetails.State):
 					address.State = propertyValue;
 					break;
-				case nameof(IAddressDetails.Country):
+				case nameof(IDtoAddressDetails.Country):
 					address.Country = propertyValue;
 					break;
 				default:
 					throw new ArgumentException("Unknown property name", propertyName);
 			}
+		}
+
+		public static void AssertSinglePropertyInvalid1(IDtoAddressDetails address,
+					Func<IDtoAddressDetails, IEnumerable<ValidationFailure>> errorsSource,
+					string propertyName, string propertyValue,
+					(string expected, string confirm) errorMessages)
+		{
+			AssignProperty(address, propertyName, propertyValue);
 
 			var errors = errorsSource(address);
 

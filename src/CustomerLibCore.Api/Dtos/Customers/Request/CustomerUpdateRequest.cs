@@ -1,6 +1,6 @@
 ﻿namespace CustomerLibCore.Api.Dtos.Customers.Request
 {
-	public class CustomerUpdateRequest : ICustomerBasicDetails
+	public class CustomerUpdateRequest : IDtoCustomerDetails
 	{
 		public string FirstName { get; set; }
 		public string LastName { get; set; }

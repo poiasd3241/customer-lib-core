@@ -227,8 +227,8 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			var address = MockAddress();
 			var note = MockNote();
 
-			customer.Addresses = new() { address };
-			customer.Notes = new() { note };
+			customer.Addresses = new[] { address };
+			customer.Notes = new[] { note };
 
 			var addressResponse = Mapper.Map<AddressResponse>(address);
 			var noteResponse = Mapper.Map<NoteResponse>(note);
@@ -627,8 +627,8 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			PhoneNumber = "+123456789",
 			Email = "a@a.aa",
 			TotalPurchasesAmount = 666,
-			Addresses = new() { MockAddress() },
-			Notes = new() { MockNote() }
+			Addresses = new[] { MockAddress() },
+			Notes = new[] { MockNote() }
 		};
 
 		public static PagedResult<Customer> MockCustomerPagedResult() => new()

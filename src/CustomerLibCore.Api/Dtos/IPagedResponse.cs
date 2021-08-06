@@ -2,6 +2,5 @@
 {
 	public interface IPagedResponse<T> : IListResponse<T>, IPagedResourceBase
 	{
-
 	}
 }

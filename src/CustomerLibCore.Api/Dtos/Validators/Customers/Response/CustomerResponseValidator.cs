@@ -13,19 +13,15 @@ namespace CustomerLibCore.Api.Dtos.Validators.Customers.Response
 		public CustomerResponseValidator()
 		{
 			Include(new ResponseValidator());
-			Include(new CustomerBasicDetailsValidator());
+			Include(new DtoCustomerDetailsValidator());
 
 			// Addresses
 			RuleFor(customer => customer.Addresses)
 				.SetValidator(new AddressListResponseBaseValidator(areItemsRequired: false));
-			//.SetValidator(new ListResponseValidator<AddressResponse>(
-			//new AddressResponseValidator(), true));
-			//.SetValidator(new AddressListResponseValidator(false));
 
 			// Notes
 			RuleFor(customer => customer.Notes)
 				.SetValidator(new NoteListResponseBaseValidator(areItemsRequired: false));
-			//.SetValidator(new NoteListResponseValidator(false));
 		}
 	}
 }

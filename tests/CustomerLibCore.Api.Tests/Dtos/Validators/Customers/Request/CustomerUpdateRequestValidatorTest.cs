@@ -17,7 +17,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 
         private static readonly CustomerUpdateRequestValidator _validator = new();
 
-        private static Func<ICustomerBasicDetails, IEnumerable<ValidationFailure>> GetErrorsSource(
+        private static Func<ICustomerDetails, IEnumerable<ValidationFailure>> GetErrorsSource(
             string propertyName)
         {
             return (customer) =>
@@ -29,7 +29,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
         {
             var customer = new CustomerUpdateRequestValidatorFixture().MockValid();
 
-            CustomerBasicDetailsValidationTestHelper.AssertSinglePropertyInvalid(
+            CustomerDetailsValidationTestHelper.AssertSinglePropertyInvalid(
                 customer, GetErrorsSource(propertyName), propertyName, propertyValue,
                 errorMessages);
         }

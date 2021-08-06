@@ -1,6 +1,8 @@
-﻿namespace CustomerLibCore.Api.Dtos.Notes.Response
+﻿using CustomerLibCore.Domain.Models;
+
+namespace CustomerLibCore.Api.Dtos.Notes.Response
 {
-	public class NoteResponse : IResponse, INoteDetails
+	public class NoteResponse : IResponse, IDtoNoteDetails
 	{
 		public string Self { get; set; }
 		public string Content { get; set; }

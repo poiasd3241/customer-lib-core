@@ -1,6 +1,6 @@
 ﻿namespace CustomerLibCore.Api.Dtos.Addresses.Request
 {
-	public class AddressRequest : IAddressDetails
+	public class AddressRequest : IDtoAddressDetails
 	{
 		public string Line { get; set; }
 		public string Line2 { get; set; }

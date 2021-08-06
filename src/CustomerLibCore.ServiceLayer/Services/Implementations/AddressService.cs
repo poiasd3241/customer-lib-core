@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Transactions;
-using CustomerLibCore.Domain.ArgumentCheckHelpers;
-using CustomerLibCore.Domain.Models;
-using CustomerLibCore.Domain.Exceptions;
-using CustomerLibCore.Domain.Validators;
+using AutoMapper;
+using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Repositories;
-using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.Domain.ArgumentCheckHelpers;
+using CustomerLibCore.Domain.Exceptions;
+using CustomerLibCore.Domain.FluentValidation;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Models.Validators;
 
 namespace CustomerLibCore.ServiceLayer.Services.Implementations
 {
@@ -15,16 +18,20 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		private readonly ICustomerRepository _customerRepository;
 		private readonly IAddressRepository _addressRepository;
+		private readonly IMapper _mapper;
+
+		private readonly AddressValidator _validator = new();
 
 		#endregion
 
 		#region Constructors
 
 		public AddressService(ICustomerRepository customerRepository,
-			IAddressRepository addressRepository)
+			IAddressRepository addressRepository, IMapper mapper)
 		{
 			_customerRepository = customerRepository;
 			_addressRepository = addressRepository;
+			_mapper = mapper;
 		}
 
 		#endregion
@@ -35,7 +42,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		{
 			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
 
-			new AddressValidator().Validate(address).WithInternalValidationException();
+			_validator.Validate(address).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -44,7 +51,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			_addressRepository.Create(address);
+			var addressEntity = _mapper.Map<AddressEntity>(address);
+
+			_addressRepository.Create(addressEntity);
 
 			scope.Complete();
 		}
@@ -54,12 +63,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(addressId, nameof(addressId));
 			CheckNumber.ValidId(customerId, nameof(customerId));
 
-			var address = _addressRepository.ReadForCustomer(addressId, customerId);
+			var addressEntity = _addressRepository.ReadForCustomer(addressId, customerId);
 
-			if (address is null)
+			if (addressEntity is null)
 			{
 				throw new NotFoundException();
 			}
+
+			var address = _mapper.Map<Address>(addressEntity);
 
 			return address;
 		}
@@ -75,11 +86,13 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			var addresses = _addressRepository.ReadManyForCustomer(customerId);
+			var addressEntities = _addressRepository.ReadManyForCustomer(customerId);
 
 			scope.Complete();
 
-			return addresses;
+			var addresses = _mapper.Map<IEnumerable<Address>>(addressEntities);
+
+			return addresses.ToArray();
 		}
 
 		public void UpdateForCustomer(Address address)
@@ -87,7 +100,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			CheckNumber.ValidId(address.AddressId, nameof(address.AddressId));
 			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
 
-			new AddressValidator().Validate(address).WithInternalValidationException();
+			_validator.Validate(address).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
@@ -96,7 +109,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			_addressRepository.Update(address);
+			var addressEntity = _mapper.Map<AddressEntity>(address);
+
+			_addressRepository.Update(addressEntity);
 
 			scope.Complete();
 		}

@@ -1,6 +1,8 @@
-﻿namespace CustomerLibCore.Api.Dtos.Notes.Request
+﻿using CustomerLibCore.Domain.Models;
+
+namespace CustomerLibCore.Api.Dtos.Notes.Request
 {
-	public class NoteRequest : INoteDetails
+	public class NoteRequest : IDtoNoteDetails
 	{
 		public string Content { get; set; }
 	}

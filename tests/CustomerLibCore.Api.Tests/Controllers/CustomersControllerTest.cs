@@ -357,13 +357,13 @@
 //		{
 //			// Given
 //			var customerId = 0;
-//			var customerBasicDetailsDto = new CustomerBasicDetailsDto();
+//			var customerDetailsDto = new CustomerDetailsDto();
 
 //			var controller = new CustomersControllerFixture().CreateController();
 
 //			// When
 //			var exception = Assert.Throws<RouteArgumentException>(() =>
-//				controller.Update(customerId, customerBasicDetailsDto));
+//				controller.Update(customerId, customerDetailsDto));
 
 //			// Then
 //			Assert.Equal("customerId", exception.ParamName);
@@ -377,14 +377,14 @@
 //			var mapper = CreateMapper();
 //			var customerId = 5;
 
-//			var badCustomerBasicDetailsDto = MockCustomerBasicDetailsDto();
-//			badCustomerBasicDetailsDto.LastName = null;
+//			var badCustomerDetailsDto = MockCustomerDetailsDto();
+//			badCustomerDetailsDto.LastName = null;
 
 //			var controller = new CustomersControllerFixture().CreateController();
 
 //			// When
 //			var exception = Assert.Throws<InvalidBodyException>(() =>
-//				controller.Update(customerId, badCustomerBasicDetailsDto));
+//				controller.Update(customerId, badCustomerDetailsDto));
 
 //			//Then
 //			var error = Assert.Single(exception.Errors);
@@ -399,11 +399,11 @@
 //			var mapper = CreateMapper();
 //			var customerId = 5;
 
-//			var badCustomerBasicDetailsDto = MockCustomerBasicDetailsDto();
-//			var customer = mapper.Map<Customer>(badCustomerBasicDetailsDto);
+//			var badCustomerDetailsDto = MockCustomerDetailsDto();
+//			var customer = mapper.Map<Customer>(badCustomerDetailsDto);
 
 //			var fixture = new CustomersControllerFixture();
-//			fixture.MockMapper.Setup(m => m.Map<Customer>(badCustomerBasicDetailsDto))
+//			fixture.MockMapper.Setup(m => m.Map<Customer>(badCustomerDetailsDto))
 //				.Returns(customer);
 //			fixture.MockCustomerService.Setup(s =>
 //				s.Update(customer)).Throws<EmailTakenException>();
@@ -412,14 +412,14 @@
 
 //			// When
 //			var ex = Assert.Throws<ConflictWithExistingException>(() =>
-//				controller.Update(customerId, badCustomerBasicDetailsDto));
+//				controller.Update(customerId, badCustomerDetailsDto));
 
 //			//Then
 //			Assert.Equal("Email is already taken", ex.ConflictMessage);
-//			Assert.Equal(nameof(CustomerBasicDetailsDto.Email), ex.IncomingPropertyName);
-//			Assert.Equal(badCustomerBasicDetailsDto.Email, ex.IncomingPropertyValue);
+//			Assert.Equal(nameof(CustomerDetailsDto.Email), ex.IncomingPropertyName);
+//			Assert.Equal(badCustomerDetailsDto.Email, ex.IncomingPropertyValue);
 
-//			fixture.MockMapper.Verify(m => m.Map<Customer>(badCustomerBasicDetailsDto), Times.Once);
+//			fixture.MockMapper.Verify(m => m.Map<Customer>(badCustomerDetailsDto), Times.Once);
 //			fixture.MockCustomerService.Verify(s => s.Update(It.Is<Customer>(n =>
 //				n.CustomerId == customerId)), Times.Once);
 //			fixture.MockCustomerService.Verify(s => s.Update(customer), Times.Once);
@@ -432,18 +432,18 @@
 //			var mapper = CreateMapper();
 //			var customerId = 5;
 
-//			var badCustomerBasicDetailsDto = MockCustomerBasicDetailsDto();
-//			var customer = mapper.Map<Customer>(badCustomerBasicDetailsDto);
+//			var badCustomerDetailsDto = MockCustomerDetailsDto();
+//			var customer = mapper.Map<Customer>(badCustomerDetailsDto);
 
 //			var fixture = new CustomersControllerFixture();
-//			fixture.MockMapper.Setup(m => m.Map<Customer>(badCustomerBasicDetailsDto))
+//			fixture.MockMapper.Setup(m => m.Map<Customer>(badCustomerDetailsDto))
 //				.Returns(customer);
 //			fixture.MockCustomerService.Setup(s => s.Update(customer));
 
 //			var controller = fixture.CreateController();
 
 //			// When
-//			var result = controller.Update(customerId, badCustomerBasicDetailsDto);
+//			var result = controller.Update(customerId, badCustomerDetailsDto);
 
 //			//Then
 //			var okResult = Assert.IsType<OkResult>(result);
@@ -452,7 +452,7 @@
 //			fixture.MockCustomerService.Verify(s => s.Update(customer), Times.Once);
 //			fixture.MockCustomerService.Verify(s => s.Update(It.Is<Customer>(n =>
 //				n.CustomerId == customerId)), Times.Once);
-//			fixture.MockMapper.Verify(m => m.Map<Customer>(badCustomerBasicDetailsDto), Times.Once);
+//			fixture.MockMapper.Verify(m => m.Map<Customer>(badCustomerDetailsDto), Times.Once);
 //		}
 
 //		#endregion
@@ -596,7 +596,7 @@
 //			Notes = new() { MockNoteDto() }
 //		};
 
-//		public static CustomerBasicDetailsDto MockCustomerBasicDetailsDto() => new()
+//		public static CustomerDetailsDto MockCustomerDetailsDto() => new()
 //		{
 //			FirstName = "One",
 //			LastName = "Two",

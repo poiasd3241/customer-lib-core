@@ -1,4 +1,5 @@
 ﻿using CustomerLibCore.Api.Dtos.Addresses.Response;
+using CustomerLibCore.Domain.Models.Validators;
 using FluentValidation;
 
 namespace CustomerLibCore.Api.Dtos.Validators.Addresses.Response
@@ -11,7 +12,7 @@ namespace CustomerLibCore.Api.Dtos.Validators.Addresses.Response
 		public AddressResponseValidator()
 		{
 			Include(new ResponseValidator());
-			Include(new AddressDetailsValidator());
+			Include(new AddressDetailsValidator<string>());
 		}
 	}
 }

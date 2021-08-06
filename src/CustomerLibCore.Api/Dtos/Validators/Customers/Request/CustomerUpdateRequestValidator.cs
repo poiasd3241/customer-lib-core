@@ -10,7 +10,7 @@ namespace CustomerLibCore.Api.Dtos.Validators.Customers.Request
 	{
 		public CustomerUpdateRequestValidator()
 		{
-			Include(new CustomerBasicDetailsValidator());
+			Include(new DtoCustomerDetailsValidator());
 		}
 	}
 }

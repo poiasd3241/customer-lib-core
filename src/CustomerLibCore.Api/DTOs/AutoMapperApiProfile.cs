@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using AutoMapper;
-using Castle.Core.Resource;
 using CustomerLibCore.Api.Controllers;
 using CustomerLibCore.Api.Dtos.Addresses.Request;
 using CustomerLibCore.Api.Dtos.Addresses.Response;
@@ -10,10 +8,8 @@ using CustomerLibCore.Api.Dtos.Customers.Request;
 using CustomerLibCore.Api.Dtos.Customers.Response;
 using CustomerLibCore.Api.Dtos.Notes.Request;
 using CustomerLibCore.Api.Dtos.Notes.Response;
-using CustomerLibCore.Domain.Models;
 using CustomerLibCore.Domain.Enums;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Api.Dtos
 {

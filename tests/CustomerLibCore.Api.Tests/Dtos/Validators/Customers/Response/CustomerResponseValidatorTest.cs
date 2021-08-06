@@ -19,19 +19,19 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 
 		private static readonly CustomerResponseValidator _validator = new();
 
-		private static Func<ICustomerBasicDetails, IEnumerable<ValidationFailure>>
+		private static Func<ICustomerDetails, IEnumerable<ValidationFailure>>
 			GetErrorsSource(string propertyName)
 		{
 			return (customer) =>
 				_validator.ValidateProperty((CustomerResponse)customer, propertyName);
 		}
 
-		private static void AssertSinglePropertyInvalidBasicDetails(string propertyName,
+		private static void AssertSinglePropertyInvalidDetails(string propertyName,
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
 			var customer = new CustomerResponseValidatorFixture().MockValid();
 
-			CustomerBasicDetailsValidationTestHelper.AssertSinglePropertyInvalid(
+			CustomerDetailsValidationTestHelper.AssertSinglePropertyInvalid(
 				customer, GetErrorsSource(propertyName), propertyName,
 				propertyValue, errorMessages);
 		}
@@ -45,7 +45,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadFirstName(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidBasicDetails(nameof(CustomerResponse.FirstName),
+			AssertSinglePropertyInvalidDetails(nameof(CustomerResponse.FirstName),
 				propertyValue, errorMessages);
 		}
 
@@ -58,7 +58,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadLastName(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidBasicDetails(nameof(CustomerResponse.LastName),
+			AssertSinglePropertyInvalidDetails(nameof(CustomerResponse.LastName),
 				propertyValue, errorMessages);
 		}
 
@@ -71,7 +71,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadPhoneNumber(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidBasicDetails(nameof(CustomerResponse.PhoneNumber),
+			AssertSinglePropertyInvalidDetails(nameof(CustomerResponse.PhoneNumber),
 				propertyValue, errorMessages);
 		}
 
@@ -84,7 +84,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadEmail(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidBasicDetails(nameof(CustomerResponse.Email),
+			AssertSinglePropertyInvalidDetails(nameof(CustomerResponse.Email),
 				propertyValue, errorMessages);
 		}
 
@@ -97,7 +97,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadTotalPurchasesAmount(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidBasicDetails(nameof(CustomerResponse.TotalPurchasesAmount),
+			AssertSinglePropertyInvalidDetails(nameof(CustomerResponse.TotalPurchasesAmount),
 				propertyValue, errorMessages);
 		}
 

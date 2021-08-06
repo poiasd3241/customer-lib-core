@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
 	[Serializable]
-	public class NoteEntity : IEntity<NoteEntity>
+	public class NoteEntity : INoteDetails, IEntity<NoteEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int NoteId { get; set; }

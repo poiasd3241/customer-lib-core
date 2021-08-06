@@ -4,7 +4,7 @@ using CustomerLibCore.Api.Dtos.Notes.Request;
 
 namespace CustomerLibCore.Api.Dtos.Customers.Request
 {
-	public class CustomerCreateRequest : ICustomerBasicDetails
+	public class CustomerCreateRequest : IDtoCustomerDetails
 	{
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
