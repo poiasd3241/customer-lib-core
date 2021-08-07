@@ -381,7 +381,6 @@
 //			// When
 //			Assert.Throws<NotFoundException>(() => service.DeleteForCustomer(noteId, customerId));
 
-
 //			// Then
 //			fixture.MockNoteRepository.Verify(r => r.ExistsForCustomer(noteId, customerId),
 //				Times.Once);

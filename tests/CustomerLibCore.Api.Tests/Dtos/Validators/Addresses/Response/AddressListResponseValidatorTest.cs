@@ -58,7 +58,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		}
 
 		[Fact]
-		public void ShouldInvalidateByBadItemsChild()
+		public void ShouldInvalidateByBadItemsElement()
 		{
 			// Given
 			var propertyName = nameof(AddressListResponse.Items);
@@ -126,10 +126,10 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 
 		/// <returns>The mocked object with invalid properties:
 		/// <br/>
-		/// <see cref="AddressListResponse.Self"/> = <see langword="null"/>,
+		/// <see cref="AddressListResponse.Self"/> = <see langword="null"/>;
 		/// <br/>
 		/// <see cref="AddressListResponse.Items"/> =
-		/// <see cref="AddressResponseValidatorFixture.MockInvalid"/>
+		/// <see cref="AddressResponseValidatorFixture.MockInvalid"/>;
 		/// <br/>
 		/// (according to <see cref="AddressListResponseValidator"/>).</returns>
 		public AddressListResponse MockInvalid()
@@ -144,9 +144,9 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		}
 
 		/// <returns>
-		/// invalidObject: <see cref="MockInvalid"/>
+		/// - invalidObject: <see cref="MockInvalid"/>;
 		/// <br/>
-		/// details: values corresponding to all invalid properties of the object
+		/// - details: values corresponding to all invalid properties of the object;
 		/// <br/>
 		/// (according to <see cref="AddressListResponseValidator"/>).</returns>
 		public (AddressListResponse invalidObject,

@@ -65,7 +65,6 @@ namespace CustomerLibCore.Domain.FluentValidation
 				.MaximumLength(maxLength).WithMessage(
 					ValidationErrorMessages.TextMaxLength(maxLength));
 
-
 		public static IRuleBuilderOptions<T, string> TextNotEmptyNorContainsWhitespace<T>(
 			this IRuleBuilder<T, string> ruleBuilder) =>
 			ruleBuilder

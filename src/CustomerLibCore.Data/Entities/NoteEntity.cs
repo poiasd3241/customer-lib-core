@@ -4,7 +4,6 @@ using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
-	[Serializable]
 	public class NoteEntity : INoteDetails, IEntity<NoteEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

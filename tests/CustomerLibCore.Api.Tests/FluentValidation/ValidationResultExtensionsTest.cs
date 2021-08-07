@@ -4,7 +4,7 @@ using FluentValidation.Results;
 using System.Collections.Generic;
 using Xunit;
 
-namespace CustomerLibCore.Api.Tests.Dtos.Validators
+namespace CustomerLibCore.Api.Tests.FluentValidation
 {
 	public class ValidationResultExtensionsTest
 	{

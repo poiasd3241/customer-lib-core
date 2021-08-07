@@ -2,7 +2,6 @@
 
 namespace CustomerLibCore.Domain.Models
 {
-	[Serializable]
 	public class Note : INoteDetails
 	{
 		public int NoteId { get; set; }

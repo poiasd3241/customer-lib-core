@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.Domain.Models;
 using CustomerLibCore.Domain.Models.Validators;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using FluentValidation.Results;
 using Xunit;
 
 namespace CustomerLibCore.Domain.Tests.Models.Validators
@@ -16,21 +16,42 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 
 		private static readonly AddressValidator _validator = new();
 
-		private static Func<IAddressDetails, IEnumerable<ValidationFailure>>
-			GetErrorsSourceFromDetails(string propertyName)
-		{
-			return (customer) =>
-				_validator.ValidateProperty((Address)customer, propertyName);
-		}
-
-		private static void AssertSinglePropertyInvalidForDetails(string propertyName,
-			string propertyValue, (string expected, string confirm) errorMessages)
+		private static void AssertSinglePropertyInvalid(string propertyName,
+		   object propertyValue, (string expected, string confirm) errorMessages)
 		{
 			var address = new AddressValidatorFixture().MockValid();
 
-			AddressDetailsValidationTestHelper.AssertSinglePropertyInvalid(
-				address, GetErrorsSourceFromDetails(propertyName), propertyName,
-				propertyValue, errorMessages);
+			switch (propertyName)
+			{
+				case nameof(Address.Line):
+					address.Line = (string)propertyValue;
+					break;
+				case nameof(Address.Line2):
+					address.Line2 = (string)propertyValue;
+					break;
+				case nameof(Address.Type):
+					address.Type = (AddressType)propertyValue;
+					break;
+				case nameof(Address.City):
+					address.City = (string)propertyValue;
+					break;
+				case nameof(Address.PostalCode):
+					address.PostalCode = (string)propertyValue;
+					break;
+				case nameof(Address.State):
+					address.State = (string)propertyValue;
+					break;
+				case nameof(Address.Country):
+					address.Country = (string)propertyValue;
+					break;
+				default:
+					throw new ArgumentException("Unknown property name", propertyName);
+			}
+
+			var errors = _validator.ValidateProperty(address, propertyName);
+
+			errors.AssertSinglePropertyInvalid(propertyName,
+				errorMessages);
 		}
 
 		#endregion
@@ -42,7 +63,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadLine(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.Line),
+			AssertSinglePropertyInvalid(nameof(Address.Line),
 				propertyValue, errorMessages);
 		}
 
@@ -55,7 +76,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadLine2(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.Line2),
+			AssertSinglePropertyInvalid(nameof(Address.Line2),
 				propertyValue, errorMessages);
 		}
 
@@ -68,7 +89,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadType(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.Type),
+			AssertSinglePropertyInvalid(nameof(Address.Type),
 				propertyValue, errorMessages);
 		}
 
@@ -81,7 +102,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadCity(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.City),
+			AssertSinglePropertyInvalid(nameof(Address.City),
 				propertyValue, errorMessages);
 		}
 
@@ -94,7 +115,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadPostalCode(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.PostalCode),
+			AssertSinglePropertyInvalid(nameof(Address.PostalCode),
 				propertyValue, errorMessages);
 		}
 
@@ -107,7 +128,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadState(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.State),
+			AssertSinglePropertyInvalid(nameof(Address.State),
 				propertyValue, errorMessages);
 		}
 
@@ -120,7 +141,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		public void ShouldInvalidateByBadCountry(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalidForDetails(nameof(Address.Country),
+			AssertSinglePropertyInvalid(nameof(Address.Country),
 				propertyValue, errorMessages);
 		}
 
@@ -179,14 +200,14 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 
 	public class AddressValidatorFixture : IValidatorFixture<Address>
 	{
-		/// <returns>The mocked object with valid properties 
-		/// (according to <see cref="AddressValidator"/>), optional properties not null.
-		/// </returns>
+		/// <returns>The mocked object with valid properties,
+		/// optional properties not <see langword="null"/>
+		/// (according to <see cref="AddressValidator"/>).</returns>
 		public Address MockValid() => new()
 		{
 			Line = "Line1",
 			Line2 = "Line21",
-			Type = "Shipping",
+			Type = AddressType.Shipping,
 			City = "City1",
 			PostalCode = "123456",
 			State = "State1",
@@ -195,26 +216,26 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 
 		/// <returns>The mocked object with invalid properties:
 		/// <br/>
-		/// <see cref="Address.Line"/> = <see langword="null"/>,
+		/// <see cref="Address.Line"/> = <see langword="null"/>;
 		/// <br/>
-		/// <see cref="Address.Line2"/> = "",
+		/// <see cref="Address.Line2"/> = "";
 		/// <br/>
-		/// <see cref="Address.Type"/> = <see langword="null"/>,
+		/// <see cref="Address.Type"/> = 0;
 		/// <br/>
-		/// <see cref="Address.City"/> = <see langword="null"/>,
+		/// <see cref="Address.City"/> = <see langword="null"/>;
 		/// <br/>
-		/// <see cref="Address.PostalCode"/> = <see langword="null"/>,
+		/// <see cref="Address.PostalCode"/> = <see langword="null"/>;
 		/// <br/>
-		/// <see cref="Address.State"/> = <see langword="null"/>,
+		/// <see cref="Address.State"/> = <see langword="null"/>;
 		/// <br/>
-		/// <see cref="Address.Country"/> = <see langword="null"/>,
+		/// <see cref="Address.Country"/> = <see langword="null"/>;
 		/// <br/>
 		/// (according to <see cref="AddressValidator"/>).</returns>
 		public Address MockInvalid() => new()
 		{
 			Line = null,
 			Line2 = "",
-			Type = null,
+			Type = 0,
 			City = null,
 			PostalCode = null,
 			State = null,
@@ -222,9 +243,9 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		};
 
 		/// <returns>
-		/// invalidObject: <see cref="MockInvalid"/>
+		/// - invalidObject: <see cref="MockInvalid"/>;
 		/// <br/>
-		/// details: values corresponding to all invalid properties of the object
+		/// - details: values corresponding to all invalid properties of the object;
 		/// <br/>
 		/// (according to <see cref="AddressValidator"/>).</returns>
 		public (Address invalidObject,
@@ -235,7 +256,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 			{
 				(nameof(Address.Line), ValidationErrorMessages.REQUIRED),
 				(nameof(Address.Line2), ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(Address.Type), ValidationErrorMessages.REQUIRED),
+				(nameof(Address.Type), ValidationErrorMessages.ENUM_TYPE_UNKNOWN),
 				(nameof(Address.City), ValidationErrorMessages.REQUIRED),
 				(nameof(Address.PostalCode), ValidationErrorMessages.REQUIRED),
 				(nameof(Address.State), ValidationErrorMessages.REQUIRED),
@@ -245,9 +266,12 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 			return (MockInvalid(), details);
 		}
 
-		/// <returns>The mocked object with valid properties 
-		/// (according to <see cref="AddressValidator"/>), optional properties null.
-		/// </returns>
+		/// <returns>The mocked object with valid properties, 
+		/// optional properties <see langword="null"/>:
+		/// <br/>
+		/// <see cref="Address.Line2"/>;
+		/// <br/>
+		/// (according to <see cref="AddressValidator"/>).</returns>
 		public Address MockValidOptional()
 		{
 			var address = MockValid();

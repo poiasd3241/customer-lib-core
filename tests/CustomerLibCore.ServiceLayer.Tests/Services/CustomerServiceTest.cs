@@ -178,7 +178,6 @@
 //				.Returns(addresses);
 //			fixture.MockNoteRepository.Setup(s => s.ReadManyForCustomer(customerId)).Returns(notes);
 
-
 //			var expectedCustomer = CustomerServiceFixture.MockCustomer();
 //			expectedCustomer.CustomerId = customerId;
 //			expectedCustomer.Addresses = addresses;

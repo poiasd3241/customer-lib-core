@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CustomerLibCore.Api.Dtos.Notes.Request;
-using CustomerLibCore.Api.Dtos.Validators.Notes.Request;
+using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using FluentValidation;
 using Xunit;
 
-namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
+namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 {
-	public class NoteRequestValidatorTest
+	public class NoteEntityValidatorTest
 	{
 		#region Private members
 
-		private static readonly NoteRequestValidator _validator = new();
+		private static readonly NoteEntityValidator _validator = new();
 
 		#endregion
 
@@ -25,9 +24,9 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
 			// Given
-			var propertyName = nameof(NoteRequest.Content);
+			var propertyName = nameof(NoteEntity.Content);
 
-			var note = new NoteRequestValidatorFixture().MockValid();
+			var note = new NoteEntityValidatorFixture().MockValid();
 			note.Content = propertyValue;
 
 			// When
@@ -44,7 +43,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		[Fact]
 		public void ShouldValidateFullObject()
 		{
-			var note = new NoteRequestValidatorFixture().MockValid();
+			var note = new NoteEntityValidatorFixture().MockValid();
 
 			var result = _validator.Validate(note);
 
@@ -55,7 +54,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		public void ShouldInvalidateFullObject()
 		{
 			// Given
-			var (note, details) = new NoteRequestValidatorFixture()
+			var (note, details) = new NoteEntityValidatorFixture()
 				.MockInvalidWithDetails();
 
 			// When
@@ -70,21 +69,21 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		#endregion
 	}
 
-	public class NoteRequestValidatorFixture : IValidatorFixture<NoteRequest>
+	public class NoteEntityValidatorFixture : IValidatorFixture<NoteEntity>
 	{
 		/// <returns>The mocked object with valid properties 
-		/// (according to <see cref="NoteRequestValidator"/>).</returns>
-		public NoteRequest MockValid() => new()
+		/// (according to <see cref="NoteEntityValidator"/>).</returns>
+		public NoteEntity MockValid() => new()
 		{
 			Content = "Content1"
 		};
 
 		/// <returns>The mocked object with invalid properties:
 		/// <br/>
-		/// <see cref="NoteRequest.Content"/> = <see langword="null"/>;
+		/// <see cref="NoteEntity.Content"/> = <see langword="null"/>;
 		/// <br/>
-		/// (according to <see cref="NoteRequestValidator"/>).</returns>
-		public NoteRequest MockInvalid() => new()
+		/// (according to <see cref="NoteEntityValidator"/>).</returns>
+		public NoteEntity MockInvalid() => new()
 		{
 			Content = null
 		};
@@ -94,14 +93,14 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		/// <br/>
 		/// - details: values corresponding to all invalid properties of the object;
 		/// <br/>
-		/// (according to <see cref="NoteRequestValidator"/>).</returns>
-		public (NoteRequest invalidObject,
+		/// (according to <see cref="NoteEntityValidator"/>).</returns>
+		public (NoteEntity invalidObject,
 			IEnumerable<(string propertyName, string errorMessage)> details)
 			MockInvalidWithDetails()
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(NoteRequest.Content), ValidationErrorMessages.REQUIRED)
+				(nameof(NoteEntity.Content), ValidationErrorMessages.REQUIRED)
 			};
 
 			return (MockInvalid(), details);

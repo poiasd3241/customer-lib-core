@@ -8,7 +8,7 @@ namespace CustomerLibCore.Domain.Tests.Entities
 	public class NoteTest
 	{
 		[Fact]
-		public void ShouldCreateNote()
+		public void ShouldCreateObject()
 		{
 			Note note = new();
 
@@ -18,208 +18,219 @@ namespace CustomerLibCore.Domain.Tests.Entities
 		}
 
 		[Fact]
-		public void ShouldSetAddressProperties()
-		{
-			Note note = new();
-
-			note.NoteId = 1;
-			note.CustomerId = 1;
-			note.Content = "a";
-
-			Assert.Equal(1, note.NoteId);
-			Assert.Equal(1, note.CustomerId);
-			Assert.Equal("a", note.Content);
-		}
-
-		#region Equals by value
-
-		[Fact]
-		public void ShouldThrowOnEqualsByValueByBadObjectType()
+		public void ShouldSetProperties()
 		{
 			// Given
-			var note1 = new Note();
-			var whatever = "whatever";
+			var noteId = 1;
+			var customerId = 2;
+			var content = "content1";
+
+			var note = new Note();
+
+			Assert.NotEqual(noteId, note.NoteId);
+			Assert.NotEqual(customerId, note.CustomerId);
+			Assert.NotEqual(content, note.Content);
 
 			// When
-			var exception = Assert.Throws<ArgumentException>(() => note1.EqualsByValue(whatever));
+			note.NoteId = noteId;
+			note.CustomerId = customerId;
+			note.Content = content;
 
 			// Then
-			Assert.Equal("Must use the same entity type for comparison", exception.Message);
+			Assert.Equal(noteId, note.NoteId);
+			Assert.Equal(customerId, note.CustomerId);
+			Assert.Equal(content, note.Content);
 		}
 
-		[Fact]
-		public void ShouldConfirmEqualsByValue()
-		{
-			// Given
-			var note1 = MockNote();
-			var note2 = MockNote();
+		//#region Equals by value
 
-			// When
-			var equalsByValue = note1.EqualsByValue(note2);
+		//[Fact]
+		//public void ShouldThrowOnEqualsByValueByBadObjectType()
+		//{
+		//	// Given
+		//	var note1 = new Note();
+		//	var whatever = "whatever";
 
-			// Then
-			Assert.True(equalsByValue);
-		}
+		//	// When
+		//	var exception = Assert.Throws<ArgumentException>(() => note1.EqualsByValue(whatever));
 
-		[Fact]
-		public void ShouldRefuteEqualsByValueByNull()
-		{
-			// Given
-			var note1 = MockNote();
-			Note note2 = null;
+		//	// Then
+		//	Assert.Equal("Must use the same entity type for comparison", exception.Message);
+		//}
 
-			// When
-			var equalsByValue = note1.EqualsByValue(note2);
+		//[Fact]
+		//public void ShouldConfirmEqualsByValue()
+		//{
+		//	// Given
+		//	var note1 = MockNote();
+		//	var note2 = MockNote();
 
-			// Then
-			Assert.False(equalsByValue);
-		}
+		//	// When
+		//	var equalsByValue = note1.EqualsByValue(note2);
 
-		[Fact]
-		public void ShouldRefuteEqualsByValueByNoteId()
-		{
-			// Given
-			var noteId1 = 5;
-			var noteId2 = 7;
+		//	// Then
+		//	Assert.True(equalsByValue);
+		//}
 
-			var note1 = MockNote();
-			var note2 = MockNote();
+		//[Fact]
+		//public void ShouldRefuteEqualsByValueByNull()
+		//{
+		//	// Given
+		//	var note1 = MockNote();
+		//	Note note2 = null;
 
-			note1.NoteId = noteId1;
-			note2.NoteId = noteId2;
+		//	// When
+		//	var equalsByValue = note1.EqualsByValue(note2);
 
-			// When
-			var equalsByValue = note1.EqualsByValue(note2);
+		//	// Then
+		//	Assert.False(equalsByValue);
+		//}
 
-			// Then
-			Assert.False(equalsByValue);
-		}
+		//[Fact]
+		//public void ShouldRefuteEqualsByValueByNoteId()
+		//{
+		//	// Given
+		//	var noteId1 = 5;
+		//	var noteId2 = 7;
 
-		#endregion
+		//	var note1 = MockNote();
+		//	var note2 = MockNote();
 
-		#region Lists equal by value
+		//	note1.NoteId = noteId1;
+		//	note2.NoteId = noteId2;
 
-		private class NullAndNotNullListsData : TheoryData<List<Note>, List<Note>>
-		{
-			public NullAndNotNullListsData()
-			{
-				Add(null, new());
-				Add(new(), null);
-			}
-		}
+		//	// When
+		//	var equalsByValue = note1.EqualsByValue(note2);
 
-		[Theory]
-		[ClassData(typeof(NullAndNotNullListsData))]
-		public void ShouldRefuteListsEqualByValueByOneListNull(
-			List<Note> list1, List<Note> list2)
-		{
-			// When
-			var equalByValue = Note.ListsEqualByValues(list1, list2);
+		//	// Then
+		//	Assert.False(equalsByValue);
+		//}
 
-			// Then
-			Assert.False(equalByValue);
-		}
+		//#endregion
 
-		[Fact]
-		public void ShouldRefuteListsEqualByValueByCountMismatch()
-		{
-			// Given
-			var list1 = new List<Note>();
-			var list2 = new List<Note>() { new() };
+		//#region Lists equal by value
 
-			// When
-			var equalByValue = Note.ListsEqualByValues(list1, list2);
+		//private class NullAndNotNullListsData : TheoryData<List<Note>, List<Note>>
+		//{
+		//	public NullAndNotNullListsData()
+		//	{
+		//		Add(null, new());
+		//		Add(new(), null);
+		//	}
+		//}
 
-			// Then
-			Assert.False(equalByValue);
-		}
+		//[Theory]
+		//[ClassData(typeof(NullAndNotNullListsData))]
+		//public void ShouldRefuteListsEqualByValueByOneListNull(
+		//	List<Note> list1, List<Note> list2)
+		//{
+		//	// When
+		//	var equalByValue = Note.ListsEqualByValues(list1, list2);
 
-		[Fact]
-		public void ShouldConfirmListsEqualByValueByBothNull()
-		{
-			// Given
-			List<Note> list1 = null;
-			List<Note> list2 = null;
+		//	// Then
+		//	Assert.False(equalByValue);
+		//}
 
-			// When
-			var equalByValue = Note.ListsEqualByValues(list1, list2);
+		//[Fact]
+		//public void ShouldRefuteListsEqualByValueByCountMismatch()
+		//{
+		//	// Given
+		//	var list1 = new List<Note>();
+		//	var list2 = new List<Note>() { new() };
 
-			// Then
-			Assert.True(equalByValue);
-		}
+		//	// When
+		//	var equalByValue = Note.ListsEqualByValues(list1, list2);
 
-		private class NotNullEqualListsData : TheoryData<List<Note>, List<Note>>
-		{
-			public NotNullEqualListsData()
-			{
-				Add(new(), new());
+		//	// Then
+		//	Assert.False(equalByValue);
+		//}
 
-				Add(new() { null }, new() { null });
-				Add(new() { MockNote() }, new() { MockNote() });
-			}
-		}
+		//[Fact]
+		//public void ShouldConfirmListsEqualByValueByBothNull()
+		//{
+		//	// Given
+		//	List<Note> list1 = null;
+		//	List<Note> list2 = null;
 
-		[Theory]
-		[ClassData(typeof(NotNullEqualListsData))]
-		public void ShouldConfirmListsEqualNotNull(List<Note> list1, List<Note> list2)
-		{
-			// When
-			var equalByValue = Note.ListsEqualByValues(list1, list2);
+		//	// When
+		//	var equalByValue = Note.ListsEqualByValues(list1, list2);
 
-			// Then
-			Assert.True(equalByValue);
-		}
+		//	// Then
+		//	Assert.True(equalByValue);
+		//}
 
-		private class NotNullNotEqualListsData : TheoryData<List<Note>, List<Note>>
-		{
-			public NotNullNotEqualListsData()
-			{
-				Add(new() { null }, new() { MockNote() });
-				Add(new() { MockNote() }, new() { null });
+		//private class NotNullEqualListsData : TheoryData<List<Note>, List<Note>>
+		//{
+		//	public NotNullEqualListsData()
+		//	{
+		//		Add(new(), new());
 
-				var noteId1 = 5;
-				var noteId2 = 7;
+		//		Add(new() { null }, new() { null });
+		//		Add(new() { MockNote() }, new() { MockNote() });
+		//	}
+		//}
 
-				var note1 = MockNote();
-				var note2 = MockNote();
+		//[Theory]
+		//[ClassData(typeof(NotNullEqualListsData))]
+		//public void ShouldConfirmListsEqualNotNull(List<Note> list1, List<Note> list2)
+		//{
+		//	// When
+		//	var equalByValue = Note.ListsEqualByValues(list1, list2);
 
-				note1.NoteId = noteId1;
-				note2.NoteId = noteId2;
+		//	// Then
+		//	Assert.True(equalByValue);
+		//}
 
-				Add(new() { note1 }, new() { note2 });
-			}
-		}
+		//private class NotNullNotEqualListsData : TheoryData<List<Note>, List<Note>>
+		//{
+		//	public NotNullNotEqualListsData()
+		//	{
+		//		Add(new() { null }, new() { MockNote() });
+		//		Add(new() { MockNote() }, new() { null });
 
-		[Theory]
-		[ClassData(typeof(NotNullNotEqualListsData))]
-		public void ShouldRefuteListsEqualNotNull(List<Note> list1, List<Note> list2)
-		{
-			// When
-			var equalByValue = Note.ListsEqualByValues(list1, list2);
+		//		var noteId1 = 5;
+		//		var noteId2 = 7;
 
-			// Then
-			Assert.False(equalByValue);
-		}
+		//		var note1 = MockNote();
+		//		var note2 = MockNote();
 
-		#endregion
+		//		note1.NoteId = noteId1;
+		//		note2.NoteId = noteId2;
 
-		[Fact]
-		public void ShouldCopyAddress()
-		{
-			var note = MockNote();
+		//		Add(new() { note1 }, new() { note2 });
+		//	}
+		//}
 
-			var copy = note.Copy();
+		//[Theory]
+		//[ClassData(typeof(NotNullNotEqualListsData))]
+		//public void ShouldRefuteListsEqualNotNull(List<Note> list1, List<Note> list2)
+		//{
+		//	// When
+		//	var equalByValue = Note.ListsEqualByValues(list1, list2);
 
-			Assert.NotEqual(note, copy);
+		//	// Then
+		//	Assert.False(equalByValue);
+		//}
 
-			Assert.True(note.EqualsByValue(copy));
-		}
+		//#endregion
 
-		private static Note MockNote() => new()
-		{
-			NoteId = 5,
-			CustomerId = 8,
-			Content = "text",
-		};
+		//[Fact]
+		//public void ShouldCopyAddress()
+		//{
+		//	var note = MockNote();
+
+		//	var copy = note.Copy();
+
+		//	Assert.NotEqual(note, copy);
+
+		//	Assert.True(note.EqualsByValue(copy));
+		//}
+
+		//private static Note MockNote() => new()
+		//{
+		//	NoteId = 5,
+		//	CustomerId = 8,
+		//	Content = "text",
+		//};
 	}
 }

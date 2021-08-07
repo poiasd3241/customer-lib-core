@@ -5,7 +5,6 @@ using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
-	[Serializable]
 	public class AddressEntity : IAddressDetails<AddressType>, IEntity<AddressEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

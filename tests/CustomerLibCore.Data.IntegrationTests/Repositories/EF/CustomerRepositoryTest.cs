@@ -346,7 +346,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
-
 		public class CustomerRepositoryFixture
 		{
 			/// <summary>

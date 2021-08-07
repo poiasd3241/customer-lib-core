@@ -28,5 +28,11 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 
 		public static (string expectedMessage, string confirmMessage) UnknownTypeMsg() =>
 			("unknown type", ValidationErrorMessages.ENUM_TYPE_UNKNOWN);
+
+		public static (string expectedMessage, string confirmMessage) PhoneNumberE164Msg() =>
+			("must be in E.164 format", ValidationErrorMessages.PHONE_NUMBER_FORMAT_E164);
+
+		public static (string expectedMessage, string confirmMessage) EmailFormatMsg() =>
+			("invalid email format", ValidationErrorMessages.EMAIL_FORMAT);
 	}
 }

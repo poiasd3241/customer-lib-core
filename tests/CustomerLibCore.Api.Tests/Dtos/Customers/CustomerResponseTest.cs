@@ -1,8 +1,5 @@
-﻿using CustomerLibCore.Api.Dtos.Addresses;
-using CustomerLibCore.Api.Dtos.Addresses.Response;
-using CustomerLibCore.Api.Dtos.Customers;
+﻿using CustomerLibCore.Api.Dtos.Addresses.Response;
 using CustomerLibCore.Api.Dtos.Customers.Response;
-using CustomerLibCore.Api.Dtos.Notes;
 using CustomerLibCore.Api.Dtos.Notes.Response;
 using Xunit;
 
@@ -16,7 +13,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Customers
 			var customer = new CustomerResponse();
 
 			Assert.Null(customer.Self);
-
 			Assert.Null(customer.FirstName);
 			Assert.Null(customer.LastName);
 			Assert.Null(customer.PhoneNumber);
@@ -31,7 +27,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Customers
 		{
 			// Given
 			var self = "self1";
-
 			var firstName = "firstName1";
 			var lastName = "lastName1";
 			var phoneNumber = "phoneNumber1";
@@ -43,7 +38,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Customers
 			var customer = new CustomerResponse();
 
 			Assert.NotEqual(self, customer.Self);
-
 			Assert.NotEqual(firstName, customer.FirstName);
 			Assert.NotEqual(lastName, customer.LastName);
 			Assert.NotEqual(phoneNumber, customer.PhoneNumber);
@@ -54,7 +48,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Customers
 
 			// When
 			customer.Self = self;
-
 			customer.FirstName = firstName;
 			customer.LastName = lastName;
 			customer.PhoneNumber = phoneNumber;

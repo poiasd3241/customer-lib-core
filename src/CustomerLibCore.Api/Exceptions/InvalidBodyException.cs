@@ -7,6 +7,7 @@ using FluentValidation.Results;
 
 namespace CustomerLibCore.Api.Exceptions
 {
+	[Serializable]
 	public class InvalidBodyException : ValidationException
 	{
 		public string ValidationErrorsMessage { get; }

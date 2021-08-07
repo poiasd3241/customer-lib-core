@@ -3,7 +3,6 @@ using CustomerLibCore.Domain.Enums;
 
 namespace CustomerLibCore.Domain.Models
 {
-	[Serializable]
 	public class Address : IAddressDetails<AddressType>
 	{
 		public int AddressId { get; set; }

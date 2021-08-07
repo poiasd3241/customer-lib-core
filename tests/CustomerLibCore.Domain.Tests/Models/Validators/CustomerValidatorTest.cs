@@ -1,41 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CustomerLibCore.Api.Dtos.Customers.Request;
-using CustomerLibCore.Api.Dtos.Validators.Customers.Request;
 using CustomerLibCore.Domain.Localization;
+using CustomerLibCore.Domain.Models;
+using CustomerLibCore.Domain.Models.Validators;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
 
-namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
+namespace CustomerLibCore.Domain.Tests.Models.Validators
 {
-	public class CustomerUpdateRequestValidatorTest
+	public class CustomerValidatorTest
 	{
 		#region Private members
 
-		private static readonly CustomerUpdateRequestValidator _validator = new();
+		private static readonly CustomerValidator _validator = new();
 
 		private static void AssertSinglePropertyInvalid(string propertyName,
 		   string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			var customer = new CustomerUpdateRequestValidatorFixture().MockValid();
+			var customer = new CustomerValidatorFixture().MockValid();
 
 			switch (propertyName)
 			{
-				case nameof(CustomerUpdateRequest.FirstName):
+				case nameof(Customer.FirstName):
 					customer.FirstName = propertyValue;
 					break;
-				case nameof(CustomerUpdateRequest.LastName):
+				case nameof(Customer.LastName):
 					customer.LastName = propertyValue;
 					break;
-				case nameof(CustomerUpdateRequest.PhoneNumber):
+				case nameof(Customer.PhoneNumber):
 					customer.PhoneNumber = propertyValue;
 					break;
-				case nameof(CustomerUpdateRequest.Email):
+				case nameof(Customer.Email):
 					customer.Email = propertyValue;
-					break;
-				case nameof(CustomerUpdateRequest.TotalPurchasesAmount):
-					customer.TotalPurchasesAmount = propertyValue;
 					break;
 				default:
 					throw new ArgumentException("Unknown property name", propertyName);
@@ -56,7 +53,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadFirstName(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalid(nameof(CustomerUpdateRequest.FirstName),
+			AssertSinglePropertyInvalid(nameof(Customer.FirstName),
 				propertyValue, errorMessages);
 		}
 
@@ -69,7 +66,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadLastName(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalid(nameof(CustomerUpdateRequest.LastName),
+			AssertSinglePropertyInvalid(nameof(Customer.LastName),
 				propertyValue, errorMessages);
 		}
 
@@ -82,7 +79,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadPhoneNumber(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalid(nameof(CustomerUpdateRequest.PhoneNumber),
+			AssertSinglePropertyInvalid(nameof(Customer.PhoneNumber),
 				propertyValue, errorMessages);
 		}
 
@@ -95,20 +92,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateByBadEmail(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
-			AssertSinglePropertyInvalid(nameof(CustomerUpdateRequest.Email),
-				propertyValue, errorMessages);
-		}
-
-		#endregion
-
-		#region Invalid property - TotalPurchasesAmount
-
-		[Theory]
-		[ClassData(typeof(TestHelpers.ValidatorTestData.Customer.TotalPurchasesAmount))]
-		public void ShouldInvalidateByBadTotalPurchasesAmount(
-			string propertyValue, (string expected, string confirm) errorMessages)
-		{
-			AssertSinglePropertyInvalid(nameof(CustomerUpdateRequest.TotalPurchasesAmount),
+			AssertSinglePropertyInvalid(nameof(Customer.Email),
 				propertyValue, errorMessages);
 		}
 
@@ -120,7 +104,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldValidateFullObjectWithOptionalPropertiesNotNull()
 		{
 			// Given
-			var customer = new CustomerUpdateRequestValidatorFixture().MockValid();
+			var customer = new CustomerValidatorFixture().MockValid();
 
 			Assert.NotNull(customer.FirstName);
 			Assert.NotNull(customer.Email);
@@ -138,7 +122,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given
-			var customer = new CustomerUpdateRequestValidatorFixture().MockValidOptional();
+			var customer = new CustomerValidatorFixture().MockValidOptional();
 
 			Assert.Null(customer.FirstName);
 			Assert.Null(customer.Email);
@@ -156,7 +140,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		public void ShouldInvalidateFullObject()
 		{
 			// Given
-			var (customer, details) = new CustomerUpdateRequestValidatorFixture()
+			var (customer, details) = new CustomerValidatorFixture()
 				.MockInvalidWithDetails();
 
 			// When
@@ -171,40 +155,37 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		#endregion
 	}
 
-	public class CustomerUpdateRequestValidatorFixture : IValidatorFixture<CustomerUpdateRequest>
+	public class CustomerValidatorFixture : IValidatorFixture<Customer>
 	{
 		/// <returns>The mocked object with valid properties,
 		/// optional properties not <see langword="null"/>
-		/// (according to <see cref="CustomerUpdateRequestValidator"/>).</returns>
-		public CustomerUpdateRequest MockValid() => new()
+		/// (according to <see cref="CustomerValidator"/>).</returns>
+		public Customer MockValid() => new()
 		{
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
 			Email = "a@a.aa",
-			TotalPurchasesAmount = "666",
+			TotalPurchasesAmount = 123
 		};
 
 		/// <returns>The mocked object with invalid properties:
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.FirstName"/> = "";
+		/// <see cref="Customer.FirstName"/> = "";
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.LastName"/> = <see langword="null"/>;
+		/// <see cref="Customer.LastName"/> = <see langword="null"/>;
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.PhoneNumber"/> = "";
+		/// <see cref="Customer.PhoneNumber"/> = "";
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.Email"/> = "";
+		/// <see cref="Customer.Email"/> = "";
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.TotalPurchasesAmount"/> = "";
-		/// <br/>
-		/// (according to <see cref="CustomerUpdateRequestValidator"/>).</returns>
-		public CustomerUpdateRequest MockInvalid() => new()
+		/// (according to <see cref="CustomerValidator"/>).</returns>
+		public Customer MockInvalid() => new()
 		{
 			FirstName = "",
 			LastName = null,
 			PhoneNumber = "",
 			Email = "",
-			TotalPurchasesAmount = ""
 		};
 
 		/// <returns>
@@ -212,21 +193,19 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		/// <br/>
 		/// - details: values corresponding to all invalid properties of the object;
 		/// <br/>
-		/// (according to <see cref="CustomerUpdateRequestValidator"/>).</returns>
-		public (CustomerUpdateRequest invalidObject,
+		/// (according to <see cref="CustomerValidator"/>).</returns>
+		public (Customer invalidObject,
 			IEnumerable<(string propertyName, string errorMessage)> details)
 			MockInvalidWithDetails()
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(CustomerUpdateRequest.FirstName),
+				(nameof(Customer.FirstName),
 					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(CustomerUpdateRequest.LastName), ValidationErrorMessages.REQUIRED),
-				(nameof(CustomerUpdateRequest.PhoneNumber),
+				(nameof(Customer.LastName), ValidationErrorMessages.REQUIRED),
+				(nameof(Customer.PhoneNumber),
 					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
-				(nameof(CustomerUpdateRequest.Email),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
-				(nameof(CustomerUpdateRequest.TotalPurchasesAmount),
+				(nameof(Customer.Email),
 					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 			};
 
@@ -236,16 +215,16 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		/// <returns>The mocked object with valid properties, 
 		/// optional properties <see langword="null"/>:
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.FirstName"/>;
+		/// <see cref="Customer.FirstName"/>;
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.PhoneNumber"/>;
+		/// <see cref="Customer.PhoneNumber"/>;
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.Email"/>;
+		/// <see cref="Customer.Email"/>;
 		/// <br/>
-		/// <see cref="CustomerUpdateRequest.TotalPurchasesAmount"/>
+		/// <see cref="Customer.TotalPurchasesAmount"/>
 		/// <br/>
-		/// (according to <see cref="CustomerUpdateRequestValidator"/>).</returns>
-		public CustomerUpdateRequest MockValidOptional()
+		/// (according to <see cref="CustomerValidator"/>).</returns>
+		public Customer MockValidOptional()
 		{
 			var customer = MockValid();
 

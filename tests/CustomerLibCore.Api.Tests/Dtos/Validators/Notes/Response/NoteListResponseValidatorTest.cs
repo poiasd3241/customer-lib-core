@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
-using CustomerLibCore.Api.Dtos.Addresses;
 using System.Linq;
-using CustomerLibCore.Api.Dtos.Validators.Notes;
-using CustomerLibCore.Api.Tests.Dtos.Validators.Addresses;
+using CustomerLibCore.Api.Dtos.Notes.Response;
+using CustomerLibCore.Api.Dtos.Validators.Notes.Response;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
-using CustomerLibCore.Api.Dtos.Notes.Response;
-using CustomerLibCore.Api.Dtos.Validators.Notes.Response;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 {
@@ -61,7 +58,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		}
 
 		[Fact]
-		public void ShouldInvalidateByBadItemsChild()
+		public void ShouldInvalidateByBadItemsElement()
 		{
 			// Given
 			var propertyName = nameof(NoteListResponse.Items);
@@ -129,10 +126,10 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 
 		/// <returns>The mocked object with invalid properties:
 		/// <br/>
-		/// <see cref="NoteListResponse.Self"/> = <see langword="null"/>,
+		/// <see cref="NoteListResponse.Self"/> = <see langword="null"/>;
 		/// <br/>
 		/// <see cref="NoteListResponse.Items"/> = 
-		/// <see cref="NoteResponseValidatorFixture.MockInvalid"/>
+		/// <see cref="NoteResponseValidatorFixture.MockInvalid"/>;
 		/// <br/>
 		/// (according to <see cref="NoteListResponseValidator"/>).</returns>
 		public NoteListResponse MockInvalid()
@@ -147,9 +144,9 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		}
 
 		/// <returns>
-		/// invalidObject: <see cref="MockInvalid"/>
+		/// - invalidObject: <see cref="MockInvalid"/>;
 		/// <br/>
-		/// details: values corresponding to all invalid properties of the object
+		/// - details: values corresponding to all invalid properties of the object;
 		/// <br/>
 		/// (according to <see cref="NoteListResponseValidator"/>).</returns>
 		public (NoteListResponse invalidObject,

@@ -33,9 +33,20 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			public PhoneNumber()
 			{
 				this.AddEmptyOrContainWhitespaceData();
-				Add("123456",
-					("must be in E.164 format",
-					ValidationErrorMessages.PHONE_NUMBER_FORMAT_E164));
+				// No + prefix
+				Add("123456", PhoneNumberE164Msg());
+				// 0 after +
+				Add("+0123456", PhoneNumberE164Msg());
+				// > 15 digits
+				Add("+1234567890123456", PhoneNumberE164Msg());
+				// Bad characters
+				Add("+1 23456", PhoneNumberE164Msg());
+				Add("+1-23456", PhoneNumberE164Msg());
+				Add("+123-456-789", PhoneNumberE164Msg());
+				Add("+123.456.789", PhoneNumberE164Msg());
+				Add("+123(456)789", PhoneNumberE164Msg());
+				Add("+123 (456) 789", PhoneNumberE164Msg());
+				Add("+1 (234) 567-89-01", PhoneNumberE164Msg());
 			}
 		}
 
@@ -44,7 +55,15 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			public Email()
 			{
 				this.AddEmptyOrContainWhitespaceData();
-				Add("a@a@a", ("invalid email format", ValidationErrorMessages.EMAIL_FORMAT));
+				Add("@b.c", EmailFormatMsg());
+				Add("@.c", EmailFormatMsg());
+				Add("@c", EmailFormatMsg());
+				Add("@", EmailFormatMsg());
+				Add("a", EmailFormatMsg());
+				Add("a.", EmailFormatMsg());
+				Add("a.b", EmailFormatMsg());
+				Add(".b", EmailFormatMsg());
+				Add("a@b@c", EmailFormatMsg());
 			}
 		}
 

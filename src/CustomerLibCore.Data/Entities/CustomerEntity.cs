@@ -4,7 +4,6 @@ using CustomerLibCore.Domain.Models;
 
 namespace CustomerLibCore.Data.Entities
 {
-	[Serializable]
 	public class CustomerEntity : ICustomerDetails<decimal?>, IEntity<CustomerEntity>
 	{
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

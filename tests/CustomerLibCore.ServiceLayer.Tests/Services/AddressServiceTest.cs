@@ -396,7 +396,6 @@
 //			Assert.Throws<NotFoundException>(() =>
 //				service.DeleteForCustomer(addressId, customerId));
 
-
 //			// Then
 //			fixture.MockAddressRepository.Verify(r => r.ExistsForCustomer(addressId, customerId),
 //				Times.Once);

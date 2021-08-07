@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CustomerLibCore.Domain.Models
 {
-	[Serializable]
 	public class Customer : ICustomerDetails<decimal?>
 	{
 		public int CustomerId { get; set; }
