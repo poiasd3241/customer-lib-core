@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using CustomerLibCore.Domain.Models;
+﻿using CustomerLibCore.Domain.Models;
 using Xunit;
 
 namespace CustomerLibCore.Domain.Tests.Entities

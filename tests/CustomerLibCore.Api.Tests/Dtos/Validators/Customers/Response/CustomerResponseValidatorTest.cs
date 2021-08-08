@@ -135,7 +135,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		#region Invalid property - Addresses
 
 		[Fact]
-		public void ShouldInvalidateByBadAddressesFullInvalid()
+		public void ShouldInvalidateByBadAddresses()
 		{
 			// Given
 			var propertyName = nameof(CustomerResponse.Addresses);
@@ -147,11 +147,9 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			customer.Addresses = addressListResponse;
 
 			// When
-			var errors = _validator.Validate(customer).Errors;
+			var errors = _validator.ValidateProperty(customer, propertyName);
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(propertyName, details);
 		}
 
@@ -160,7 +158,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		#region Invalid property - Notes
 
 		[Fact]
-		public void ShouldInvalidateByBadNotesFullInvalid()
+		public void ShouldInvalidateByBadNotes()
 		{
 			// Given
 			var propertyName = nameof(CustomerResponse.Notes);
@@ -172,11 +170,9 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			customer.Notes = noteListResponse;
 
 			// When
-			var errors = _validator.Validate(customer).Errors;
+			var errors = _validator.ValidateProperty(customer, propertyName);
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(propertyName, details);
 		}
 
@@ -231,8 +227,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customer).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
@@ -250,7 +244,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = "666",
 			Addresses = new AddressListResponseValidatorFixture().MockValid(),
 			Notes = new NoteListResponseValidatorFixture().MockValid()

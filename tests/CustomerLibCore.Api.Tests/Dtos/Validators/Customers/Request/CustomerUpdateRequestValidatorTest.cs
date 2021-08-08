@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Api.Dtos.Customers.Request;
 using CustomerLibCore.Api.Dtos.Validators.Customers.Request;
 using CustomerLibCore.Domain.Localization;
@@ -163,8 +162,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customer).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
@@ -181,7 +178,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = "666",
 		};
 

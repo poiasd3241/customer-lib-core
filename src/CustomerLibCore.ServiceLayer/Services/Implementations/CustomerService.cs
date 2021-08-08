@@ -4,7 +4,6 @@ using System.Linq;
 using System.Transactions;
 using AutoMapper;
 using CustomerLibCore.Data.Entities;
-using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Data.Repositories;
 using CustomerLibCore.Domain.ArgumentCheckHelpers;
 using CustomerLibCore.Domain.Exceptions;
@@ -153,7 +152,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 		{
 			CheckNumber.ValidId(customer.CustomerId, nameof(customer.CustomerId));
 
-			_validator.ValidateWithoutAddressesAndNotes(customer)
+			_validator.ValidateDetails(customer)
 				.WithInternalValidationException();
 
 			using TransactionScope scope = new();

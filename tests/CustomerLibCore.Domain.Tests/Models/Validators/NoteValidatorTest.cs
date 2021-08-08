@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.Domain.Models;
 using CustomerLibCore.Domain.Models.Validators;
@@ -61,8 +60,6 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 			var errors = _validator.Validate(note).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

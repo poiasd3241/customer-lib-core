@@ -1,6 +1,4 @@
-﻿using CustomerLibCore.Domain.Models;
-
-namespace CustomerLibCore.Api.Dtos.Notes.Request
+﻿namespace CustomerLibCore.Api.Dtos.Notes.Request
 {
 	public class NoteRequest : IDtoNoteDetails
 	{

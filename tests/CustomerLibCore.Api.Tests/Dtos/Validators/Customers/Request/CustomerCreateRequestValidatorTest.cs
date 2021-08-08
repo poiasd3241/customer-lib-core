@@ -123,8 +123,8 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 
 		[Theory]
 		[ClassData(typeof(TestHelpers.ValidatorTestData.Common
-			.CollectionRequiredNotEmpty<AddressRequest>))]
-		public void ShouldInvalidateByBadAddressesNullOrEmpty(
+			.CollectionNotEmpty<AddressRequest>))]
+		public void ShouldInvalidateByAddressesNullOrEmpty(
 			List<AddressRequest> addresses, (string expected, string confirm) errorMessages)
 		{
 			// Given
@@ -156,8 +156,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customer).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages($"{propertyName}[0]", details);
 		}
 
@@ -167,7 +165,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 
 		[Theory]
 		[ClassData(typeof(TestHelpers.ValidatorTestData.Common
-			.CollectionRequiredNotEmpty<NoteRequest>))]
+			.CollectionNotEmpty<NoteRequest>))]
 		public void ShouldInvalidateByBadNotesNullOrEmpty(
 			List<NoteRequest> notes, (string expected, string confirm) errorMessages)
 		{
@@ -200,8 +198,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customer).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages($"{propertyName}[0]", details);
 		}
 
@@ -256,8 +252,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customer).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
@@ -274,7 +268,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = "666",
 			Addresses = new[] { new AddressRequestValidatorFixture().MockValid() },
 			Notes = new[] { new NoteRequestValidatorFixture().MockValid() }
@@ -314,6 +308,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 				TotalPurchasesAmount = "",
 				Addresses = new[] { addressRequest },
 				Notes = new[] { noteRequest }
+
 			};
 		}
 

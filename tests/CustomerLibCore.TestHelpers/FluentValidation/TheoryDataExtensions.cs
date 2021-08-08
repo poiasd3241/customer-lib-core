@@ -1,10 +1,8 @@
 ﻿using System;
-using CustomerLibCore.Domain.Enums;
-using Xunit;
-using System.Linq;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using System.Linq;
 using CustomerLibCore.TestHelpers.ValidatorTestData;
+using Xunit;
 
 namespace CustomerLibCore.TestHelpers.FluentValidation
 {

@@ -1,7 +1,11 @@
 using System;
 using System.Linq;
 using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Data.Repositories.EF;
+using CustomerLibCore.Data.Tests.Entities.Validators;
+using CustomerLibCore.Domain.Exceptions;
+using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
@@ -48,64 +52,110 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Create 
 
 		[Fact]
-		public void ShouldCreateCustomer()
+		public void ShouldThrowOnCreateWhenProvidedInvalidObject()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
-			var customer = CustomerRepositoryFixture.MockCustomer();
+
+			var (customer, details) = new CustomerEntityValidatorFixture().MockInvalidWithDetails();
 
 			// When
-			var createdId = repo.Create(customer);
+			var errors = Assert.Throws<InternalValidationException>(() =>
+				repo.Create(customer)).Errors;
 
 			// Then
-			Assert.Equal(1, createdId);
+			errors.AssertContainPropertyNamesAndErrorMessages(details);
+		}
+
+		public class MockCustomerData : TheoryData<CustomerEntity>
+		{
+			public MockCustomerData()
+			{
+				Add(CustomerRepositoryFixture.MockCustomer());
+				Add(CustomerRepositoryFixture.MockOptionalCustomer());
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(MockCustomerData))]
+		public void ShouldCreateCustomerIncludingOptionalProperties(CustomerEntity customer)
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+
+			// When
+			var createdId1 = repo.Create(customer);
+			customer.CustomerId = 0;
+			var createdId2 = repo.Create(customer);
+
+			// Then
+			Assert.Equal(1, createdId1);
+			Assert.Equal(2, createdId2);
 		}
 
 		#endregion
 
 		#region Read by Id
 
-		[Fact]
-		public void ShouldReadCustomerNotFound()
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldReadCustomerNullWhenEmptyRepo(int customerId)
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 
 			// When
-			var readCustomer = repo.Read(1);
+			var readCustomer = repo.Read(customerId);
 
 			// Then
 			Assert.Null(readCustomer);
 		}
 
-		public class CreateMockCustomerData : TheoryData<Func<CustomerEntity>>
+		[Theory]
+		[InlineData(1, false)]
+		[InlineData(2, false)]
+		[InlineData(3, true)]
+		[InlineData(4, true)]
+		public void ShouldReadCustomerNullWhenNotFound(int customerId, bool isNull)
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
+
+			// When
+			var readCustomer = repo.Read(customerId);
+
+			// Then
+			Assert.Equal(readCustomer is null, isNull);
+		}
+
+		public class CreateMockCustomerData : TheoryData<Action, CustomerEntity>
 		{
 			public CreateMockCustomerData()
 			{
-				Add(() => CustomerRepositoryFixture.CreateMockCustomer());
-				Add(() => CustomerRepositoryFixture.CreateMockOptionalCustomer());
+				Add(() => CustomerRepositoryFixture.CreateMockCustomer(),
+					CustomerRepositoryFixture.MockCustomer());
+				Add(() => CustomerRepositoryFixture.CreateMockOptionalCustomer(),
+					CustomerRepositoryFixture.MockOptionalCustomer());
 			}
 		}
 
 		[Theory]
 		[ClassData(typeof(CreateMockCustomerData))]
 		public void ShouldReadCustomerIncludingNullOptionalFields(
-			Func<CustomerEntity> createMockCustomer)
+			Action createCustomer, CustomerEntity customer)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			var customer = createMockCustomer();
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			createCustomer();
 
 			// When
 			var readCustomer = repo.Read(1);
 
 			// Then
 			Assert.Equal(1, readCustomer.CustomerId);
-			Assert.Equal(customer.FirstName, readCustomer.FirstName);
-			Assert.Equal(customer.LastName, readCustomer.LastName);
-			Assert.Equal(customer.PhoneNumber, readCustomer.PhoneNumber);
-			Assert.Equal(customer.Email, readCustomer.Email);
-			Assert.Equal(customer.TotalPurchasesAmount, readCustomer.TotalPurchasesAmount);
+			Assert.True(readCustomer.EqualsByValueExcludingId(customer));
 		}
 
 		#endregion
@@ -113,35 +163,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Read many
 
 		[Fact]
-		public void ShouldReadManyCustomers()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			var customer = CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
-
-			// When
-			var readCustomers = repo.ReadMany();
-
-			// Then
-			Assert.Equal(2, readCustomers.Count);
-
-			var a1 = repo.ReadMany();
-			var a2 = repo.ReadMany();
-			var a3 = repo.ReadMany();
-			var a4 = repo.ReadMany();
-
-			foreach (var readCustomer in readCustomers)
-			{
-				Assert.Equal(customer.FirstName, readCustomer.FirstName);
-				Assert.Equal(customer.LastName, readCustomer.LastName);
-				Assert.Equal(customer.PhoneNumber, readCustomer.PhoneNumber);
-				Assert.Equal(customer.Email, readCustomer.Email);
-				Assert.Equal(customer.TotalPurchasesAmount, readCustomer.TotalPurchasesAmount);
-			}
-		}
-
-		[Fact]
-		public void ShouldReadManyCustomersNotFound()
+		public void ShouldReadManyCustomersEmptyWhenEmptyRepo()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
@@ -153,26 +175,35 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Empty(readCustomers);
 		}
 
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldReadManyCustomersIncludingSingle(int amount)
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			var customer = CustomerRepositoryFixture.MockCustomer();
+
+			// When
+			var readCustomers = repo.ReadMany();
+
+			// Then
+			Assert.Equal(amount, readCustomers.Count);
+
+			foreach (var readCustomer in readCustomers)
+			{
+				Assert.True(readCustomer.EqualsByValueExcludingId(customer));
+			}
+		}
+
 		#endregion
 
 		#region Get count
 
 		[Fact]
-		public void ShouldGetTotalCustomerCount()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
-
-			// When
-			var count = repo.GetCount();
-
-			// Then
-			Assert.Equal(2, count);
-		}
-
-		[Fact]
-		public void ShouldGetTotalCustomerCountWhenEmpty()
+		public void ShouldGetTotalCustomersCountWhenEmpty()
 		{
 			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
@@ -184,53 +215,110 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			Assert.Equal(0, count);
 		}
 
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldGetTotalCustomersCount(int amount)
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			// When
+			var count = repo.GetCount();
+
+			// Then
+			Assert.Equal(amount, count);
+		}
+
+
 		#endregion
 
 		#region Read page
 
 		[Fact]
-		public void ShouldReadPageOfCustomersFromSinglePage()
+		public void ShouldReadPageOfCustomersEmptyWhenEmptyRepo()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer(amount: 5);
+			var page = 1;
+			var pageSize = 3;
 
-			// When
-			var readCustomers = repo.ReadPage(1, 10);
-
-			// Then
-			Assert.Equal(5, readCustomers.Count);
-		}
-
-		[Fact]
-		public void ShouldReadPageOfCustomersFromMultiplePages()
-		{
-			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer(amount: 5);
-
-			// When
-			var readCustomers = repo.ReadPage(2, 3);
-
-			// Then
-			Assert.Equal(2, readCustomers.Count);
-			var readCustomersList = readCustomers.ToArray();
-
-			Assert.Equal(4, readCustomersList[0].CustomerId);
-			Assert.Equal(5, readCustomersList[1].CustomerId);
-		}
-
-		[Fact]
-		public void ShouldReadPageOfCustomersNotFoundEmptyCollection()
-		{
-			// Given
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 
 			// When
-			var readCustomers = repo.ReadPage(2, 3);
+			var pageCustomers = repo.ReadPage(page, pageSize);
 
 			// Then
-			Assert.Empty(readCustomers);
+			Assert.Equal(0, repo.GetCount());
+			Assert.Empty(pageCustomers);
+		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(3)]
+		public void ShouldReadPageOfCustomersEmptyWhenNotFound(int amount)
+		{
+			// Given
+			var page = 2;
+			var pageSize = 3;
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			// When
+			var pageCustomers = repo.ReadPage(page, pageSize);
+
+			// Then
+			Assert.Empty(pageCustomers);
+		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		[InlineData(3)]
+		public void ShouldReadPageOfCustomersFromSinglePage(int amount)
+		{
+			// Given
+			var page = 1;
+			var pageSize = 3;
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			// When
+			var pageCustomers = repo.ReadPage(page, pageSize);
+
+			// Then
+			Assert.Equal(amount, repo.GetCount());
+			Assert.Equal(amount, pageCustomers.Count);
+		}
+
+		[Theory]
+		[InlineData(4, 1, new[] { 4 })]
+		[InlineData(5, 2, new[] { 4, 5 })]
+		[InlineData(6, 3, new[] { 4, 5, 6 })]
+		[InlineData(7, 3, new[] { 4, 5, 6 })]
+		public void ShouldReadPageOfCustomersFromMultiplePages(
+			int amount, int secondPageItemsAmount, int[] secondPageItemsIds)
+		{
+			// Given
+			var page = 2;
+			var pageSize = 3;
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			// When
+			var pageCustomers = repo.ReadPage(page, pageSize);
+
+			// Then
+			Assert.Equal(amount, repo.GetCount());
+			Assert.Equal(secondPageItemsAmount, pageCustomers.Count);
+
+			var actualIds = pageCustomers.Select(x => x.CustomerId);
+
+			Assert.Equal(secondPageItemsIds, actualIds);
 		}
 
 		#endregion
@@ -238,14 +326,70 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Update
 
 		[Fact]
+		public void ShouldThrowOnUpdateWhenProvidedInvalidObject()
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+
+			var (customer, details) = new CustomerEntityValidatorFixture().MockInvalidWithDetails();
+
+			// When
+			var errors = Assert.Throws<InternalValidationException>(() =>
+				repo.Update(customer)).Errors;
+
+			// Then
+			errors.AssertContainPropertyNamesAndErrorMessages(details);
+		}
+
+		[Fact]
+		public void ShouldNotUpdateWhenNotFound()
+		{
+			// Given
+			var customerId = 1;
+			var nonExistingcustomerId = 2;
+			var newFirstName = "NewFirstName";
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer();
+
+			var createdCustomer = repo.Read(customerId);
+			Assert.NotEqual(newFirstName, createdCustomer.FirstName);
+
+			Assert.Null(repo.Read(nonExistingcustomerId));
+
+			var nonExistingCustomer = CustomerRepositoryFixture.MockCustomer();
+			nonExistingCustomer.CustomerId = nonExistingcustomerId;
+			nonExistingCustomer.FirstName = newFirstName;
+
+			// When
+			repo.Update(nonExistingCustomer);
+
+			// Then
+			Assert.Equal(1, repo.GetCount());
+
+			var untouchedCustomer = repo.Read(customerId);
+			Assert.NotEqual(newFirstName, untouchedCustomer.FirstName);
+			Assert.True(untouchedCustomer.EqualsByValue(createdCustomer));
+		}
+
+		[Fact]
 		public void ShouldUpdateCustomer()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			var customer = CustomerRepositoryFixture.CreateMockCustomer();
+			var customerId = 1;
+			var newFirstName = "NewFirstName";
 
-			var createdCustomer = repo.Read(1);
-			createdCustomer.FirstName = "New FN";
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer();
+
+			var customer = CustomerRepositoryFixture.MockCustomer();
+			customer.CustomerId = customerId;
+
+			var createdCustomer = repo.Read(customerId);
+			Assert.NotEqual(newFirstName, customer.FirstName);
+			Assert.True(createdCustomer.EqualsByValue(customer));
+
+			createdCustomer.FirstName = newFirstName;
 
 			// When
 			repo.Update(createdCustomer);
@@ -253,7 +397,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			// Then
 			var updatedCustomer = repo.Read(1);
 
-			Assert.Equal("New FN", updatedCustomer.FirstName);
+			Assert.Equal(newFirstName, updatedCustomer.FirstName);
 			Assert.Equal(customer.LastName, updatedCustomer.LastName);
 			Assert.Equal(customer.PhoneNumber, updatedCustomer.PhoneNumber);
 			Assert.Equal(customer.Email, updatedCustomer.Email);
@@ -265,39 +409,83 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		#region Delete
 
 		[Fact]
-		public void ShouldDeleteCustomer()
+		public void ShouldNotDeleteWhenNotFound()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
+			var customerId = 2;
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
 			CustomerRepositoryFixture.CreateMockCustomer();
 
-			var createdCustomer = repo.Read(1);
-			Assert.NotNull(createdCustomer);
+			Assert.Equal(1, repo.GetCount());
 
 			// When
-			repo.Delete(1);
+			repo.Delete(customerId);
 
 			// Then
-			var deletedCustomer = repo.Read(1);
-			Assert.Null(deletedCustomer);
+			Assert.Equal(1, repo.GetCount());
 		}
 
 		[Fact]
-		public void ShouldDeleteAllCustomers()
+		public void ShouldDeleteSingleCustomer()
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer(amount: 2);
+			var customerId = 1;
 
-			var createdCustomers = repo.ReadMany();
-			Assert.Equal(2, createdCustomers.Count);
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer();
+
+			Assert.Equal(1, repo.GetCount());
+
+			// When
+			repo.Delete(customerId);
+
+			// Then
+			Assert.Equal(0, repo.GetCount());
+		}
+
+		[Fact]
+		public void ShouldDeleteCustomerWhenManyExist()
+		{
+			// Given
+			var deletedCustomerId = 1;
+			var untouchedCustomerId = 2;
+			var amount = 2;
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			Assert.Equal(2, repo.GetCount());
+
+			// When
+			repo.Delete(deletedCustomerId);
+
+			// Then
+			Assert.NotNull(repo.Read(untouchedCustomerId));
+			Assert.Equal(1, repo.GetCount());
+		}
+
+		#endregion
+
+		#region Delete all
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldDeleteAllCustomers(int amount)
+		{
+			// Given
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			Assert.Equal(amount, repo.GetCount());
 
 			// When
 			repo.DeleteAll();
 
 			// Then
-			var deletedCustomers = repo.ReadMany();
-			Assert.Empty(deletedCustomers);
+			Assert.Equal(0, repo.GetCount());
 		}
 
 		#endregion
@@ -318,8 +506,13 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldCheckForEmailTaken(string email, bool isTakenExpected)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer("taken@asd.com");
+			var takenEmail = "taken@asd.com";
+			var anotherCustomerEmail = "second@asd.com";
+			Assert.NotEqual(anotherCustomerEmail, email);
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(takenEmail);
+			CustomerRepositoryFixture.CreateMockCustomer(anotherCustomerEmail);
 
 			// When
 			var isTaken = repo.IsEmailTaken(email);
@@ -333,15 +526,20 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public void ShouldCheckForEmailTakenWithCustomerId(string email, bool isTakenExpected)
 		{
 			// Given
-			var repo = new CustomerRepository(DbContextHelper.Context);
-			CustomerRepositoryFixture.CreateMockCustomer("taken@asd.com");
+			var takenEmail = "taken@asd.com";
+			var anotherCustomerEmail = "second@asd.com";
+			Assert.NotEqual(anotherCustomerEmail, email);
+
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(anotherCustomerEmail);
+			CustomerRepositoryFixture.CreateMockCustomer(takenEmail);
 
 			// When
 			var (isTaken, takenById) = repo.IsEmailTakenWithCustomerId(email);
 
 			// Then
 			Assert.Equal(isTakenExpected, isTaken);
-			Assert.Equal(isTaken ? 1 : 0, takenById);
+			Assert.Equal(isTaken ? 2 : 0, takenById);
 		}
 
 		#endregion
@@ -349,9 +547,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 		public class CustomerRepositoryFixture
 		{
 			/// <summary>
-			/// Creates the empty repository.
+			/// Clears the database, then creates the customer repository.
 			/// </summary>
-			/// <returns>The empty customer repository.</returns>
+			/// <returns>The customer repository.</returns>
 			public static CustomerRepository CreateEmptyRepository()
 			{
 				DatabaseHelper.Clear();
@@ -359,14 +557,13 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			}
 
 			/// <summary>
-			/// Creates the specified amount of mocked customers 
-			/// with repo-relevant valid properties, optional properties not <see langword="null"/>.
+			/// Creates the specified amount of mocked customers with valid properties, 
+			/// optional properties not <see langword="null"/>.
 			/// </summary>
+			/// <param name="email">The customer email.</param>
 			/// <param name="amount">The amount of customers to create.</param>
-			/// <returns>The mocked customer with repo-relevant valid properties, 
-			/// optional properties not <see langword="null"/>.</returns>
-			public static CustomerEntity CreateMockCustomer(
-				string email = "john@doe.com", int amount = 1)
+			public static void CreateMockCustomer(
+				string email = "a@b.c", int amount = 1)
 			{
 				var repo = new CustomerRepository(DbContextHelper.Context);
 
@@ -374,51 +571,55 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 				for (int i = 0; i < amount; i++)
 				{
+					customer.CustomerId = 0;
 					repo.Create(customer);
-					//repo.Create(MockCustomer(email));
 				}
-
-				//return MockCustomer(email);
-				return customer;
 			}
 
 			/// <summary>
-			/// Creates the mocked customer with  repo-relevant valid properties, 
+			/// Creates the mocked customer with valid properties, 
 			/// optional properties <see langword="null"/>.
 			/// </summary>
-			/// <returns>The mocked customer with repo-relevant valid properties,
-			/// optional properties <see langword="null"/>.</returns>
-			public static CustomerEntity CreateMockOptionalCustomer()
-			{
-				var repo = new CustomerRepository(DbContextHelper.Context);
+			public static void CreateMockOptionalCustomer() =>
+				new CustomerRepository(DbContextHelper.Context)
+					.Create(MockOptionalCustomer());
 
-				var customer = MockOptionalCustomer();
-				repo.Create(customer);
+			/// <returns>The mocked customer with valid properties,
+			/// optional properties not <see langword="null"/>.</returns>
+			public static CustomerEntity MockCustomer(string email = "a@b.c")
+			{
+				var customer = new CustomerEntityValidatorFixture().MockValid();
+				customer.Email = email;
 
 				return customer;
 			}
 
 			/// <returns>The mocked customer with valid properties,
-			/// optional properties not <see langword="null"/>.</returns>
-			public static CustomerEntity MockCustomer(string email = "john@doe.com") => new()
-			{
-				FirstName = "John",
-				LastName = "Doe",
-				PhoneNumber = "+12345",
-				Email = email,
-				TotalPurchasesAmount = 123,
-			};
-
-			/// <returns>The mocked customer with valid properties,
 			/// optional properties <see langword="null"/>.</returns>
-			public static CustomerEntity MockOptionalCustomer() => new()
-			{
-				FirstName = null,
-				LastName = "Doe",
-				PhoneNumber = null,
-				Email = null,
-				TotalPurchasesAmount = null,
-			};
+			public static CustomerEntity MockOptionalCustomer() =>
+				new CustomerEntityValidatorFixture().MockValidOptional();
+
+			///// <returns>The mocked customer with valid properties,
+			///// optional properties not <see langword="null"/>.</returns>
+			//public static CustomerEntity MockCustomer(string email = "a@b.c") => new()
+			//{
+			//	FirstName = "FirstName1",
+			//	LastName = "LastName1",
+			//	PhoneNumber = "+12345",
+			//	Email = email,
+			//	TotalPurchasesAmount = 123
+			//};
+
+			///// <returns>The mocked customer with valid properties,
+			///// optional properties <see langword="null"/>.</returns>
+			//public static CustomerEntity MockOptionalCustomer() => new()
+			//{
+			//	FirstName = null,
+			//	LastName = "LastName1",
+			//	PhoneNumber = null,
+			//	Email = null,
+			//	TotalPurchasesAmount = null
+			//};
 		}
 
 		public class CustomerRepositoryFixtureTest
@@ -435,7 +636,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				Assert.NotNull(customer.TotalPurchasesAmount);
 
 				// When
-				var result = new .Validate(customer);
+				var result = new CustomerEntityValidator().Validate(customer);
 
 				// Then
 				Assert.True(result.IsValid);
@@ -445,7 +646,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			public void ShouldValidateCustomerWithOptionalPropertiesNull()
 			{
 				// Given
-				var customer = new CustomerCreateRequestValidatorFixture().MockValidOptional();
+				var customer = CustomerRepositoryFixture.MockOptionalCustomer();
 
 				Assert.Null(customer.FirstName);
 				Assert.Null(customer.Email);
@@ -453,27 +654,10 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				Assert.Null(customer.TotalPurchasesAmount);
 
 				// When
-				var result = _validator.Validate(customer);
+				var result = new CustomerEntityValidator().Validate(customer);
 
 				// Then
 				Assert.True(result.IsValid);
-			}
-			[Fact]
-			public void ShouldValidateCustomerWithOptionalPropertiesNotNull()
-			{
-				// Given
-				var repo = new CustomerRepository(DbContextHelper.Context);
-				CustomerRepositoryFixture.CreateMockCustomer();
-
-				var createdCustomer = repo.Read(1);
-				Assert.NotNull(createdCustomer);
-
-				// When
-				repo.Delete(1);
-
-				// Then
-				var deletedCustomer = repo.Read(1);
-				Assert.Null(deletedCustomer);
 			}
 		}
 	}

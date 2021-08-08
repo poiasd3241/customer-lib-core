@@ -1,7 +1,7 @@
 ﻿using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;
+using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 
 namespace CustomerLibCore.TestHelpers.ValidatorTestData
 {
@@ -40,13 +40,12 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				// > 15 digits
 				Add("+1234567890123456", PhoneNumberE164Msg());
 				// Bad characters
-				Add("+1 23456", PhoneNumberE164Msg());
 				Add("+1-23456", PhoneNumberE164Msg());
 				Add("+123-456-789", PhoneNumberE164Msg());
 				Add("+123.456.789", PhoneNumberE164Msg());
 				Add("+123(456)789", PhoneNumberE164Msg());
-				Add("+123 (456) 789", PhoneNumberE164Msg());
-				Add("+1 (234) 567-89-01", PhoneNumberE164Msg());
+				Add("+1-234-567-89-01", PhoneNumberE164Msg());
+				Add("+1(234)567-89-01", PhoneNumberE164Msg());
 			}
 		}
 

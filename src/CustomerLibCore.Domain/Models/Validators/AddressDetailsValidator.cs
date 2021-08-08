@@ -14,7 +14,8 @@ namespace CustomerLibCore.Domain.Models.Validators
 	{
 		public AddressDetailsValidator()
 		{
-			if (typeof(TType) != typeof(AddressType) || typeof(TType) != typeof(string))
+			if (typeof(TType) != typeof(AddressType) &&
+				typeof(TType) != typeof(string))
 			{
 				throw new Exception(
 					$"The {nameof(TType)} must be either {nameof(AddressType)} or a string.");

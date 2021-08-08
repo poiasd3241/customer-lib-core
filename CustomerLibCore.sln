@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerLibCore.Api", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerLibCore.Api.Tests", "tests\CustomerLibCore.Api.Tests\CustomerLibCore.Api.Tests.csproj", "{56B8DAEA-B7C2-4064-96B4-485909743559}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerLibCore.Data.Tests", "tests\CustomerLibCore.Data.Tests\CustomerLibCore.Data.Tests.csproj", "{7CAFB53D-55A7-4993-9831-6AA18DB754BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{56B8DAEA-B7C2-4064-96B4-485909743559}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56B8DAEA-B7C2-4064-96B4-485909743559}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56B8DAEA-B7C2-4064-96B4-485909743559}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CAFB53D-55A7-4993-9831-6AA18DB754BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CAFB53D-55A7-4993-9831-6AA18DB754BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CAFB53D-55A7-4993-9831-6AA18DB754BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CAFB53D-55A7-4993-9831-6AA18DB754BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -81,6 +87,7 @@ Global
 		{5FBE6E97-1B72-4FD9-9279-F6064D3D0240} = {4429BC65-50CA-4A27-8D88-999A46C48002}
 		{72F331DF-43AC-4913-8B44-72EDD2C8047A} = {12E8C335-F171-403C-8C64-C909522AEA59}
 		{56B8DAEA-B7C2-4064-96B4-485909743559} = {4429BC65-50CA-4A27-8D88-999A46C48002}
+		{7CAFB53D-55A7-4993-9831-6AA18DB754BB} = {4429BC65-50CA-4A27-8D88-999A46C48002}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {71FCF7DC-B928-4569-8FC7-AACDD3D371DC}

@@ -1,5 +1,4 @@
-﻿using CustomerLibCore.Api.Dtos.Notes;
-using CustomerLibCore.Api.Dtos.Notes.Response;
+﻿using CustomerLibCore.Api.Dtos.Notes.Response;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Notes

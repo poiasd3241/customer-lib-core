@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CustomerLibCore.Api.Controllers;
@@ -10,9 +9,8 @@ using CustomerLibCore.Api.Dtos.Customers.Request;
 using CustomerLibCore.Api.Dtos.Customers.Response;
 using CustomerLibCore.Api.Dtos.Notes.Request;
 using CustomerLibCore.Api.Dtos.Notes.Response;
-using CustomerLibCore.Domain.Models;
 using CustomerLibCore.Domain.Enums;
-using Microsoft.Extensions.DependencyInjection;
+using CustomerLibCore.Domain.Models;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.DTOs
@@ -625,7 +623,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = 666,
 			Addresses = new[] { MockAddress() },
 			Notes = new[] { MockNote() }
@@ -644,7 +642,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = "666",
 			Addresses = new[] { MockAddressRequest() },
 			Notes = new[] { MockNoteRequest() },
@@ -655,7 +653,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			FirstName = "FirstName1",
 			LastName = "LastName1",
 			PhoneNumber = "+123456789",
-			Email = "a@a.aa",
+			Email = "a@b.c",
 			TotalPurchasesAmount = "666"
 		};
 

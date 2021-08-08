@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CustomerLibCore.Domain.Models
+﻿namespace CustomerLibCore.Domain.Models
 {
 	public class Note : INoteDetails
 	{

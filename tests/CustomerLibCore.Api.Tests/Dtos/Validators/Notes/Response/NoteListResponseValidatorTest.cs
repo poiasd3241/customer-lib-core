@@ -73,8 +73,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 			var errors = _validator.Validate(notes).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages($"{propertyName}[0]", details);
 		}
 
@@ -106,8 +104,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 			var errors = _validator.Validate(notes).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using CustomerLibCore.Api.Dtos.Addresses.Request;
-using CustomerLibCore.Api.Dtos.Customers;
 using CustomerLibCore.Api.Dtos.Customers.Request;
 using CustomerLibCore.Api.Dtos.Notes.Request;
 using Xunit;

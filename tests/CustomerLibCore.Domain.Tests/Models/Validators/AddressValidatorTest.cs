@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.Domain.Models;
@@ -85,9 +84,9 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		#region Invalid property - Type
 
 		[Theory]
-		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.Type))]
+		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.TypeEnum))]
 		public void ShouldInvalidateByBadType(
-			string propertyValue, (string expected, string confirm) errorMessages)
+			AddressType propertyValue, (string expected, string confirm) errorMessages)
 		{
 			AssertSinglePropertyInvalid(nameof(Address.Type),
 				propertyValue, errorMessages);
@@ -150,7 +149,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		#region Full object
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNotNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNotNull()
 		{
 			// Given
 			var address = new AddressValidatorFixture().MockValid();
@@ -165,7 +164,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		}
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given
 			var address = new AddressValidatorFixture().MockValidOptional();
@@ -190,8 +189,6 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 			var errors = _validator.Validate(address).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

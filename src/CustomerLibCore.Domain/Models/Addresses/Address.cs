@@ -1,5 +1,4 @@
-﻿using System;
-using CustomerLibCore.Domain.Enums;
+﻿using CustomerLibCore.Domain.Enums;
 
 namespace CustomerLibCore.Domain.Models
 {

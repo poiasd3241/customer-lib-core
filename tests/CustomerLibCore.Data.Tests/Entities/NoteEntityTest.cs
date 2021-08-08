@@ -1,7 +1,7 @@
 ﻿using CustomerLibCore.Data.Entities;
 using Xunit;
 
-namespace CustomerLibCore.Data.IntegrationTests.Entities
+namespace CustomerLibCore.Data.Tests.Entities
 {
 	public class NoteEntityTest
 	{

@@ -1,6 +1,4 @@
-﻿using CustomerLibCore.Domain.Models;
-
-namespace CustomerLibCore.Api.Dtos.Notes.Response
+﻿namespace CustomerLibCore.Api.Dtos.Notes.Response
 {
 	public class NoteResponse : IResponse, IDtoNoteDetails
 	{

@@ -1,7 +1,7 @@
-﻿using CustomerLibCore.Api.Exceptions;
+﻿using System.Collections.Generic;
+using CustomerLibCore.Api.Exceptions;
 using CustomerLibCore.Api.FluentValidation;
 using FluentValidation.Results;
-using System.Collections.Generic;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.FluentValidation

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Domain.Models;
-using CustomerLibCore.Domain.Enums;
 using Xunit;
-using CustomerLibCore.Api.Dtos.Addresses.Request;
 
 namespace CustomerLibCore.Domain.Tests.Entities
 {
@@ -52,6 +49,8 @@ namespace CustomerLibCore.Domain.Tests.Entities
 			Assert.NotEqual(country, address.Country);
 
 			// When
+			address.AddressId = addressId;
+			address.CustomerId = customerId;
 			address.Line = line;
 			address.Line2 = line2;
 			address.Type = type;

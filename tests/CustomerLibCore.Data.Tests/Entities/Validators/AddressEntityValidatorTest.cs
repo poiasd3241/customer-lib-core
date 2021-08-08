@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Domain.Enums;
@@ -8,7 +7,7 @@ using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
 
-namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
+namespace CustomerLibCore.Data.Tests.Entities.Validators
 {
 	public class AddressEntityValidatorTest
 	{
@@ -85,9 +84,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 		#region Invalid property - Type
 
 		[Theory]
-		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.Type))]
+		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.TypeEnum))]
 		public void ShouldInvalidateByBadType(
-			string propertyValue, (string expected, string confirm) errorMessages)
+			AddressType propertyValue, (string expected, string confirm) errorMessages)
 		{
 			AssertSinglePropertyInvalid(nameof(AddressEntity.Type),
 				propertyValue, errorMessages);
@@ -150,7 +149,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 		#region Full object
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNotNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNotNull()
 		{
 			// Given
 			var address = new AddressEntityValidatorFixture().MockValid();
@@ -165,7 +164,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 		}
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given
 			var address = new AddressEntityValidatorFixture().MockValidOptional();
@@ -190,8 +189,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 			var errors = _validator.Validate(address).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

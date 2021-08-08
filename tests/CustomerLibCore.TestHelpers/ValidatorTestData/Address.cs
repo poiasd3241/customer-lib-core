@@ -1,8 +1,8 @@
 ﻿using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;
+using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 
 namespace CustomerLibCore.TestHelpers.ValidatorTestData
 {
@@ -29,13 +29,23 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			}
 		}
 
-		public class Type : TheoryData<string, (string, string)>
+		public class TypeText : TheoryData<string, (string, string)>
 		{
-			public Type()
+			public TypeText()
 			{
 				this.AddRequiredData();
 				this.AddUnknownEnumTypeByNameData<AddressType>(
 					new[] { "whatever", 3.ToString() });
+			}
+		}
+
+		public class TypeEnum : TheoryData<AddressType, (string, string)>
+		{
+			public TypeEnum()
+			{
+				Add(0, UnknownTypeMsg());
+				Add((AddressType)3, UnknownTypeMsg());
+				Add((AddressType)666, UnknownTypeMsg());
 			}
 		}
 

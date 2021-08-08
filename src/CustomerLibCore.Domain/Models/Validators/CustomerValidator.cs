@@ -11,27 +11,26 @@ namespace CustomerLibCore.Domain.Models.Validators
 	{
 		public CustomerValidator()
 		{
-			RuleSet("Details", () =>
+			Include(new CustomerDetailsCoreValidator());
+
+			// TotalPurchasesAmount - no validation.
+
+			RuleSet("Children", () =>
 			{
-				Include(new CustomerDetailsCoreValidator());
+				// Addresses
+				RuleFor(customer => customer.Addresses).Cascade(CascadeMode.Stop)
+					.NotNullCollectionWithMinCount(1)
+					.ForEach(address => address.SetValidator(new AddressValidator()));
 
-				// TotalPurchasesAmount - no validation.
+				// Notes
+				RuleFor(customer => customer.Notes).Cascade(CascadeMode.Stop)
+					.NotNullCollectionWithMinCount(1)
+					.ForEach(note => note.SetValidator(new NoteValidator()));
 			});
-
-			// Addresses
-			RuleFor(customer => customer.Addresses).Cascade(CascadeMode.Stop)
-				.NotNullCollectionWithMinCount(1)
-				.ForEach(address => address.SetValidator(new AddressValidator()));
-
-			// Notes
-			RuleFor(customer => customer.Notes).Cascade(CascadeMode.Stop)
-				.NotNullCollectionWithMinCount(1)
-				.ForEach(note => note.SetValidator(new NoteValidator()));
 		}
 
-		public ValidationResult ValidateWithoutAddressesAndNotes(Customer customer) =>
-			((IValidator<Customer>)this).Validate(customer,
-				options => options.IncludeRuleSets("Details"));
+		public ValidationResult ValidateDetails(Customer customer) =>
+			Validate(customer);
 
 		public ValidationResult ValidateFull(Customer customer) =>
 			((IValidator<Customer>)this).Validate(customer,

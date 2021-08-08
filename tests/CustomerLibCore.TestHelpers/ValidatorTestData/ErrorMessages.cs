@@ -5,8 +5,8 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 	public class ErrorMessages
 	{
 		public static (string expectedMessage, string confirmMessage)
-			CollectionRequiredNotEmptyMsg() =>
-				("required at least 1", ValidationErrorMessages.RequiredAtLeast(1));
+		CollectionNotEmptyMsg() =>
+			("required at least 1", ValidationErrorMessages.RequiredAtLeast(1));
 
 		public static (string expectedMessage, string confirmMessage) RequiredMsg() =>
 			("required", ValidationErrorMessages.REQUIRED);
@@ -16,9 +16,9 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
 
 		public static (string expectedMessage, string confirmMessage)
-			EmptyOrContainWhitespaceMsg() =>
+		EmptyOrContainWhitespaceMsg() =>
 			("cannot be empty or contain whitespace",
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
+			ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
 
 		public static (string expectedMessage, string confirmMessage) NumberDecimalMsg() =>
 			("must be a decimal point number", ValidationErrorMessages.NUMBER_DECIMAL);

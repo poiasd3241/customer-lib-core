@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
+using CustomerLibCore.Domain.FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -10,6 +12,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 		#region Private Members
 
 		private readonly CustomerLibDataContext _context;
+
+		private readonly CustomerEntityValidator _validator = new();
 
 		#endregion
 
@@ -29,11 +33,11 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public int Create(CustomerEntity customer)
 		{
+			_validator.Validate(customer).WithInternalValidationException();
+
 			var createdCustomer = _context.Customers.Add(customer).Entity;
 
 			_context.SaveChanges();
-
-			_context.ChangeTracker.Clear();
 
 			return createdCustomer.CustomerId;
 		}
@@ -55,6 +59,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Update(CustomerEntity customer)
 		{
+			_validator.Validate(customer).WithInternalValidationException();
+
 			var customerDb = _context.Customers.Find(customer.CustomerId);
 
 			if (customerDb is not null)

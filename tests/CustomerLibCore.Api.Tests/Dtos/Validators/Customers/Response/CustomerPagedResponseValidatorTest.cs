@@ -213,7 +213,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 
 		[Theory]
 		[ClassData(typeof(TestHelpers.ValidatorTestData.Common.Required))]
-		public void ShouldInvalidateByBadItemsNull((string expected, string confirm) errorMessages)
+		public void ShouldInvalidateByItemsNull((string expected, string confirm) errorMessages)
 		{
 			// Given
 			var propertyName = nameof(CustomerPagedResponse.Items);
@@ -244,8 +244,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customers).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages($"{propertyName}[0]", details);
 		}
 
@@ -277,8 +275,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customers).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
@@ -293,8 +289,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			var errors = _validator.Validate(customers).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

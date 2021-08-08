@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CustomerLibCore.Domain.Models;
 using Xunit;
 
@@ -180,7 +179,7 @@ namespace CustomerLibCore.Domain.Tests.Entities
 		//	FirstName = "one",
 		//	LastName = "two",
 		//	PhoneNumber = "+123",
-		//	Email = "a@a.aa",
+		//	Email = "a@b.c",
 		//	TotalPurchasesAmount = 666,
 		//	Addresses = new(),
 		//	Notes = new() { null },

@@ -1,9 +1,8 @@
-﻿using System;
-using CustomerLibCore.Data.Entities;
+﻿using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Domain.Enums;
 using Xunit;
 
-namespace CustomerLibCore.Data.IntegrationTests.Entities
+namespace CustomerLibCore.Data.Tests.Entities
 {
 	public class AddressEntityTest
 	{
@@ -50,6 +49,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities
 			Assert.NotEqual(country, address.Country);
 
 			// When
+			address.AddressId = addressId;
+			address.CustomerId = customerId;
 			address.Line = line;
 			address.Line2 = line2;
 			address.Type = type;

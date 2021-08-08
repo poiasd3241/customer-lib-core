@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;
+using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 
 namespace CustomerLibCore.TestHelpers.ValidatorTestData
 {
@@ -47,12 +47,12 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			}
 		}
 
-		public class CollectionRequiredNotEmpty<T> : TheoryData<List<T>, (string, string)>
+		public class CollectionNotEmpty<T> : TheoryData<List<T>, (string, string)>
 		{
-			public CollectionRequiredNotEmpty()
+			public CollectionNotEmpty()
 			{
-				Add(null, CollectionRequiredNotEmptyMsg());
-				Add(new(), CollectionRequiredNotEmptyMsg());
+				Add(null, CollectionNotEmptyMsg());
+				Add(new(), CollectionNotEmptyMsg());
 			}
 		}
 	}

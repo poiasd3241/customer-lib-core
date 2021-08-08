@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Api.Dtos.Addresses.Request;
 using CustomerLibCore.Api.Dtos.Validators.Addresses.Request;
 using CustomerLibCore.Domain.Localization;
@@ -84,7 +83,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		#region Invalid property - Type
 
 		[Theory]
-		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.Type))]
+		[ClassData(typeof(TestHelpers.ValidatorTestData.Address.TypeText))]
 		public void ShouldInvalidateByBadType(
 			string propertyValue, (string expected, string confirm) errorMessages)
 		{
@@ -149,7 +148,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		#region Full object
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNotNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNotNull()
 		{
 			// Given
 			var address = new AddressRequestValidatorFixture().MockValid();
@@ -164,7 +163,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		}
 
 		[Fact]
-		public void ShouldValidateFullObjectOptionalPropertiesNull()
+		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given
 			var address = new AddressRequestValidatorFixture().MockValidOptional();
@@ -189,8 +188,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 			var errors = _validator.Validate(address).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

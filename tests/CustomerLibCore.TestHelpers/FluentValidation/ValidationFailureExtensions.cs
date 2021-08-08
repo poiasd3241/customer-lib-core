@@ -69,6 +69,9 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 			this IEnumerable<ValidationFailure> failures,
 			IEnumerable<(string propertyName, string errorMessage)> expectedDetails)
 		{
+			Assert.True(failures.Any());
+			Assert.Equal(failures.Count(), expectedDetails.Count());
+
 			var failurePropertyNames = failures.Select(f => f.PropertyName);
 
 			foreach (var (propertyName, errorMessage) in expectedDetails)

@@ -735,7 +735,7 @@
 //			LastName = "a",
 //			Addresses = new() { AddressServiceFixture.MockAddress() },
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			Notes = new() { NoteServiceFixture.MockNote() },
 //			TotalPurchasesAmount = 123,
 //		};
@@ -748,7 +748,7 @@
 //			LastName = "a",
 //			Addresses = null,
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			Notes = null,
 //			TotalPurchasesAmount = 123,
 //		};

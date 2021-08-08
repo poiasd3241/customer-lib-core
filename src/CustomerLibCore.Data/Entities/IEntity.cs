@@ -2,7 +2,7 @@
 
 namespace CustomerLibCore.Data.Entities
 {
-	public interface IEntity<T> : IModelBase<T>
+	public interface IEntity<T> : IIdModelBase<T>
 	{
 	}
 }

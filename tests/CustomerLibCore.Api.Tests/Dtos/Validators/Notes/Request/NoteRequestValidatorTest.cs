@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Api.Dtos.Notes.Request;
 using CustomerLibCore.Api.Dtos.Validators.Notes.Request;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using FluentValidation;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
@@ -62,8 +60,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 			var errors = _validator.Validate(note).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

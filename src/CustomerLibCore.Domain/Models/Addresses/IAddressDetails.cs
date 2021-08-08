@@ -1,6 +1,4 @@
-﻿using CustomerLibCore.Domain.Enums;
-
-namespace CustomerLibCore.Domain.Models
+﻿namespace CustomerLibCore.Domain.Models
 {
 	/// <summary>
 	/// The address object base.

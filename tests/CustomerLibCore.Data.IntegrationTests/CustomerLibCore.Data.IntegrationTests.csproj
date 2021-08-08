@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="coverlet.msbuild" Version="3.0.3">
+		<PackageReference Include="coverlet.msbuild" Version="3.1.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -28,7 +28,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="3.0.3">
+		<PackageReference Include="coverlet.collector" Version="3.1.0">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -37,13 +37,11 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\CustomerLibCore.Domain\CustomerLibCore.Domain.csproj" />
 		<ProjectReference Include="..\..\src\CustomerLibCore.Data\CustomerLibCore.Data.csproj" />
+		<ProjectReference Include="..\CustomerLibCore.Data.Tests\CustomerLibCore.Data.Tests.csproj" />
 		<ProjectReference Include="..\CustomerLibCore.TestHelpers\CustomerLibCore.TestHelpers.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="App.config">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

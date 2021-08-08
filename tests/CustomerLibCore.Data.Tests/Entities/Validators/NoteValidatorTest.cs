@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
 
-namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
+namespace CustomerLibCore.Data.Tests.Entities.Validators
 {
 	public class NoteEntityValidatorTest
 	{
@@ -61,8 +60,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Entities.Validators
 			var errors = _validator.Validate(note).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 

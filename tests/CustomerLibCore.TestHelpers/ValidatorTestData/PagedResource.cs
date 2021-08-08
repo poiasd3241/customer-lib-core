@@ -1,8 +1,8 @@
 ﻿using CustomerLibCore.Api.Dtos;
 using CustomerLibCore.Domain.Localization;
 using CustomerLibCore.TestHelpers.FluentValidation;
-using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 using Xunit;
+using static CustomerLibCore.TestHelpers.ValidatorTestData.ErrorMessages;
 
 namespace CustomerLibCore.TestHelpers.ValidatorTestData
 {

@@ -568,7 +568,7 @@
 //			FirstName = "One",
 //			LastName = "Two",
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			TotalPurchasesAmount = 666,
 //			Addresses = null,
 //			Notes = null
@@ -579,7 +579,7 @@
 //			FirstName = "One",
 //			LastName = "Two",
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			TotalPurchasesAmount = "666",
 //			Addresses = null,
 //			Notes = null
@@ -590,7 +590,7 @@
 //			FirstName = "One",
 //			LastName = "Two",
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			TotalPurchasesAmount = "666",
 //			Addresses = new() { MockAddressDto() },
 //			Notes = new() { MockNoteDto() }
@@ -601,7 +601,7 @@
 //			FirstName = "One",
 //			LastName = "Two",
 //			PhoneNumber = "+123",
-//			Email = "a@a.aa",
+//			Email = "a@b.c",
 //			TotalPurchasesAmount = "666"
 //		};
 

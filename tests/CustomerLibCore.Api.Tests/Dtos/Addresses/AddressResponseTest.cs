@@ -1,5 +1,4 @@
-﻿using CustomerLibCore.Api.Dtos.Addresses;
-using CustomerLibCore.Api.Dtos.Addresses.Response;
+﻿using CustomerLibCore.Api.Dtos.Addresses.Response;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Addresses

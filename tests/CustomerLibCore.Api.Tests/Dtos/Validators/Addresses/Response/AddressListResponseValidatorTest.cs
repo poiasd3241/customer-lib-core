@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using CustomerLibCore.Api.Dtos.Addresses.Response;
 using CustomerLibCore.Api.Dtos.Validators.Addresses.Response;
 using CustomerLibCore.Domain.Localization;
@@ -42,7 +41,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 
 		[Theory]
 		[ClassData(typeof(TestHelpers.ValidatorTestData.Common.Required))]
-		public void ShouldInvalidateByBadItemsNull((string expected, string confirm) errorMessages)
+		public void ShouldInvalidateByItemsNull((string expected, string confirm) errorMessages)
 		{
 			// Given
 			var propertyName = nameof(AddressListResponse.Items);
@@ -51,7 +50,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 			addresses.Items = null;
 
 			// When
-			var errors = _validator.Validate(addresses).Errors;
+			var errors = _validator.ValidateProperty(addresses, propertyName);
 
 			// Then
 			errors.AssertSinglePropertyInvalid(propertyName, errorMessages);
@@ -73,8 +72,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 			var errors = _validator.Validate(addresses).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages($"{propertyName}[0]", details);
 		}
 
@@ -106,8 +103,6 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 			var errors = _validator.Validate(addresses).Errors;
 
 			// Then
-			Assert.Equal(details.Count(), errors.Count);
-
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
