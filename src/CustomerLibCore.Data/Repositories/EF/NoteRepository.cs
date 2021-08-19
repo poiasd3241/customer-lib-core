@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
+using CustomerLibCore.Domain.Extensions;
+using CustomerLibCore.Domain.FluentValidation;
+using CustomerLibCore.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -10,6 +15,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 		#region Private Members
 
 		private readonly CustomerLibDataContext _context;
+		private readonly NoteEntityValidator _validator = new();
 
 		#endregion
 
@@ -35,6 +41,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public int Create(NoteEntity note)
 		{
+			ValidateEntity(note);
+
 			var createdNote = _context.Notes.Add(note).Entity;
 
 			_context.SaveChanges();
@@ -42,8 +50,29 @@ namespace CustomerLibCore.Data.Repositories.EF
 			return createdNote.NoteId;
 		}
 
-		public NoteEntity Read(int noteId) =>
-			_context.Notes.Find(noteId);
+		public void CreateManyForCustomer(IEnumerable<NoteEntity> notes, int customerId)
+		{
+			notes.PreventNull(nameof(notes));
+
+			foreach (var note in notes)
+			{
+				ValidateEntity(note);
+
+				if (note.CustomerId != customerId)
+				{
+					throw new ArgumentException(
+						$"all items must have the same {nameof(NoteEntity.CustomerId)} value, " +
+						$"{nameof(customerId)} = {customerId}", nameof(notes));
+				}
+			}
+
+			_context.Notes.AddRange(notes);
+
+			_context.SaveChanges();
+		}
+
+		//public NoteEntity Read(int noteId) =>
+		//	_context.Notes.Find(noteId);
 
 		public NoteEntity ReadForCustomer(int noteId, int customerId) =>
 			_context.Notes.FirstOrDefault(note =>
@@ -54,15 +83,22 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.Notes.Where(note => note.CustomerId == customerId)
 				.ToArray();
 
+		/// <summary>
+		/// Updates the note with the provided details, if found. The lookup is performed using both
+		/// <see cref="NoteEntity.NoteId"/> and <see cref="NoteEntity.CustomerId"/> values.
+		/// </summary>
+		/// <param name="note">The note details for the update.</param>
 		public void Update(NoteEntity note)
 		{
-			var noteDb = _context.Notes.Find(note.NoteId);
+			ValidateEntity(note);
+
+			var noteDb = _context.Notes.FirstOrDefault(n =>
+				n.NoteId == note.NoteId &&
+				n.CustomerId == note.CustomerId);
 
 			if (noteDb is not null)
 			{
 				_context.Entry(noteDb).CurrentValues.SetValues(note);
-				_context.Entry(noteDb).State = EntityState.Modified;
-				_context.Entry(noteDb).Property(note => note.CustomerId).IsModified = false;
 
 				_context.SaveChanges();
 			}
@@ -80,6 +116,17 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.Database.ExecuteSqlRaw(
 				"DELETE FROM [dbo].[Notes];" +
 				"DBCC CHECKIDENT ('dbo.Notes', RESEED, 0);");
+
+		#endregion
+
+		#region Private Methods
+
+		private void ValidateEntity(NoteEntity note)
+		{
+			note.PreventNull(nameof(note));
+
+			_validator.Validate(note).WithInternalValidationException();
+		}
 
 		#endregion
 	}

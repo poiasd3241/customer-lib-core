@@ -20,8 +20,8 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 			(this IEnumerable<ValidationFailure> expected, IEnumerable<ValidationFailure> actual,
 			int expectedCount)
 		{
-			Assert.Equal(expectedCount, expected.Count());
-			Assert.Equal(expectedCount, actual.Count());
+			AssertX.Equal(expectedCount, expected.Count());
+			AssertX.Equal(expectedCount, actual.Count());
 
 			var sortedExpected = expected.OrderBy(t => t.PropertyName);
 			var sortedActual = actual.OrderBy(t => t.PropertyName);
@@ -33,8 +33,8 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 				sortedExpectedItem = sortedExpected.ElementAt(i);
 				sortedActualItem = sortedActual.ElementAt(i);
 
-				Assert.Equal(sortedExpectedItem.PropertyName, sortedActualItem.PropertyName);
-				Assert.Equal(sortedExpectedItem.ErrorMessage, sortedActualItem.ErrorMessage);
+				AssertX.Equal(sortedExpectedItem.PropertyName, sortedActualItem.PropertyName);
+				AssertX.Equal(sortedExpectedItem.ErrorMessage, sortedActualItem.ErrorMessage);
 			}
 		}
 
@@ -52,7 +52,7 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 
 			foreach (var propertyName in propertyNames)
 			{
-				Assert.Contains(propertyName, failurePropertyNames);
+				AssertX.Contains(propertyName, failurePropertyNames);
 			}
 		}
 
@@ -69,8 +69,8 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 			this IEnumerable<ValidationFailure> failures,
 			IEnumerable<(string propertyName, string errorMessage)> expectedDetails)
 		{
-			Assert.True(failures.Any());
-			Assert.Equal(failures.Count(), expectedDetails.Count());
+			AssertX.True(failures.Any());
+			AssertX.Equal(failures.Count(), expectedDetails.Count());
 
 			var failurePropertyNames = failures.Select(f => f.PropertyName);
 
@@ -78,7 +78,7 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 			{
 				var failure = failures.First(f => f.PropertyName == propertyName);
 
-				Assert.Equal(errorMessage, failure.ErrorMessage);
+				AssertX.Equal(errorMessage, failure.ErrorMessage);
 			}
 		}
 
@@ -119,10 +119,10 @@ namespace CustomerLibCore.TestHelpers.FluentValidation
 		public static void AssertSinglePropertyInvalid(this IEnumerable<ValidationFailure> errors,
 			string propertyName, (string expected, string confirm) errorMessages)
 		{
-			var failure = Assert.Single(errors);
-			Assert.Equal(propertyName, failure.PropertyName);
-			Assert.Equal(errorMessages.expected, failure.ErrorMessage);
-			Assert.Equal(errorMessages.expected, errorMessages.confirm);
+			var failure = AssertX.Single(errors);
+			AssertX.Equal(propertyName, failure.PropertyName);
+			AssertX.Equal(errorMessages.expected, failure.ErrorMessage);
+			AssertX.Equal(errorMessages.expected, errorMessages.confirm);
 		}
 	}
 }

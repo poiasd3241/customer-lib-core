@@ -7,6 +7,7 @@ using CustomerLibCore.Data.Tests.Entities.Validators;
 using CustomerLibCore.Domain.Exceptions;
 using CustomerLibCore.TestHelpers.FluentValidation;
 using Xunit;
+using static CustomerLibCore.TestHelpers.ValidatorTestData.Note;
 
 namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 {
@@ -341,67 +342,115 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			errors.AssertContainPropertyNamesAndErrorMessages(details);
 		}
 
-		[Fact]
-		public void ShouldNotUpdateWhenNotFound()
+		[Theory]
+		[InlineData(2)]
+		[InlineData(3)]
+		[InlineData(123)]
+		public void ShouldNotUpdateExistingCustomersWhenNotFound(int customerId)
 		{
 			// Given
-			var customerId = 1;
-			var nonExistingcustomerId = 2;
-			var newFirstName = "NewFirstName";
+			var customerId1 = 1;
+			var customerId2 = 2;
 
 			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
-			CustomerRepositoryFixture.CreateMockCustomer();
 
-			var createdCustomer = repo.Read(customerId);
-			Assert.NotEqual(newFirstName, createdCustomer.FirstName);
+			var firstName1 = "FirstName1";
+			var firstName2 = "FirstName2";
+			var newFirstName = "NewFirstName";
 
-			Assert.Null(repo.Read(nonExistingcustomerId));
+			var customer1 = CustomerRepositoryFixture.MockCustomer();
+			customer1.FirstName = firstName1;
+
+			var customer2 = CustomerRepositoryFixture.MockCustomer();
+			customer2.FirstName = firstName1;
+
+			repo.Create(customer1);
+			repo.Create(customer2);
+
+			var createdCustomer1 = repo.Read(customerId1);
+			var createdCustomer2 = repo.Read(customerId2);
+
+			Assert.Equal(firstName1, createdCustomer1.FirstName);
+			Assert.Equal(firstName2, createdCustomer2.FirstName);
+
+			Assert.NotEqual(firstName1, firstName2);
+			Assert.NotEqual(newFirstName, firstName1);
+			Assert.NotEqual(newFirstName, firstName2);
 
 			var nonExistingCustomer = CustomerRepositoryFixture.MockCustomer();
-			nonExistingCustomer.CustomerId = nonExistingcustomerId;
+			nonExistingCustomer.CustomerId = customerId;
 			nonExistingCustomer.FirstName = newFirstName;
+
+			Assert.False(repo.Exists(customerId));
 
 			// When
 			repo.Update(nonExistingCustomer);
 
 			// Then
-			Assert.Equal(1, repo.GetCount());
+			Assert.False(repo.Exists(customerId));
 
-			var untouchedCustomer = repo.Read(customerId);
-			Assert.NotEqual(newFirstName, untouchedCustomer.FirstName);
-			Assert.True(untouchedCustomer.EqualsByValue(createdCustomer));
+			var untouchedCustomer1 = repo.Read(customerId1);
+			var untouchedCustomer2 = repo.Read(customerId2);
+
+			Assert.NotEqual(untouchedCustomer1.FirstName, untouchedCustomer2.FirstName);
+			Assert.NotEqual(newFirstName, untouchedCustomer1.FirstName);
+			Assert.NotEqual(newFirstName, untouchedCustomer2.FirstName);
+
+			Assert.True(untouchedCustomer1.EqualsByValue(createdCustomer1));
+			Assert.True(untouchedCustomer2.EqualsByValue(createdCustomer2));
 		}
 
-		[Fact]
-		public void ShouldUpdateCustomer()
+		[Theory]
+		[InlineData(1, 2)]
+		[InlineData(2, 1)]
+		public void ShouldUpdateCustomer(int customerId, int untouchedCustomerId)
 		{
 			// Given
-			var customerId = 1;
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+
+			var firstName1 = "FirstName1";
+			var firstName2 = "FirstName2";
 			var newFirstName = "NewFirstName";
 
-			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
-			CustomerRepositoryFixture.CreateMockCustomer();
+			var customer1 = CustomerRepositoryFixture.MockCustomer();
+			customer1.FirstName = firstName1;
+
+			var customer2 = CustomerRepositoryFixture.MockCustomer();
+			customer2.FirstName = firstName1;
+
+			repo.Create(customer1);
+			repo.Create(customer2);
+
+			var createdCustomerToBeUpdated = repo.Read(customerId);
+			var createdCustomerToStayUntouched = repo.Read(untouchedCustomerId);
+
+			Assert.Equal(firstName1, createdCustomerToBeUpdated.FirstName);
+			Assert.Equal(firstName2, createdCustomerToStayUntouched.FirstName);
+
+			Assert.NotEqual(firstName1, firstName2);
+			Assert.NotEqual(newFirstName, firstName1);
+			Assert.NotEqual(newFirstName, firstName2);
 
 			var customer = CustomerRepositoryFixture.MockCustomer();
 			customer.CustomerId = customerId;
-
-			var createdCustomer = repo.Read(customerId);
-			Assert.NotEqual(newFirstName, customer.FirstName);
-			Assert.True(createdCustomer.EqualsByValue(customer));
-
-			createdCustomer.FirstName = newFirstName;
+			customer.FirstName = newFirstName;
 
 			// When
-			repo.Update(createdCustomer);
+			repo.Update(customer);
 
 			// Then
-			var updatedCustomer = repo.Read(1);
+			var updatedCustomer = repo.Read(customerId);
 
 			Assert.Equal(newFirstName, updatedCustomer.FirstName);
 			Assert.Equal(customer.LastName, updatedCustomer.LastName);
 			Assert.Equal(customer.PhoneNumber, updatedCustomer.PhoneNumber);
 			Assert.Equal(customer.Email, updatedCustomer.Email);
 			Assert.Equal(customer.TotalPurchasesAmount, updatedCustomer.TotalPurchasesAmount);
+
+			var untouchedCustomer = repo.Read(untouchedCustomerId);
+
+			Assert.NotEqual(newFirstName, untouchedCustomer.FirstName);
+			Assert.True(untouchedCustomer.EqualsByValue(createdCustomerToStayUntouched));
 		}
 
 		#endregion
@@ -546,6 +595,8 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		public class CustomerRepositoryFixture
 		{
+			private static readonly CustomerEntityValidatorFixture _validatorFixture = new();
+
 			/// <summary>
 			/// Clears the database, then creates the customer repository.
 			/// </summary>
@@ -553,7 +604,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			public static CustomerRepository CreateEmptyRepository()
 			{
 				DatabaseHelper.Clear();
-				return new CustomerRepository(DbContextHelper.Context);
+				return new(DbContextHelper.Context);
 			}
 
 			/// <summary>
@@ -588,7 +639,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// optional properties not <see langword="null"/>.</returns>
 			public static CustomerEntity MockCustomer(string email = "a@b.c")
 			{
-				var customer = new CustomerEntityValidatorFixture().MockValid();
+				var customer = _validatorFixture.MockValid();
 				customer.Email = email;
 
 				return customer;
@@ -597,29 +648,7 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			/// <returns>The mocked customer with valid properties,
 			/// optional properties <see langword="null"/>.</returns>
 			public static CustomerEntity MockOptionalCustomer() =>
-				new CustomerEntityValidatorFixture().MockValidOptional();
-
-			///// <returns>The mocked customer with valid properties,
-			///// optional properties not <see langword="null"/>.</returns>
-			//public static CustomerEntity MockCustomer(string email = "a@b.c") => new()
-			//{
-			//	FirstName = "FirstName1",
-			//	LastName = "LastName1",
-			//	PhoneNumber = "+12345",
-			//	Email = email,
-			//	TotalPurchasesAmount = 123
-			//};
-
-			///// <returns>The mocked customer with valid properties,
-			///// optional properties <see langword="null"/>.</returns>
-			//public static CustomerEntity MockOptionalCustomer() => new()
-			//{
-			//	FirstName = null,
-			//	LastName = "LastName1",
-			//	PhoneNumber = null,
-			//	Email = null,
-			//	TotalPurchasesAmount = null
-			//};
+				_validatorFixture.MockValidOptional();
 		}
 
 		public class CustomerRepositoryFixtureTest

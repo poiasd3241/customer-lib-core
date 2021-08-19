@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CustomerLibCore.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -41,8 +42,22 @@ namespace CustomerLibCore.Data.Repositories.EF
 			return createdAddress.AddressId;
 		}
 
-		public AddressEntity Read(int addressId) =>
-			_context.Addresses.Find(addressId);
+		public void CreateManyForCustomer(IEnumerable<AddressEntity> addresses, int customerId)
+		{
+			if (addresses.Any(note => note.CustomerId != customerId))
+			{
+				throw new ArgumentException(
+					$"All items must have the same {nameof(AddressEntity.CustomerId)} value, " +
+					$"{nameof(customerId)} = {customerId}", nameof(addresses));
+			}
+
+			_context.Addresses.AddRange(addresses);
+
+			_context.SaveChanges();
+		}
+
+		//public AddressEntity Read(int addressId) =>
+		//	_context.Addresses.Find(addressId);
 
 		public AddressEntity ReadForCustomer(int addressId, int customerId)
 			=> _context.Addresses.FirstOrDefault(address =>
@@ -62,23 +77,9 @@ namespace CustomerLibCore.Data.Repositories.EF
 			if (addressDb is not null)
 			{
 				_context.Entry(addressDb).CurrentValues.SetValues(address);
-				_context.Entry(addressDb).State = EntityState.Modified;
+				//_context.Entry(addressDb).State = EntityState.Modified;
 
-				_context.Update(addressDb);
-
-				_context.SaveChanges();
-			}
-		}
-
-		public void UpdateForCustomer(AddressEntity address)
-		{
-			var addressDb = _context.Addresses.FirstOrDefault(repoAddress =>
-				repoAddress.AddressId == address.AddressId &&
-				repoAddress.CustomerId == address.CustomerId);
-
-			if (addressDb is not null)
-			{
-				_context.Entry(addressDb).CurrentValues.SetValues(address);
+				//_context.Update(addressDb);
 
 				_context.SaveChanges();
 			}

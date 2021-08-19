@@ -164,6 +164,20 @@ namespace CustomerLibCore.Data.Tests.Entities.Validators
 		}
 
 		[Fact]
+		public void ShouldValidateNullObject()
+		{
+			// Given
+			var address = new AddressEntityValidatorFixture().MockValid();
+			address = null;
+
+			// When
+			var result = _validator.Validate(address);
+
+			// Then
+			Assert.True(result.IsValid);
+		}
+
+		[Fact]
 		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given

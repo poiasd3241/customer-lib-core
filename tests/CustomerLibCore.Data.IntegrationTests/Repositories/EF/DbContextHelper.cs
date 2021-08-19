@@ -23,11 +23,9 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 			}
 		}
 
+		/// <summary>
+		/// A transient context.
+		/// </summary>
 		public static CustomerLibDataContext Context => new(Options);
-
-		public static void ClearDatabase()
-		{
-
-		}
 	}
 }

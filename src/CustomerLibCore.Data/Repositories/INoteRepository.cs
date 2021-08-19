@@ -11,14 +11,15 @@ namespace CustomerLibCore.Data.Repositories
 		/// <returns>The Id of the created item.</returns>
 		int Create(NoteEntity note);
 
-		NoteEntity Read(int noteId);
+		void CreateManyForCustomer(IEnumerable<NoteEntity> notes, int customerId);
+
+		//NoteEntity Read(int noteId);
 		NoteEntity ReadForCustomer(int noteId, int customerId);
 
 		/// <returns>An empty collection if no notes found; otherwise, the found notes.</returns>
 		IReadOnlyCollection<NoteEntity> ReadManyForCustomer(int customerId);
 
 		void Update(NoteEntity note);
-
 		void Delete(int noteId);
 		void DeleteManyForCustomer(int customerId);
 	}
