@@ -71,8 +71,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.SaveChanges();
 		}
 
-		//public NoteEntity Read(int noteId) =>
-		//	_context.Notes.Find(noteId);
+		public int GetCountForCustomer(int customerId) =>
+			_context.Notes.Where(note => note.CustomerId == customerId).Count();
 
 		public NoteEntity ReadForCustomer(int noteId, int customerId) =>
 			_context.Notes.FirstOrDefault(note =>

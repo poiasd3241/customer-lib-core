@@ -8,19 +8,15 @@ namespace CustomerLibCore.Data.IntegrationTests
 	public class DatabaseHelperTest
 	{
 		[Fact]
-		public void ShouldUnsafeRepopulateAddressTypes()
-		{
-			// Free up FK.
-			var addressRepository = new AddressRepository(DbContextHelper.Context);
-			addressRepository.DeleteAll();
-
-			DatabaseHelper.UnsafeRepopulateAddressTypes();
-		}
-
-		[Fact]
 		public void ShouldClear()
 		{
 			DatabaseHelper.Clear();
+
+			var customerRepo = new CustomerRepository(DbContextHelper.Context);
+
+			Assert.Equal(0, customerRepo.GetCount());
+
+			// Addresses and Notes cannot exist without customers.
 		}
 	}
 }

@@ -9,13 +9,13 @@ namespace CustomerLibCore.Data.Repositories
 
 		/// <returns>The Id of the created item.</returns>
 		int Create(CustomerEntity customer);
+
+		int GetCount();
 		CustomerEntity Read(int customerId);
 
 		/// <returns>An empty collection if no customers found; 
 		/// otherwise, the found customers.</returns>
 		IReadOnlyCollection<CustomerEntity> ReadMany();
-
-		int GetCount();
 
 		/// <returns>An empty collection if no customers found; 
 		/// otherwise, the found customers.</returns>

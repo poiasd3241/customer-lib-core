@@ -10,10 +10,9 @@ namespace CustomerLibCore.Data.Repositories
 
 		/// <returns>The Id of the created item.</returns>
 		int Create(NoteEntity note);
-
 		void CreateManyForCustomer(IEnumerable<NoteEntity> notes, int customerId);
 
-		//NoteEntity Read(int noteId);
+		bool GetCountForCustomer(int customerId);
 		NoteEntity ReadForCustomer(int noteId, int customerId);
 
 		/// <returns>An empty collection if no notes found; otherwise, the found notes.</returns>

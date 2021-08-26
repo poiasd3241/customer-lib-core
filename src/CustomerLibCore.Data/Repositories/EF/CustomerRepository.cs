@@ -42,14 +42,14 @@ namespace CustomerLibCore.Data.Repositories.EF
 			return createdCustomer.CustomerId;
 		}
 
+		public int GetCount() =>
+			_context.Customers.Count();
+
 		public CustomerEntity Read(int customerId) =>
 			_context.Customers.Find(customerId);
 
 		public IReadOnlyCollection<CustomerEntity> ReadMany() =>
 			_context.Customers.ToArray();
-
-		public int GetCount() =>
-			_context.Customers.Count();
 
 		public IReadOnlyCollection<CustomerEntity> ReadPage(int page, int pageSize) =>
 			_context.Customers.OrderBy(customer => customer.CustomerId)

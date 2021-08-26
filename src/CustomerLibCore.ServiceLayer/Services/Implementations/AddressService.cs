@@ -128,23 +128,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
+			// TODO: prevent delete of the last address.
+
 			_addressRepository.Delete(addressId);
-
-			scope.Complete();
-		}
-
-		public void DeleteAllForCustomer(int customerId)
-		{
-			CheckNumber.ValidId(customerId, nameof(customerId));
-
-			using TransactionScope scope = new();
-
-			if (_customerRepository.Exists(customerId) == false)
-			{
-				throw new NotFoundException();
-			}
-
-			_addressRepository.DeleteManyForCustomer(customerId);
 
 			scope.Complete();
 		}

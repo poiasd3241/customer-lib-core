@@ -457,15 +457,12 @@
 //			/// Creates the empty repository, containing the specified amount of customers
 //			/// (<see cref="Customer.CustomerId"/> = 1 for the first customer and
 //			/// +1 for every next customer) and no addresses.
-//			/// <br/>
-//			/// Also repopulates the <see cref="AddressType"/> table.
 //			/// </summary>
 //			/// <returns>The empty address repository.</returns>
 //			public static AddressRepository CreateEmptyRepositoryWithCustomer(
 //				int customersAmount = 1)
 //			{
 //				DatabaseHelper.Clear();
-//				DatabaseHelper.UnsafeRepopulateAddressTypes();
 
 //				CustomerRepositoryFixture.CreateMockCustomer(amount: customersAmount);
 
