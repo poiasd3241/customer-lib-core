@@ -45,7 +45,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 						(3, 1),
 						(3, 2),
 					}, ("must be less than or equal to the LastPage value",
-					ValidationErrorMessages.NumberLessThanOrEqualToPropertyValue(
+					Domain.Localization.ErrorMessages.NumberLessThanOrEqualToPropertyValue(
 						nameof(IPagedResourceBase.LastPage))));
 			}
 		}

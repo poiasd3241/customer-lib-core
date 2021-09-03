@@ -96,6 +96,40 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
+		#region Get count
+
+		[Fact]
+		public void ShouldGetTotalCustomersCountWhenEmpty()
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+
+			// When
+			var count = repo.GetCount();
+
+			// Then
+			Assert.Equal(0, count);
+		}
+
+		[Theory]
+		[InlineData(1)]
+		[InlineData(2)]
+		public void ShouldGetTotalCustomersCount(int amount)
+		{
+			// Given
+			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
+			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
+
+			// When
+			var count = repo.GetCount();
+
+			// Then
+			Assert.Equal(amount, count);
+		}
+
+
+		#endregion
+
 		#region Read by Id
 
 		[Theory]
@@ -198,40 +232,6 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 				Assert.True(readCustomer.EqualsByValueExcludingId(customer));
 			}
 		}
-
-		#endregion
-
-		#region Get count
-
-		[Fact]
-		public void ShouldGetTotalCustomersCountWhenEmpty()
-		{
-			// Given
-			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
-
-			// When
-			var count = repo.GetCount();
-
-			// Then
-			Assert.Equal(0, count);
-		}
-
-		[Theory]
-		[InlineData(1)]
-		[InlineData(2)]
-		public void ShouldGetTotalCustomersCount(int amount)
-		{
-			// Given
-			var repo = CustomerRepositoryFixture.CreateEmptyRepository();
-			CustomerRepositoryFixture.CreateMockCustomer(amount: amount);
-
-			// When
-			var count = repo.GetCount();
-
-			// Then
-			Assert.Equal(amount, count);
-		}
-
 
 		#endregion
 

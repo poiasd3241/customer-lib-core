@@ -251,13 +251,13 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(Address.Line), ValidationErrorMessages.REQUIRED),
-				(nameof(Address.Line2), ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(Address.Type), ValidationErrorMessages.ENUM_TYPE_UNKNOWN),
-				(nameof(Address.City), ValidationErrorMessages.REQUIRED),
-				(nameof(Address.PostalCode), ValidationErrorMessages.REQUIRED),
-				(nameof(Address.State), ValidationErrorMessages.REQUIRED),
-				(nameof(Address.Country), ValidationErrorMessages.REQUIRED),
+				(nameof(Address.Line), ErrorMessages.REQUIRED),
+				(nameof(Address.Line2), ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(Address.Type), ErrorMessages.ENUM_TYPE_UNKNOWN),
+				(nameof(Address.City), ErrorMessages.REQUIRED),
+				(nameof(Address.PostalCode), ErrorMessages.REQUIRED),
+				(nameof(Address.State), ErrorMessages.REQUIRED),
+				(nameof(Address.Country), ErrorMessages.REQUIRED),
 			};
 
 			return (MockInvalid(), details);

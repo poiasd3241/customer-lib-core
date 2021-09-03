@@ -42,7 +42,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Public Methods
 
-		public void Save(Customer customer)
+		public void Create(Customer customer)
 		{
 			_validator.ValidateFull(customer).WithInternalValidationException();
 
@@ -58,32 +58,18 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			var customerId = _customerRepository.Create(customerEntity);
 
 			// Save child properties.
-			AddressEntity addressEntity;
+			var addressEntities = _mapper.Map<IEnumerable<AddressEntity>>(customer.Addresses);
+			_addressRepository.CreateManyForCustomer(addressEntities, customerId);
 
-			foreach (var address in customer.Addresses)
-			{
-				addressEntity = _mapper.Map<AddressEntity>(address);
-				addressEntity.CustomerId = customerId;
-
-				_addressRepository.Create(addressEntity);
-			}
-
-			NoteEntity noteEntity;
-
-			foreach (var note in customer.Notes)
-			{
-				noteEntity = _mapper.Map<NoteEntity>(note);
-				noteEntity.CustomerId = customerId;
-
-				_noteRepository.Create(noteEntity);
-			}
+			var noteEntities = _mapper.Map<IEnumerable<NoteEntity>>(customer.Notes);
+			_noteRepository.CreateManyForCustomer(noteEntities, customerId);
 
 			scope.Complete();
 		}
 
 		public Customer Get(int customerId, bool includeAddresses, bool includeNotes)
 		{
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -109,13 +95,11 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			return customer;
 		}
 
-		public int GetCount() => _customerRepository.GetCount();
-
 		public PagedResult<Customer> GetPage(int page, int pageSize,
 			bool includeAddresses, bool includeNotes)
 		{
-			CheckNumber.NotLessThan(1, page, nameof(page));
-			CheckNumber.NotLessThan(1, pageSize, nameof(pageSize));
+			CheckNumber.GreaterThan(0, page, nameof(page));
+			CheckNumber.GreaterThan(0, pageSize, nameof(pageSize));
 
 			using TransactionScope scope = new();
 
@@ -125,7 +109,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			{
 				if (page == 1)
 				{
-					return new(Array.Empty<Customer>(), 1, pageSize, 1);
+					return new(Array.Empty<Customer>(), page, pageSize, 1);
 				}
 
 				throw new PagedRequestInvalidException(page, pageSize);
@@ -143,14 +127,14 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				LoadNotes(pageCustomers);
 			}
 
-			var lastPage = (int)Math.Ceiling((double)GetCount() / pageSize);
+			var lastPage = (int)Math.Ceiling((double)_customerRepository.GetCount() / pageSize);
 
 			return new(pageCustomers.ToArray(), page, pageSize, lastPage);
 		}
 
-		public void Update(Customer customer)
+		public void Edit(Customer customer)
 		{
-			CheckNumber.ValidId(customer.CustomerId, nameof(customer.CustomerId));
+			CheckNumber.Id(customer.CustomerId, nameof(customer.CustomerId));
 
 			_validator.ValidateDetails(customer)
 				.WithInternalValidationException();
@@ -179,7 +163,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public void Delete(int customerId)
 		{
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 

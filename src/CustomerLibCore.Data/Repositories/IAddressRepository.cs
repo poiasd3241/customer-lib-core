@@ -5,13 +5,14 @@ namespace CustomerLibCore.Data.Repositories
 {
 	public interface IAddressRepository
 	{
+		/// <returns>The Id of the created item.</returns>
+		int Create(AddressEntity address);
+		void CreateManyForCustomer(IEnumerable<AddressEntity> addresses, int customerId);
+
 		bool Exists(int addressId);
 		bool ExistsForCustomer(int addressId, int customerId);
 
-		/// <returns>The Id of the created item.</returns>
-		int Create(AddressEntity address);
-
-		void CreateManyForCustomer(IEnumerable<AddressEntity> addresses, int customerId);
+		int GetCountForCustomer(int customerId);
 
 		//AddressEntity Read(int addressId);
 		AddressEntity ReadForCustomer(int addressId, int customerId);
@@ -21,6 +22,7 @@ namespace CustomerLibCore.Data.Repositories
 		IReadOnlyCollection<AddressEntity> ReadManyForCustomer(int customerId);
 
 		void Update(AddressEntity address);
+
 		void Delete(int addressId);
 		void DeleteManyForCustomer(int customerId);
 	}

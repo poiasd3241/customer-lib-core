@@ -1,8 +1,12 @@
 ﻿using CustomerLibCore.Api.Exceptions;
+using CustomerLibCore.Domain.Localization;
 
 namespace CustomerLibCore.Api.Controllers
 {
-	public class CheckRouteArgument
+	/// <summary>
+	/// Contains checks for route and query arguments.
+	/// </summary>
+	public class CheckUrlArgument
 	{
 		/// <summary>
 		/// If the value is less than 1, throws the <see cref="RouteArgumentException"/>;
@@ -14,12 +18,12 @@ namespace CustomerLibCore.Api.Controllers
 		{
 			if (value < 1)
 			{
-				throw new RouteArgumentException("ID cannot be less than 1", paramName);
+				throw new RouteArgumentException(ErrorMessages.ID, paramName);
 			}
 		}
 
-		/// <summary>
-		/// If the value is not 0 or 1, throws the <see cref="RouteArgumentException"/>;
+		/// <summary> 
+		/// If the value is not 0 or 1, throws the <see cref="QueryArgumentException"/>;
 		/// <br/>
 		/// otherwise, returns the boolean representation of the flag:
 		/// <br/>
@@ -41,8 +45,7 @@ namespace CustomerLibCore.Api.Controllers
 				return true;
 			}
 
-			throw new RouteArgumentException("Int flag must be either 0 (false) or 1 (true)",
-				paramName);
+			throw new QueryArgumentException(ErrorMessages.INT_FLAG, paramName);
 		}
 	}
 }

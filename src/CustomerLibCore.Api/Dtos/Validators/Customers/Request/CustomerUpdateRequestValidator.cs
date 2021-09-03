@@ -4,11 +4,11 @@ using FluentValidation;
 namespace CustomerLibCore.Api.Dtos.Validators.Customers.Request
 {
 	/// <summary>
-	/// The fluent validator for <see cref="CustomerUpdateRequest"/> objects.
+	/// The fluent validator for <see cref="CustomerEditRequest"/> objects.
 	/// </summary>
-	public class CustomerUpdateRequestValidator : AbstractValidator<CustomerUpdateRequest>
+	public class CustomerEditRequestValidator : AbstractValidator<CustomerEditRequest>
 	{
-		public CustomerUpdateRequestValidator()
+		public CustomerEditRequestValidator()
 		{
 			Include(new DtoCustomerDetailsValidator());
 		}

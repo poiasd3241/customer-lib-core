@@ -13,7 +13,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			{
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 51),
-					("max 50 characters", ValidationErrorMessages.TextMaxLength(50)));
+					("max 50 characters", Domain.Localization.ErrorMessages.TextMaxLength(50)));
 			}
 		}
 
@@ -24,7 +24,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 51),
-					("max 50 characters", ValidationErrorMessages.TextMaxLength(50)));
+					("max 50 characters", Domain.Localization.ErrorMessages.TextMaxLength(50)));
 			}
 		}
 

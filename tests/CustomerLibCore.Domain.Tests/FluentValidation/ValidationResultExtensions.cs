@@ -24,11 +24,11 @@ namespace CustomerLibCore.Domain.Tests.FluentValidation
 			var invalidResult = new ValidationResult(errors);
 
 			// When
-			var exception = Assert.Throws<InternalValidationException>(() =>
+			var ex = Assert.Throws<InternalValidationException>(() =>
 				invalidResult.WithInternalValidationException());
 
 			// Then
-			Assert.Equal(errors, exception.Errors);
+			Assert.Equal(errors, ex.Errors);
 		}
 
 		[Fact]

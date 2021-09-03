@@ -12,7 +12,7 @@ namespace CustomerLibCore.TestHelpers
 		{
 			var mock = new StrictMock<Whatever>();
 
-			AssertX.Equal(MockBehavior.Strict, mock.Behavior);
+			Assert.Equal(MockBehavior.Strict, mock.Behavior);
 		}
 	}
 }

@@ -24,11 +24,11 @@ namespace CustomerLibCore.Api.Tests.FluentValidation
 			var invalidResult = new ValidationResult(errors);
 
 			// When
-			var exception = Assert.Throws<InvalidBodyException>(() =>
+			var ex = Assert.Throws<InvalidBodyException>(() =>
 				invalidResult.WithInvalidBodyException());
 
 			// Then
-			Assert.Equal(errors, exception.Errors);
+			Assert.Equal(errors, ex.Errors);
 		}
 
 		[Fact]

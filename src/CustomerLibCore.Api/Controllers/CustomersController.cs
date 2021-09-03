@@ -16,13 +16,19 @@ namespace CustomerLibCore.Api.Controllers
 	[ApiController]
 	public class CustomersController : ControllerBase
 	{
-		private readonly CustomerCreateRequestValidator _createRequestValidator = new();
-		private readonly CustomerUpdateRequestValidator _updateRequestValidator = new();
-		private readonly CustomerPagedResponseValidator _pagedResponseValidator = new();
-		private readonly CustomerResponseValidator _responseValidator = new();
+		#region Private Members
 
 		private readonly ICustomerService _customerService;
 		private readonly IMapper _mapper;
+
+		private readonly CustomerCreateRequestValidator _createRequestValidator = new();
+		private readonly CustomerEditRequestValidator _updateRequestValidator = new();
+		private readonly CustomerPagedResponseValidator _pagedResponseValidator = new();
+		private readonly CustomerResponseValidator _responseValidator = new();
+
+		#endregion
+
+		#region Constructor
 
 		public CustomersController(ICustomerService customerService, IMapper mapper)
 		{
@@ -30,14 +36,18 @@ namespace CustomerLibCore.Api.Controllers
 			_mapper = mapper;
 		}
 
+		#endregion
+
+		#region Public Methods
+
 		// GET: api/customers?addresses=1&notes=0
 		[HttpGet]
 		public ActionResult<CustomerPagedResponse> GetPage(
 			[FromQuery] int page, [FromQuery] int pageSize,
 			[FromQuery] int addresses, [FromQuery] int notes)
 		{
-			var includeAddresses = CheckRouteArgument.Flag(addresses, nameof(addresses));
-			var includeNotes = CheckRouteArgument.Flag(notes, nameof(notes));
+			var includeAddresses = CheckUrlArgument.Flag(addresses, nameof(addresses));
+			var includeNotes = CheckUrlArgument.Flag(notes, nameof(notes));
 
 			var customers = _customerService.GetPage(
 				page, pageSize, includeAddresses, includeNotes);
@@ -53,8 +63,9 @@ namespace CustomerLibCore.Api.Controllers
 		public ActionResult<CustomerResponse> Get([FromRoute] int customerId,
 			[FromQuery] int addresses, [FromQuery] int notes)
 		{
-			var includeAddresses = CheckRouteArgument.Flag(addresses, nameof(addresses));
-			var includeNotes = CheckRouteArgument.Flag(notes, nameof(notes));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			var includeAddresses = CheckUrlArgument.Flag(addresses, nameof(addresses));
+			var includeNotes = CheckUrlArgument.Flag(notes, nameof(notes));
 
 			var customer = _customerService.Get(customerId, includeAddresses, includeNotes);
 
@@ -66,7 +77,7 @@ namespace CustomerLibCore.Api.Controllers
 
 		// POST api/customers/5
 		[HttpPost]
-		public IActionResult Save([FromBody] CustomerCreateRequest request)
+		public IActionResult Create([FromBody] CustomerCreateRequest request)
 		{
 			_createRequestValidator.Validate(request).WithInvalidBodyException();
 
@@ -74,7 +85,7 @@ namespace CustomerLibCore.Api.Controllers
 
 			try
 			{
-				_customerService.Save(customer);
+				_customerService.Create(customer);
 			}
 			catch (EmailTakenException)
 			{
@@ -87,10 +98,10 @@ namespace CustomerLibCore.Api.Controllers
 
 		// PUT api/customers/5
 		[HttpPut("{customerId:int}")]
-		public IActionResult Update([FromRoute] int customerId,
-			[FromBody] CustomerUpdateRequest request)
+		public IActionResult Edit([FromRoute] int customerId,
+			[FromBody] CustomerEditRequest request)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
 			_updateRequestValidator.Validate(request).WithInvalidBodyException();
 
@@ -99,11 +110,11 @@ namespace CustomerLibCore.Api.Controllers
 
 			try
 			{
-				_customerService.Update(customer);
+				_customerService.Edit(customer);
 			}
 			catch (EmailTakenException)
 			{
-				throw ConflictWithExistingException.EmailTaken(nameof(CustomerUpdateRequest.Email),
+				throw ConflictWithExistingException.EmailTaken(nameof(CustomerEditRequest.Email),
 					request.Email);
 			}
 
@@ -114,11 +125,13 @@ namespace CustomerLibCore.Api.Controllers
 		[HttpDelete("{customerId:int}")]
 		public IActionResult Delete([FromRoute] int customerId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
 			_customerService.Delete(customerId);
 
 			return Ok();
 		}
+
+		#endregion
 	}
 }

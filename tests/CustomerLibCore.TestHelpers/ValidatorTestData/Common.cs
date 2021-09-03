@@ -33,7 +33,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 						"a a",
 						"whatever",
 						"1",
-					}, ("cannot have value", ValidationErrorMessages.CANNOT_HAVE_VALUE));
+					}, ("cannot have value", Domain.Localization.ErrorMessages.CANNOT_HAVE_VALUE));
 				}
 			}
 		}

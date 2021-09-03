@@ -317,6 +317,13 @@ namespace CustomerLibCore.Data.IntegrationTests.Repositories.EF
 
 		#endregion
 
+		#region Get count for customer
+
+		// TODO
+
+		#endregion
+
+
 		//#region Read by Id
 
 		//[Theory]

@@ -1,17 +1,12 @@
-﻿using System.Collections.Generic;
-using AutoMapper;
-using CustomerLibCore.Api.Dtos;
+﻿using AutoMapper;
 using CustomerLibCore.Api.Dtos.Addresses.Request;
 using CustomerLibCore.Api.Dtos.Addresses.Response;
-using CustomerLibCore.Api.Dtos.Validators;
 using CustomerLibCore.Api.Dtos.Validators.Addresses.Request;
 using CustomerLibCore.Api.Dtos.Validators.Addresses.Response;
 using CustomerLibCore.Api.FluentValidation;
 using CustomerLibCore.Domain.FluentValidation;
 using CustomerLibCore.Domain.Models;
-using CustomerLibCore.Domain.Validators;
 using CustomerLibCore.ServiceLayer.Services;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerLibCore.Api.Controllers
@@ -20,12 +15,18 @@ namespace CustomerLibCore.Api.Controllers
 	[ApiController]
 	public class AddressesController : ControllerBase
 	{
+		#region Private Members
+
+		private readonly IAddressService _addressService;
+		private readonly IMapper _mapper;
+
 		private readonly AddressRequestValidator _requestValidator = new();
 		private readonly AddressResponseValidator _responseValidator = new();
 		private readonly AddressListResponseValidator _listResponseValidator = new();
 
-		private readonly IAddressService _addressService;
-		private readonly IMapper _mapper;
+		#endregion
+
+		#region Constructor
 
 		public AddressesController(IAddressService addressService, IMapper mapper)
 		{
@@ -33,11 +34,15 @@ namespace CustomerLibCore.Api.Controllers
 			_mapper = mapper;
 		}
 
+		#endregion
+
+		#region Public Methods
+
 		// GET: api/customers/5/addresses
 		[HttpGet]
 		public ActionResult<AddressListResponse> FindAllForCustomer([FromRoute] int customerId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
 			var addresses = _addressService.FindAllForCustomer(customerId);
 
@@ -52,8 +57,8 @@ namespace CustomerLibCore.Api.Controllers
 		public ActionResult<AddressResponse> GetForCustomer(
 			[FromRoute] int customerId, [FromRoute] int addressId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(addressId, nameof(addressId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(addressId, nameof(addressId));
 
 			var address = _addressService.GetForCustomer(addressId, customerId);
 
@@ -65,27 +70,27 @@ namespace CustomerLibCore.Api.Controllers
 
 		// POST api/customers/5/addresses
 		[HttpPost]
-		public IActionResult Save(int customerId, [FromBody] AddressRequest request)
+		public IActionResult Create(int customerId, [FromBody] AddressRequest request)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
 			_requestValidator.Validate(request).WithInvalidBodyException();
 
 			var address = _mapper.Map<Address>(request);
 			address.CustomerId = customerId;
 
-			_addressService.Save(address);
+			_addressService.Create(address);
 
 			return Ok();
 		}
 
 		// PUT api/customers/5/addresses/7
 		[HttpPut("{addressId:int}")]
-		public IActionResult Update([FromRoute] int customerId, [FromRoute] int addressId,
+		public IActionResult Edit([FromRoute] int customerId, [FromRoute] int addressId,
 			[FromBody] AddressRequest request)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(addressId, nameof(addressId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(addressId, nameof(addressId));
 
 			_requestValidator.Validate(request).WithInvalidBodyException();
 
@@ -93,7 +98,7 @@ namespace CustomerLibCore.Api.Controllers
 			address.CustomerId = customerId;
 			address.AddressId = addressId;
 
-			_addressService.UpdateForCustomer(address);
+			_addressService.EditForCustomer(address);
 
 			return Ok();
 		}
@@ -102,12 +107,14 @@ namespace CustomerLibCore.Api.Controllers
 		[HttpDelete("{addressId:int}")]
 		public IActionResult Delete([FromRoute] int customerId, [FromRoute] int addressId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(addressId, nameof(addressId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(addressId, nameof(addressId));
 
 			_addressService.DeleteForCustomer(addressId, customerId);
 
 			return Ok();
 		}
+
+		#endregion
 	}
 }

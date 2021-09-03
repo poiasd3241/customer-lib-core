@@ -272,14 +272,14 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(AddressResponse.Self), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.Line), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.Line2), ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(AddressResponse.Type), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.City), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.PostalCode), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.State), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressResponse.Country), ValidationErrorMessages.REQUIRED),
+				(nameof(AddressResponse.Self), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.Line), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.Line2), ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(AddressResponse.Type), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.City), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.PostalCode), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.State), ErrorMessages.REQUIRED),
+				(nameof(AddressResponse.Country), ErrorMessages.REQUIRED),
 			};
 
 			return (MockInvalid(), details);

@@ -1,7 +1,11 @@
 ﻿namespace CustomerLibCore.Domain.Localization
 {
-	public static class ValidationErrorMessages
+	public static class ErrorMessages
 	{
+		public const string ID = "ID cannot be less than 1";
+
+		public const string INT_FLAG = "int flag must be either 0 (false) or 1 (true)";
+
 		public const string REQUIRED = "required";
 
 		public const string CANNOT_HAVE_VALUE = "cannot have value";
@@ -21,8 +25,8 @@
 		public static string RequiredAtLeast(int minItemsCount) =>
 			$"required at least {minItemsCount}";
 
-		public static string NumberGreaterThan(string minValue) =>
-			$"must be greater than {minValue}";
+		public static string NumberGreaterThan(string valueToCompare) =>
+			$"must be greater than {valueToCompare}";
 
 		public static string NumberLessThanOrEqualToPropertyValue(string propertyName) =>
 			$"must be less than or equal to the {propertyName} value";

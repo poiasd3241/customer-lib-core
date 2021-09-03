@@ -164,20 +164,6 @@ namespace CustomerLibCore.Data.Tests.Entities.Validators
 		}
 
 		[Fact]
-		public void ShouldValidateNullObject()
-		{
-			// Given
-			var address = new AddressEntityValidatorFixture().MockValid();
-			address = null;
-
-			// When
-			var result = _validator.Validate(address);
-
-			// Then
-			Assert.True(result.IsValid);
-		}
-
-		[Fact]
 		public void ShouldValidateFullObjectWithOptionalPropertiesNull()
 		{
 			// Given
@@ -265,13 +251,13 @@ namespace CustomerLibCore.Data.Tests.Entities.Validators
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(AddressEntity.Line), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressEntity.Line2), ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(AddressEntity.Type), ValidationErrorMessages.ENUM_TYPE_UNKNOWN),
-				(nameof(AddressEntity.City), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressEntity.PostalCode), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressEntity.State), ValidationErrorMessages.REQUIRED),
-				(nameof(AddressEntity.Country), ValidationErrorMessages.REQUIRED),
+				(nameof(AddressEntity.Line), ErrorMessages.REQUIRED),
+				(nameof(AddressEntity.Line2), ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(AddressEntity.Type), ErrorMessages.ENUM_TYPE_UNKNOWN),
+				(nameof(AddressEntity.City), ErrorMessages.REQUIRED),
+				(nameof(AddressEntity.PostalCode), ErrorMessages.REQUIRED),
+				(nameof(AddressEntity.State), ErrorMessages.REQUIRED),
+				(nameof(AddressEntity.Country), ErrorMessages.REQUIRED),
 			};
 
 			return (MockInvalid(), details);

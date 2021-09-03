@@ -38,9 +38,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Public Methods
 
-		public void Save(Note note)
+		public void Create(Note note)
 		{
-			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
+			CheckNumber.Id(note.CustomerId, nameof(note.CustomerId));
 
 			_validator.Validate(note).WithInternalValidationException();
 
@@ -60,8 +60,8 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public Note GetForCustomer(int noteId, int customerId)
 		{
-			CheckNumber.ValidId(noteId, nameof(noteId));
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(noteId, nameof(noteId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			var noteEntity = _noteRepository.ReadForCustomer(noteId, customerId);
 
@@ -77,7 +77,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public IReadOnlyCollection<Note> FindAllForCustomer(int customerId)
 		{
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -95,10 +95,10 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			return notes.ToArray();
 		}
 
-		public void UpdateForCustomer(Note note)
+		public void EditForCustomer(Note note)
 		{
-			CheckNumber.ValidId(note.NoteId, nameof(note.NoteId));
-			CheckNumber.ValidId(note.CustomerId, nameof(note.CustomerId));
+			CheckNumber.Id(note.NoteId, nameof(note.NoteId));
+			CheckNumber.Id(note.CustomerId, nameof(note.CustomerId));
 
 			_validator.Validate(note).WithInternalValidationException();
 
@@ -118,8 +118,8 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public void DeleteForCustomer(int noteId, int customerId)
 		{
-			CheckNumber.ValidId(noteId, nameof(noteId));
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(noteId, nameof(noteId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -128,7 +128,10 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			// TODO: prevent delete of the last address.
+			if (_noteRepository.GetCountForCustomer(customerId) == 1)
+			{
+				throw new PreventDeleteLastException();
+			}
 
 			_noteRepository.Delete(noteId);
 

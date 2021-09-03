@@ -198,12 +198,12 @@ namespace CustomerLibCore.Data.Tests.Entities.Validators
 			var details = new (string, string)[]
 			{
 				(nameof(CustomerEntity.FirstName),
-					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(CustomerEntity.LastName), ValidationErrorMessages.REQUIRED),
+					ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(CustomerEntity.LastName), ErrorMessages.REQUIRED),
 				(nameof(CustomerEntity.PhoneNumber),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(CustomerEntity.Email),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 			};
 
 			return (MockInvalid(), details);

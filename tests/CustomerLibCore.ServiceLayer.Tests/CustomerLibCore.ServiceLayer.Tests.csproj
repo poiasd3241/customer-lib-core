@@ -17,7 +17,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
 		<PackageReference Include="Moq" Version="4.16.1" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -31,8 +31,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\CustomerLibCore.Domain\CustomerLibCore.Domain.csproj" />
-		<ProjectReference Include="..\..\src\CustomerLibCore.Data\CustomerLibCore.Data.csproj" />
 		<ProjectReference Include="..\..\src\CustomerLibCore.ServiceLayer\CustomerLibCore.ServiceLayer.csproj" />
 		<ProjectReference Include="..\CustomerLibCore.TestHelpers\CustomerLibCore.TestHelpers.csproj" />
 	</ItemGroup>

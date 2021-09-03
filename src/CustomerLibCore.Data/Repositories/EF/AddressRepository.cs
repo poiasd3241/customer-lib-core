@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using CustomerLibCore.Data.Entities;
+using CustomerLibCore.Data.Entities.Validators;
+using CustomerLibCore.Domain.FluentValidation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -12,9 +15,11 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		private readonly CustomerLibDataContext _context;
 
+		private readonly AddressEntityValidator _validator = new();
+
 		#endregion
 
-		#region Constructors
+		#region Constructor
 
 		public AddressRepository(CustomerLibDataContext context)
 		{
@@ -35,6 +40,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public int Create(AddressEntity address)
 		{
+			ValidateEntity(address);
+
 			var createdAddress = _context.Addresses.Add(address).Entity;
 
 			_context.SaveChanges();
@@ -56,8 +63,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.SaveChanges();
 		}
 
-		//public AddressEntity Read(int addressId) =>
-		//	_context.Addresses.Find(addressId);
+		public int GetCountForCustomer(int customerId) =>
+			_context.Addresses.Where(address => address.CustomerId == customerId).Count();
 
 		public AddressEntity ReadForCustomer(int addressId, int customerId)
 			=> _context.Addresses.FirstOrDefault(address =>
@@ -97,6 +104,13 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.Database.ExecuteSqlRaw(
 				"DELETE FROM [dbo].[Addresses];" +
 				"DBCC CHECKIDENT ('dbo.Addresses', RESEED, 0);");
+
+		#endregion
+
+		#region Private Methods
+
+		private void ValidateEntity(AddressEntity address) =>
+			_validator.Validate(address).WithInternalValidationException();
 
 		#endregion
 	}

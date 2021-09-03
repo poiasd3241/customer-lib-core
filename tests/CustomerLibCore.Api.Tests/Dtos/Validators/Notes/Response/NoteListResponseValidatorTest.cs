@@ -151,7 +151,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		{
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
-				(nameof(NoteListResponse.Self), ValidationErrorMessages.REQUIRED),
+				(nameof(NoteListResponse.Self), ErrorMessages.REQUIRED),
 			};
 
 			var (_, invalidNoteResponseDetails) = new NoteResponseValidatorFixture()

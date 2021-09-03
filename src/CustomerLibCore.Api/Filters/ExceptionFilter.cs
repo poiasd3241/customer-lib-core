@@ -18,14 +18,20 @@ namespace CustomerLibCore.Api.Filters
 				// Not found
 				NotFoundException => FromNotFoundException(),
 
+				// The last item (in the current context) cannot be deleted
+				PreventDeleteLastException => FromPreventDeleteLastException(),
+
 				// Paged resource request invalid
 				PagedRequestInvalidException ex => FromPagedRequestInvalidException(ex),
 
 				// Conflict between incoming and existing data
 				ConflictWithExistingException ex => FromConflictWithExistingException(ex),
 
-				// Invalid route/query arguments
+				// Invalid route argument
 				RouteArgumentException ex => FromRouteArgumentException(ex),
+
+				// Invalid query argument
+				QueryArgumentException ex => FromQueryArgumentException(ex),
 
 				// Invalid body
 				InvalidBodyException ex => FromInvalidBodyException(ex),
@@ -37,66 +43,40 @@ namespace CustomerLibCore.Api.Filters
 			base.OnException(context);
 		}
 
-		private static ObjectResult FromNotFoundException()
-		{
-			var statusCode = StatusCodes.Status404NotFound;
+		private static ObjectResult FromNotFoundException() =>
+			Make(StatusCodes.Status404NotFound, "Resource not found");
 
-			var errorModel = new ErrorModel(statusCode, "Resource not found");
-
-			return MakeObjectResult(errorModel, statusCode);
-		}
+		private static ObjectResult FromPreventDeleteLastException() =>
+			Make(StatusCodes.Status409Conflict,
+				"Delete impossible: the last item (in the current context) is preserved");
 
 		private static ObjectResult FromPagedRequestInvalidException(
-			PagedRequestInvalidException ex)
-		{
-			var statusCode = StatusCodes.Status400BadRequest;
-
-			var errorModel = new ErrorModel(statusCode,
+			PagedRequestInvalidException ex) =>
+			Make(StatusCodes.Status400BadRequest,
 				$"Paged resource request is invalid (page = {ex.Page}, pageSize = {ex.PageSize})");
 
-			return MakeObjectResult(errorModel, statusCode);
-		}
 		private static ObjectResult FromConflictWithExistingException(
-			ConflictWithExistingException ex)
-		{
-			var statusCode = StatusCodes.Status409Conflict;
+			ConflictWithExistingException ex) =>
+			Make(StatusCodes.Status409Conflict,
+				$"Conflict between the incoming and existing data " +
+				$"({ex.IncomingPropertyName} = '{ex.IncomingPropertyValue}'). " +
+				$"Reason: {ex.ConflictMessage}");
 
-			var errorModel = new ErrorModel(statusCode,
-			$"Conflict between the incoming and existing data " +
-			$"({ex.IncomingPropertyName} = '{ex.IncomingPropertyValue}'). Reason: {ex.ConflictMessage}");
+		private static ObjectResult FromRouteArgumentException(RouteArgumentException ex) =>
+			Make(StatusCodes.Status400BadRequest,
+				$"Invalid route parameter '{ex.ParamName}' value ({ex.Message})");
 
-			return MakeObjectResult(errorModel, statusCode);
-		}
+		private static ObjectResult FromQueryArgumentException(QueryArgumentException ex) =>
+			Make(StatusCodes.Status400BadRequest,
+				$"Invalid query parameter '{ex.ParamName}' value ({ex.Message})");
 
-		private static ObjectResult FromRouteArgumentException(RouteArgumentException ex)
-		{
-			var statusCode = StatusCodes.Status400BadRequest;
+		private static ObjectResult FromInvalidBodyException(InvalidBodyException ex) =>
+			Make(StatusCodes.Status400BadRequest, ex.ValidationErrorsMessage);
 
-			var errorModel = new ErrorModel(statusCode,
-				$"Invalid route/query parameter '{ex.ParamName}' value ({ex.Message})");
+		private static ObjectResult FromInternalServerError() =>
+			Make(StatusCodes.Status500InternalServerError, "Internal server error");
 
-			return MakeObjectResult(errorModel, statusCode);
-		}
-
-		private static ObjectResult FromInvalidBodyException(InvalidBodyException ex)
-		{
-			var statusCode = StatusCodes.Status400BadRequest;
-
-			var errorModel = new ErrorModel(statusCode, ex.ValidationErrorsMessage);
-
-			return MakeObjectResult(errorModel, statusCode);
-		}
-
-		private static ObjectResult FromInternalServerError()
-		{
-			var statusCode = StatusCodes.Status500InternalServerError;
-
-			var errorModel = new ErrorModel(statusCode, "Internal server error");
-
-			return MakeObjectResult(errorModel, statusCode);
-		}
-
-		private static ObjectResult MakeObjectResult(object value, int statusCode) =>
-			new(value) { StatusCode = statusCode };
+		private static ObjectResult Make(int statusCode, string message) =>
+			new(new ErrorModel(statusCode, message)) { StatusCode = statusCode };
 	}
 }

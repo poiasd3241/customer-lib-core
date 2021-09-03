@@ -15,7 +15,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 101),
-					("max 100 characters", ValidationErrorMessages.TextMaxLength(100)));
+					("max 100 characters", Domain.Localization.ErrorMessages.TextMaxLength(100)));
 			}
 		}
 
@@ -25,7 +25,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 			{
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 101),
-					("max 100 characters", ValidationErrorMessages.TextMaxLength(100)));
+					("max 100 characters", Domain.Localization.ErrorMessages.TextMaxLength(100)));
 			}
 		}
 
@@ -56,7 +56,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 51),
-					("max 50 characters", ValidationErrorMessages.TextMaxLength(50)));
+					("max 50 characters", Domain.Localization.ErrorMessages.TextMaxLength(50)));
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrContainWhitespaceData();
 				Add(new('a', 7),
-					("max 6 characters", ValidationErrorMessages.TextMaxLength(6)));
+					("max 6 characters", Domain.Localization.ErrorMessages.TextMaxLength(6)));
 			}
 		}
 
@@ -78,7 +78,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 21),
-					("max 20 characters", ValidationErrorMessages.TextMaxLength(20)));
+					("max 20 characters", Domain.Localization.ErrorMessages.TextMaxLength(20)));
 			}
 		}
 
@@ -90,7 +90,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddEmptyOrWhitespaceData();
 				Add("Japan",
 					("allowed only 'United States', 'Canada'",
-						ValidationErrorMessages.TextAllowedValues(new[]
+						Domain.Localization.ErrorMessages.TextAllowedValues(new[]
 						{ "United States", "Canada" })));
 			}
 		}

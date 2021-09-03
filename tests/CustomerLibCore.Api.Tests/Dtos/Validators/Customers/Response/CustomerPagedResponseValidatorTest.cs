@@ -385,13 +385,13 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		{
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
-				(nameof(CustomerPagedResponse.Self), ValidationErrorMessages.REQUIRED),
+				(nameof(CustomerPagedResponse.Self), ErrorMessages.REQUIRED),
 				(nameof(CustomerPagedResponse.Page),
-					ValidationErrorMessages.NumberGreaterThan(0.ToString())),
+					ErrorMessages.NumberGreaterThan(0.ToString())),
 				(nameof(CustomerPagedResponse.PageSize),
-					ValidationErrorMessages.NumberGreaterThan(0.ToString())),
+					ErrorMessages.NumberGreaterThan(0.ToString())),
 				(nameof(CustomerPagedResponse.LastPage),
-					ValidationErrorMessages.NumberGreaterThan(0.ToString())),
+					ErrorMessages.NumberGreaterThan(0.ToString())),
 			};
 
 			var (_, invalidCustomerResponseDetails) = new CustomerResponseValidatorFixture()
@@ -418,8 +418,8 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		{
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
-				(nameof(CustomerPagedResponse.Previous), ValidationErrorMessages.CANNOT_HAVE_VALUE),
-				(nameof(CustomerPagedResponse.Next), ValidationErrorMessages.REQUIRED)
+				(nameof(CustomerPagedResponse.Previous), ErrorMessages.CANNOT_HAVE_VALUE),
+				(nameof(CustomerPagedResponse.Next), ErrorMessages.REQUIRED)
 			};
 
 			return (MockInvalidAlternative(), details);

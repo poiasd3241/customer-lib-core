@@ -3,12 +3,12 @@ using Xunit;
 
 namespace CustomerLibCore.Api.Tests.Dtos.Customers
 {
-	public class CustomerUpdateRequestTest
+	public class CustomerEditRequestTest
 	{
 		[Fact]
 		public void ShouldCreateObject()
 		{
-			var customer = new CustomerUpdateRequest();
+			var customer = new CustomerEditRequest();
 
 			Assert.Null(customer.FirstName);
 			Assert.Null(customer.LastName);
@@ -27,7 +27,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Customers
 			var email = "email1";
 			var totalPurchasesAmount = "totalPurchasesAmount1";
 
-			var customer = new CustomerUpdateRequest();
+			var customer = new CustomerEditRequest();
 
 			Assert.NotEqual(firstName, customer.FirstName);
 			Assert.NotEqual(lastName, customer.LastName);

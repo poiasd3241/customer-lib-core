@@ -97,7 +97,7 @@ namespace CustomerLibCore.Data.Tests.Entities.Validators
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(NoteEntity.Content), ValidationErrorMessages.REQUIRED)
+				(nameof(NoteEntity.Content), ErrorMessages.REQUIRED)
 			};
 
 			return (MockInvalid(), details);

@@ -150,7 +150,7 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Addresses
 		{
 			IEnumerable<(string, string)> details = new (string, string)[]
 			{
-				(nameof(AddressListResponse.Self), ValidationErrorMessages.REQUIRED)
+				(nameof(AddressListResponse.Self), ErrorMessages.REQUIRED)
 			};
 
 			var (_, invalidAddressResponseDetails) = new AddressResponseValidatorFixture()

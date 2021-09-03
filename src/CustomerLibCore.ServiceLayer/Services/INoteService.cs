@@ -5,7 +5,7 @@ namespace CustomerLibCore.ServiceLayer.Services
 {
 	public interface INoteService
 	{
-		void Save(Note note);
+		void Create(Note note);
 
 		Note GetForCustomer(int noteId, int customerId);
 
@@ -13,9 +13,8 @@ namespace CustomerLibCore.ServiceLayer.Services
 		/// otherwise, the found notes.</returns>
 		IReadOnlyCollection<Note> FindAllForCustomer(int customerId);
 
-		void UpdateForCustomer(Note note);
+		void EditForCustomer(Note note);
 
 		void DeleteForCustomer(int noteId, int customerId);
-		void DeleteAllForCustomer(int customerId);
 	}
 }

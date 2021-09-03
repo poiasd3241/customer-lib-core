@@ -5,12 +5,13 @@ namespace CustomerLibCore.Data.Repositories
 {
 	public interface ICustomerRepository
 	{
-		bool Exists(int customerId);
-
 		/// <returns>The Id of the created item.</returns>
 		int Create(CustomerEntity customer);
 
+		bool Exists(int customerId);
+
 		int GetCount();
+
 		CustomerEntity Read(int customerId);
 
 		/// <returns>An empty collection if no customers found; 
@@ -20,7 +21,9 @@ namespace CustomerLibCore.Data.Repositories
 		/// <returns>An empty collection if no customers found; 
 		/// otherwise, the found customers.</returns>
 		IReadOnlyCollection<CustomerEntity> ReadPage(int page, int pageSize);
+
 		void Update(CustomerEntity customer);
+
 		void Delete(int customerId);
 
 		/// <summary>

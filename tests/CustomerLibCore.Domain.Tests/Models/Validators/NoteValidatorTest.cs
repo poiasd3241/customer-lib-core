@@ -97,7 +97,7 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(Note.Content), ValidationErrorMessages.REQUIRED)
+				(nameof(Note.Content), ErrorMessages.REQUIRED)
 			};
 
 			return (MockInvalid(), details);

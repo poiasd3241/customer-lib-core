@@ -3,6 +3,7 @@ using System.Linq;
 using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Domain.FluentValidation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -17,7 +18,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		#endregion
 
-		#region Constructors
+		#region Constructor
 
 		public CustomerRepository(CustomerLibDataContext context)
 		{
@@ -33,7 +34,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public int Create(CustomerEntity customer)
 		{
-			_validator.Validate(customer).WithInternalValidationException();
+			ValidateEntity(customer);
 
 			var createdCustomer = _context.Customers.Add(customer).Entity;
 
@@ -59,7 +60,7 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void Update(CustomerEntity customer)
 		{
-			_validator.Validate(customer).WithInternalValidationException();
+			ValidateEntity(customer);
 
 			var customerDb = _context.Customers.Find(customer.CustomerId);
 
@@ -94,6 +95,13 @@ namespace CustomerLibCore.Data.Repositories.EF
 			_context.Database.ExecuteSqlRaw(
 				"DELETE FROM [dbo].[Customers];" +
 				"DBCC CHECKIDENT ('dbo.Customers', RESEED, 0);");
+
+		#endregion
+
+		#region Private Methods
+
+		private void ValidateEntity(CustomerEntity customer) =>
+			_validator.Validate(customer).WithInternalValidationException();
 
 		#endregion
 	}

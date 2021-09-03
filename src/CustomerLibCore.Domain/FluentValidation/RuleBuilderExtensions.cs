@@ -44,26 +44,26 @@ namespace CustomerLibCore.Domain.FluentValidation
 		public static IRuleBuilderOptions<T, TProperty> Required<T, TProperty>(
 			this IRuleBuilder<T, TProperty> ruleBuilder) =>
 			ruleBuilder
-				.NotNull().WithMessage(ValidationErrorMessages.REQUIRED);
+				.NotNull().WithMessage(ErrorMessages.REQUIRED);
 
 		public static IRuleBuilderOptions<T, string> TextNotEmptyNorWhitespace<T>(
 			this IRuleBuilder<T, string> ruleBuilder) =>
 			ruleBuilder
 				.Must(property => property.Trim().Length != 0).WithMessage(
-					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
+					ErrorMessages.TEXT_EMPTY_OR_WHITESPACE);
 
 		public static IRuleBuilderOptions<T, TProperty> NotNullCollectionWithMinCount<T, TProperty>(
 			this IRuleBuilder<T, TProperty> ruleBuilder, int minItemsCount)
 				where TProperty : IEnumerable<object> =>
 			ruleBuilder
 				.Must(property => property?.Count() >= minItemsCount).WithMessage(
-					ValidationErrorMessages.RequiredAtLeast(minItemsCount));
+					ErrorMessages.RequiredAtLeast(minItemsCount));
 
 		public static IRuleBuilderOptions<T, string> TextMaxLength<T>(
 			this IRuleBuilder<T, string> ruleBuilder, int maxLength) =>
 			ruleBuilder
 				.MaximumLength(maxLength).WithMessage(
-					ValidationErrorMessages.TextMaxLength(maxLength));
+					ErrorMessages.TextMaxLength(maxLength));
 
 		public static IRuleBuilderOptions<T, string> TextNotEmptyNorContainsWhitespace<T>(
 			this IRuleBuilder<T, string> ruleBuilder) =>
@@ -71,7 +71,7 @@ namespace CustomerLibCore.Domain.FluentValidation
 				.Must(property =>
 					property != string.Empty &&
 					property.Contains(' ') == false)
-				.WithMessage(ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
+				.WithMessage(ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE);
 
 		#region Number
 
@@ -79,14 +79,14 @@ namespace CustomerLibCore.Domain.FluentValidation
 			this IRuleBuilder<T, string> ruleBuilder) =>
 			ruleBuilder
 				.Must(property => decimal.TryParse(property, out _)).WithMessage(
-					ValidationErrorMessages.NUMBER_DECIMAL);
+					ErrorMessages.NUMBER_DECIMAL);
 
 		public static IRuleBuilderOptions<T, TProperty> NumberGreaterThan<T, TProperty>(
 			this IRuleBuilder<T, TProperty> ruleBuilder, TProperty valueToCompare)
 				where TProperty : struct, IComparable<TProperty>, IComparable =>
 			ruleBuilder.
 				GreaterThan(valueToCompare).WithMessage(
-					ValidationErrorMessages.NumberGreaterThan(valueToCompare.ToString()));
+					ErrorMessages.NumberGreaterThan(valueToCompare.ToString()));
 
 		#endregion
 
@@ -115,7 +115,7 @@ namespace CustomerLibCore.Domain.FluentValidation
 			return ruleBuilder
 				.TextNotEmptyNorContainsWhitespace()
 				.PhoneNumberFormatE164().WithMessage(
-					ValidationErrorMessages.PHONE_NUMBER_FORMAT_E164);
+					ErrorMessages.PHONE_NUMBER_FORMAT_E164);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerEmail<T>(
@@ -123,7 +123,7 @@ namespace CustomerLibCore.Domain.FluentValidation
 		{
 			return ruleBuilder
 				.TextNotEmptyNorContainsWhitespace()
-				.EmailFormat().WithMessage(ValidationErrorMessages.EMAIL_FORMAT);
+				.EmailFormat().WithMessage(ErrorMessages.EMAIL_FORMAT);
 		}
 
 		public static IRuleBuilderOptions<T, string> CustomerTotalPurchasesAmount<T>(
@@ -165,7 +165,7 @@ namespace CustomerLibCore.Domain.FluentValidation
 		{
 			return ruleBuilder
 				.Must(type => Enum.IsDefined(typeof(AddressType), type)).WithMessage(
-					ValidationErrorMessages.ENUM_TYPE_UNKNOWN);
+					ErrorMessages.ENUM_TYPE_UNKNOWN);
 		}
 
 		public static IRuleBuilderOptions<T, string> AddressCity<T>(
@@ -203,7 +203,7 @@ namespace CustomerLibCore.Domain.FluentValidation
 				.Required()
 				.TextNotEmptyNorWhitespace()
 				.Must(country => _address_country_allowed.Contains(country)).WithMessage(
-					ValidationErrorMessages.TextAllowedValues(_address_country_allowed));
+					ErrorMessages.TextAllowedValues(_address_country_allowed));
 		}
 
 		#endregion
@@ -232,6 +232,6 @@ namespace CustomerLibCore.Domain.FluentValidation
 		public static IRuleBuilderOptions<T, string> CannotHaveValue<T>(
 			this IRuleBuilder<T, string> ruleBuilder) =>
 			ruleBuilder
-				.Null().WithMessage(ValidationErrorMessages.CANNOT_HAVE_VALUE);
+				.Null().WithMessage(ErrorMessages.CANNOT_HAVE_VALUE);
 	}
 }

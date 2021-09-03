@@ -13,7 +13,7 @@ namespace CustomerLibCore.TestHelpers.ValidatorTestData
 				this.AddRequiredData();
 				this.AddEmptyOrWhitespaceData();
 				Add(new('a', 1001),
-					("max 1000 characters", ValidationErrorMessages.TextMaxLength(1000)));
+					("max 1000 characters", Domain.Localization.ErrorMessages.TextMaxLength(1000)));
 			}
 		}
 	}

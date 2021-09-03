@@ -38,9 +38,9 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		#region Public Methods
 
-		public void Save(Address address)
+		public void Create(Address address)
 		{
-			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
+			CheckNumber.Id(address.CustomerId, nameof(address.CustomerId));
 
 			_validator.Validate(address).WithInternalValidationException();
 
@@ -60,8 +60,8 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public Address GetForCustomer(int addressId, int customerId)
 		{
-			CheckNumber.ValidId(addressId, nameof(addressId));
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(addressId, nameof(addressId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			var addressEntity = _addressRepository.ReadForCustomer(addressId, customerId);
 
@@ -77,7 +77,7 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public IReadOnlyCollection<Address> FindAllForCustomer(int customerId)
 		{
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -95,16 +95,17 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 			return addresses.ToArray();
 		}
 
-		public void UpdateForCustomer(Address address)
+		public void EditForCustomer(Address address)
 		{
-			CheckNumber.ValidId(address.AddressId, nameof(address.AddressId));
-			CheckNumber.ValidId(address.CustomerId, nameof(address.CustomerId));
+			CheckNumber.Id(address.AddressId, nameof(address.AddressId));
+			CheckNumber.Id(address.CustomerId, nameof(address.CustomerId));
 
 			_validator.Validate(address).WithInternalValidationException();
 
 			using TransactionScope scope = new();
 
-			if (_addressRepository.ExistsForCustomer(address.AddressId, address.CustomerId) == false)
+			if (_addressRepository.ExistsForCustomer(
+				address.AddressId, address.CustomerId) == false)
 			{
 				throw new NotFoundException();
 			}
@@ -118,8 +119,8 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 
 		public void DeleteForCustomer(int addressId, int customerId)
 		{
-			CheckNumber.ValidId(addressId, nameof(addressId));
-			CheckNumber.ValidId(customerId, nameof(customerId));
+			CheckNumber.Id(addressId, nameof(addressId));
+			CheckNumber.Id(customerId, nameof(customerId));
 
 			using TransactionScope scope = new();
 
@@ -128,7 +129,10 @@ namespace CustomerLibCore.ServiceLayer.Services.Implementations
 				throw new NotFoundException();
 			}
 
-			// TODO: prevent delete of the last address.
+			if (_addressRepository.GetCountForCustomer(customerId) == 1)
+			{
+				throw new PreventDeleteLastException();
+			}
 
 			_addressRepository.Delete(addressId);
 

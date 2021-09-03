@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CustomerLibCore.Api.Controllers;
@@ -11,6 +12,8 @@ using CustomerLibCore.Api.Dtos.Notes.Request;
 using CustomerLibCore.Api.Dtos.Notes.Response;
 using CustomerLibCore.Domain.Enums;
 using CustomerLibCore.Domain.Models;
+using CustomerLibCore.TestHelpers;
+using CustomerLibCore.TestHelpers.ModelsAssert;
 using Xunit;
 
 namespace CustomerLibCore.Api.Tests.DTOs
@@ -49,7 +52,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region Address -> AddressResponse, IEnumerable -> AddressListResponse
+		#region Address -> AddressResponse, IEnumerable<Address> -> AddressListResponse
 
 		[Fact]
 		public void ShouldMapFromAddressToAddressResponse()
@@ -77,6 +80,8 @@ namespace CustomerLibCore.Api.Tests.DTOs
 		{
 			// Given
 			var address = MockAddress();
+			var expectedSelf = LinkHelper.Addresses(address.CustomerId);
+
 			var addressResponse = Mapper.Map<AddressResponse>(address);
 
 			var addresses = new List<Address>() { address };
@@ -85,7 +90,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			var addressListResponse = Mapper.Map<AddressListResponse>(addresses);
 
 			// Then
-			Assert.Null(addressListResponse.Self);
+			Assert.Equal(expectedSelf, addressListResponse.Self);
 
 			Assert.True(AddressResponsesEqualByValues(
 				addressResponse, addressListResponse.Items.ElementAt(0)));
@@ -140,7 +145,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region Note -> NoteResponse, IEnumerable -> NoteListResponse
+		#region Note -> NoteResponse, IEnumerable<Note> -> NoteListResponse
 
 		[Fact]
 		public void ShouldMapFromNoteToNoteResponse()
@@ -162,6 +167,8 @@ namespace CustomerLibCore.Api.Tests.DTOs
 		{
 			// Given
 			var note = MockNote();
+			var expectedSelf = LinkHelper.Notes(note.CustomerId);
+
 			var noteResponse = Mapper.Map<NoteResponse>(note);
 
 			var notes = new List<Note>() { note };
@@ -170,7 +177,7 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			var noteListResponse = Mapper.Map<NoteListResponse>(notes);
 
 			// Then
-			Assert.Null(noteListResponse.Self);
+			Assert.Equal(expectedSelf, noteListResponse.Self);
 
 			Assert.True(NoteResponsesEqualByValues(
 				noteResponse, noteListResponse.Items.ElementAt(0)));
@@ -302,18 +309,14 @@ namespace CustomerLibCore.Api.Tests.DTOs
 		public void ShouldMapFromPagedResultCustomerToCustomerPagedResponse()
 		{
 			// Given
-			var page = 2;
-			var pageSize = 5;
-			var lastPage = 3;
-			var customer = MockCustomer();
+			var pagedResult = MockCustomerPagedResult();
+
+			var page = pagedResult.Page;
+			var pageSize = pagedResult.PageSize;
+			var lastPage = pagedResult.LastPage;
+			var customer = pagedResult.Items.ElementAt(0);
 
 			var customerResponse = Mapper.Map<CustomerResponse>(customer);
-
-			var pagedResult = MockCustomerPagedResult();
-			pagedResult.Page = page;
-			pagedResult.PageSize = pageSize;
-			pagedResult.LastPage = lastPage;
-			pagedResult.Items = new[] { customer };
 
 			var expectedSelf = LinkHelper.CustomersPage(page, pageSize);
 			var expectedPrevious = LinkHelper.CustomersPage(page - 1, pageSize);
@@ -337,10 +340,12 @@ namespace CustomerLibCore.Api.Tests.DTOs
 		}
 
 		[Theory]
-		[InlineData(0)]
-		[InlineData(1)]
+		[InlineData(0, false)]
+		[InlineData(1, true)]
+		[InlineData(2, false)]
+		[InlineData(3, false)]
 		public void ShouldMapFromCustomerPagedResultToCustomerPagedResponseWithNullPreviousLink(
-			int page)
+			int page, bool isPreviousNull)
 		{
 			// Given
 			var pagedResult = MockCustomerPagedResult();
@@ -350,18 +355,23 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			var pagedResponse = Mapper.Map<CustomerPagedResponse>(pagedResult);
 
 			// Then
-			Assert.Null(pagedResponse.Previous);
+			Assert.Equal(isPreviousNull, pagedResponse.Previous is null);
 		}
 
 		[Theory]
-		[InlineData(0, 0)]
-		[InlineData(1, 0)]
-		[InlineData(1, 1)]
-		[InlineData(2, 1)]
-		[InlineData(2, 2)]
-		[InlineData(5, 3)]
+		[InlineData(0, 0, true)]
+		[InlineData(1, 0, true)]
+		[InlineData(1, 1, true)]
+		[InlineData(2, 0, true)]
+		[InlineData(2, 1, true)]
+		[InlineData(2, 2, true)]
+		[InlineData(5, 3, true)]
+		[InlineData(0, 1, false)]
+		[InlineData(1, 2, false)]
+		[InlineData(0, 2, false)]
+		[InlineData(3, 5, false)]
 		public void ShouldMapFromCustomerPagedResultToCustomerPagedResponseWithNullNextLink(
-			int page, int lastPage)
+			int page, int lastPage, bool isNextNull)
 		{
 			// Given
 			var pagedResult = MockCustomerPagedResult();
@@ -372,12 +382,12 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			var pagedResponse = Mapper.Map<CustomerPagedResponse>(pagedResult);
 
 			// Then
-			Assert.Null(pagedResponse.Next);
+			Assert.Equal(isNextNull, pagedResponse.Next is null);
 		}
 
 		#endregion
 
-		#region CustomerCreateRequest - Customer
+		#region CustomerCreateRequest -> Customer
 
 		[Theory]
 		[ClassData(typeof(TotalPurchasesAmountData))]
@@ -385,13 +395,12 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			string totalPurchasesAmountText, decimal? totalPurchasesAmountNumber)
 		{
 			// Given
-			var addressRequest = MockAddressRequest();
-			var noteRequest = MockNoteRequest();
-
 			var customerCreateRequest = MockCustomerCreateRequest();
+
+			var addressRequest = customerCreateRequest.Addresses.ElementAt(0);
+			var noteRequest = customerCreateRequest.Notes.ElementAt(0);
+
 			customerCreateRequest.TotalPurchasesAmount = totalPurchasesAmountText;
-			customerCreateRequest.Addresses = new[] { addressRequest };
-			customerCreateRequest.Notes = new[] { noteRequest };
 
 			var address = Mapper.Map<Address>(addressRequest);
 			var note = Mapper.Map<Note>(noteRequest);
@@ -417,27 +426,27 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region CustomerUpdateRequest - Customer
+		#region CustomerEditRequest -> Customer
 
 		[Theory]
 		[ClassData(typeof(TotalPurchasesAmountData))]
-		public void ShouldMapFromCustomerUpdateRequestToCustomer(
+		public void ShouldMapFromCustomerEditRequestToCustomer(
 			string totalPurchasesAmountText, decimal? totalPurchasesAmountNumber)
 		{
 			// Given
-			var customerUpdateRequest = MockCustomerUpdateRequest();
-			customerUpdateRequest.TotalPurchasesAmount = totalPurchasesAmountText;
+			var customerEditRequest = MockCustomerEditRequest();
+			customerEditRequest.TotalPurchasesAmount = totalPurchasesAmountText;
 
 			// When
-			var customer = Mapper.Map<Customer>(customerUpdateRequest);
+			var customer = Mapper.Map<Customer>(customerEditRequest);
 
 			// Then
 			Assert.Equal(0, customer.CustomerId);
 
-			Assert.Equal(customerUpdateRequest.FirstName, customer.FirstName);
-			Assert.Equal(customerUpdateRequest.LastName, customer.LastName);
-			Assert.Equal(customerUpdateRequest.PhoneNumber, customer.PhoneNumber);
-			Assert.Equal(customerUpdateRequest.Email, customer.Email);
+			Assert.Equal(customerEditRequest.FirstName, customer.FirstName);
+			Assert.Equal(customerEditRequest.LastName, customer.LastName);
+			Assert.Equal(customerEditRequest.PhoneNumber, customer.PhoneNumber);
+			Assert.Equal(customerEditRequest.Email, customer.Email);
 			Assert.Equal(totalPurchasesAmountNumber, customer.TotalPurchasesAmount);
 
 			Assert.Null(customer.Addresses);
@@ -541,12 +550,32 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region Mocks - Address
+		#region Mocks - Domain models
+
+		public static PagedResult<Customer> MockCustomerPagedResult() => new()
+		{
+			Page = 2,
+			PageSize = 5,
+			LastPage = 3,
+			Items = new[] { MockCustomer() }
+		};
+
+		public static Customer MockCustomer() => new()
+		{
+			CustomerId = 1,
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
+			Email = "a@b.c",
+			TotalPurchasesAmount = 666,
+			Addresses = new[] { MockAddress() },
+			Notes = new[] { MockNote() }
+		};
 
 		public static Address MockAddress() => new()
 		{
 			AddressId = 2,
-			CustomerId = 3,
+			CustomerId = 1,
 			Line = "Line1",
 			Line2 = "Line21",
 			Type = AddressType.Shipping,
@@ -556,23 +585,40 @@ namespace CustomerLibCore.Api.Tests.DTOs
 			Country = "United States"
 		};
 
-		public static AddressResponse MockAddressResponse() => new()
+		public static Note MockNote() => new()
 		{
-			Self = "Self1",
-			Line = "Line1",
-			Line2 = "Line21",
-			Type = "Shipping",
-			City = "City1",
-			PostalCode = "123456",
-			State = "State1",
-			Country = "United States"
+			NoteId = 3,
+			CustomerId = 1,
+			Content = "Content1"
 		};
 
-		public static AddressListResponse MockAddressListResponse() => new()
+		#endregion
+
+		#region Mocks - Api Dtos - Customers
+
+		public static CustomerCreateRequest MockCustomerCreateRequest() => new()
 		{
-			Self = "Self1",
-			Items = new[] { MockAddressResponse() }
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
+			Email = "a@b.c",
+			TotalPurchasesAmount = "666",
+			Addresses = new[] { MockAddressRequest() },
+			Notes = new[] { MockNoteRequest() },
 		};
+
+		public static CustomerEditRequest MockCustomerEditRequest() => new()
+		{
+			FirstName = "FirstName1",
+			LastName = "LastName1",
+			PhoneNumber = "+123456789",
+			Email = "a@b.c",
+			TotalPurchasesAmount = "666"
+		};
+
+		#endregion
+
+		#region Mocks - Api Dtos - Addresses
 
 		public static AddressRequest MockAddressRequest() => new()
 		{
@@ -587,75 +633,39 @@ namespace CustomerLibCore.Api.Tests.DTOs
 
 		#endregion
 
-		#region Mocks - Note
-
-		public static Note MockNote() => new()
-		{
-			NoteId = 1,
-			CustomerId = 2,
-			Content = "Content1"
-		};
+		#region Mocks - Api Dtos - Notes
 
 		public static NoteRequest MockNoteRequest() => new()
 		{
 			Content = "Content1"
 		};
 
-		public static NoteResponse MockNoteResponse() => new()
-		{
-			Self = "Self1",
-			Content = "Content1"
-		};
-
-		public static NoteListResponse MockNoteListResponse() => new()
-		{
-			Self = "Self1",
-			Items = new[] { MockNoteResponse() }
-		};
-
 		#endregion
 
-		#region Mocks - Customer
+		#region Mocks tests
 
-		public static Customer MockCustomer() => new()
+		[Fact]
+		public void ShouldMockMeaningfulData()
 		{
-			CustomerId = 6,
-			FirstName = "FirstName1",
-			LastName = "LastName1",
-			PhoneNumber = "+123456789",
-			Email = "a@b.c",
-			TotalPurchasesAmount = 666,
-			Addresses = new[] { MockAddress() },
-			Notes = new[] { MockNote() }
-		};
+			// Domain
+			AssertDomainModels.MeaningfulValidWithIds(MockCustomer());
+			AssertDomainModels.MeaningfulValidWithIds(MockAddress());
+			AssertDomainModels.MeaningfulWithIds(MockNote());
 
-		public static PagedResult<Customer> MockCustomerPagedResult() => new()
-		{
-			Page = 2,
-			PageSize = 5,
-			LastPage = 3,
-			Items = new[] { MockCustomer() }
-		};
+			// PagedResult (domain Customer)
+			MeaningfulPagedResultCustomer(MockCustomerPagedResult());
 
-		public static CustomerCreateRequest MockCustomerCreateRequest() => new()
-		{
-			FirstName = "FirstName1",
-			LastName = "LastName1",
-			PhoneNumber = "+123456789",
-			Email = "a@b.c",
-			TotalPurchasesAmount = "666",
-			Addresses = new[] { MockAddressRequest() },
-			Notes = new[] { MockNoteRequest() },
-		};
+			// Api Dtos
+			var assertApiAddressDtos = new AssertApiAddressDtos();
+			assertApiAddressDtos.Meaningful(MockAddressRequest());
 
-		public static CustomerUpdateRequest MockCustomerUpdateRequest() => new()
-		{
-			FirstName = "FirstName1",
-			LastName = "LastName1",
-			PhoneNumber = "+123456789",
-			Email = "a@b.c",
-			TotalPurchasesAmount = "666"
-		};
+			var assertApiNoteDtos = new AssertApiNoteDtos();
+			assertApiNoteDtos.Meaningful(MockNoteRequest());
+
+			var assertApiCustomerDtos = new AssertApiCustomerDtos();
+			assertApiCustomerDtos.Meaningful(MockCustomerCreateRequest());
+			assertApiCustomerDtos.Meaningful(MockCustomerEditRequest());
+		}
 
 		#endregion
 	}

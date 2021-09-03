@@ -301,16 +301,16 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 		{
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
-				(nameof(CustomerResponse.Self), ValidationErrorMessages.REQUIRED),
+				(nameof(CustomerResponse.Self), ErrorMessages.REQUIRED),
 				(nameof(CustomerResponse.FirstName),
-					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(CustomerResponse.LastName), ValidationErrorMessages.REQUIRED),
+					ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(CustomerResponse.LastName), ErrorMessages.REQUIRED),
 				(nameof(CustomerResponse.PhoneNumber),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(CustomerResponse.Email),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(CustomerResponse.TotalPurchasesAmount),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 			};
 
 			var (_, invalidAddressListResponseDetails) = new AddressListResponseValidatorFixture()

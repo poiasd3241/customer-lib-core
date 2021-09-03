@@ -4,20 +4,18 @@ namespace CustomerLibCore.ServiceLayer.Services
 {
 	public interface ICustomerService
 	{
-		void Save(Customer customer);
+		void Create(Customer customer);
+
 		Customer Get(int customerId, bool includeAddresses, bool includeNotes);
-
-		int GetCount();
-
 		PagedResult<Customer> GetPage(int page, int pageSize,
 			bool includeAddresses, bool includeNotes);
 
 		/// <summary>
-		/// Updates the basic customer details (does NOT update <see cref="Customer.Addresses"/> 
+		/// Edits the basic customer details (does NOT edit <see cref="Customer.Addresses"/> 
 		/// and <see cref="Customer.Notes"/>).
 		/// </summary>
 		/// <param name="customer"></param>
-		void Update(Customer customer);
+		void Edit(Customer customer);
 
 		/// <summary>
 		/// Deletes the customer, 

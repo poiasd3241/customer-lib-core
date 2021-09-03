@@ -15,7 +15,7 @@ namespace CustomerLibCore.Api.Dtos.Validators
 			RuleFor(resource => resource.Page).Cascade(CascadeMode.Stop)
 				.NumberGreaterThan(0)
 				.LessThanOrEqualTo(resource => resource.LastPage).WithMessage(
-					ValidationErrorMessages.NumberLessThanOrEqualToPropertyValue(
+					ErrorMessages.NumberLessThanOrEqualToPropertyValue(
 						nameof(IPagedResourceBase.LastPage)))
 					.When(resource => resource.LastPage > 0, ApplyConditionTo.CurrentValidator);
 

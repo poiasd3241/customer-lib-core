@@ -8,9 +8,9 @@ namespace CustomerLibCore.Domain.Tests.Exceptions
 		[Fact]
 		public void ShouldCreateEntityNotFoundException()
 		{
-			var exception = new NotFoundException();
+			var ex = new NotFoundException();
 
-			Assert.NotNull(exception);
+			Assert.NotNull(ex);
 		}
 
 		// TODO: test Serialization...

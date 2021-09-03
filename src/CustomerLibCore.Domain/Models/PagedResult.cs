@@ -11,12 +11,12 @@ namespace CustomerLibCore.Domain.Models
 
 		public PagedResult() { }
 
-		public PagedResult(IReadOnlyCollection<T> items, int page, int pageSize, int totalCount)
+		public PagedResult(IReadOnlyCollection<T> items, int page, int pageSize, int lastPage)
 		{
 			Items = items;
 			Page = page;
 			PageSize = pageSize;
-			LastPage = totalCount;
+			LastPage = lastPage;
 		}
 	}
 }

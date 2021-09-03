@@ -325,14 +325,14 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Customers
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
 				(nameof(CustomerCreateRequest.FirstName),
-					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(CustomerCreateRequest.LastName), ValidationErrorMessages.REQUIRED),
+					ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(CustomerCreateRequest.LastName), ErrorMessages.REQUIRED),
 				(nameof(CustomerCreateRequest.PhoneNumber),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(CustomerCreateRequest.Email),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(CustomerCreateRequest.TotalPurchasesAmount),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE)
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE)
 			};
 
 			var (_, invalidAddressRequestDetails) = new AddressRequestValidatorFixture()

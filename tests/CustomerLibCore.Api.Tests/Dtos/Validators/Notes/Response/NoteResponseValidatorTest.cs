@@ -125,8 +125,8 @@ namespace CustomerLibCore.Api.Tests.Dtos.Validators.Notes
 		{
 			var details = new (string, string)[]
 			{
-				(nameof(NoteResponse.Self), ValidationErrorMessages.REQUIRED),
-				(nameof(NoteResponse.Content), ValidationErrorMessages.REQUIRED)
+				(nameof(NoteResponse.Self), ErrorMessages.REQUIRED),
+				(nameof(NoteResponse.Content), ErrorMessages.REQUIRED)
 			};
 
 			return (MockInvalid(), details);

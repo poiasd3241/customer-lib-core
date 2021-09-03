@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using CustomerLibCore.Api.Controllers;
 using CustomerLibCore.Api.Dtos.Addresses.Request;
@@ -21,8 +22,6 @@ namespace CustomerLibCore.Api.Dtos
 
 			// Address -> AddressResponse
 			CreateMap<Address, AddressResponse>()
-			.ForSourceMember(src => src.CustomerId, o => o.DoNotValidate())
-			.ForSourceMember(src => src.AddressId, o => o.DoNotValidate())
 			.ForMember(dest => dest.Self, o => o.MapFrom((src, dest) =>
 			{
 				return LinkHelper.Address(src.CustomerId, src.AddressId);
@@ -30,7 +29,10 @@ namespace CustomerLibCore.Api.Dtos
 
 			// IEnumerable<Address> -> AddressListResponse
 			CreateMap<IEnumerable<Address>, AddressListResponse>()
-			.ForMember(dest => dest.Self, o => o.Ignore())
+			.ForMember(dest => dest.Self, o => o.MapFrom((src, dest) =>
+			{
+				return LinkHelper.Addresses(src.First().CustomerId);
+			}))
 			.ForMember(dest => dest.Items, o => o.MapFrom((src, dest, destMember, context) =>
 			{
 				return context.Mapper.Map<IEnumerable<AddressResponse>>(src);
@@ -38,8 +40,6 @@ namespace CustomerLibCore.Api.Dtos
 
 			// AddressRequest -> Address
 			CreateMap<AddressRequest, Address>()
-			.ForMember(dest => dest.CustomerId, o => o.Ignore())
-			.ForMember(dest => dest.AddressId, o => o.Ignore())
 			.ForMember(dest => dest.Type, o => o.MapFrom((src, dest) =>
 			{
 				if (Enum.IsDefined(typeof(AddressType), src.Type) == false)
@@ -58,8 +58,6 @@ namespace CustomerLibCore.Api.Dtos
 
 			// Note -> NoteResponse
 			CreateMap<Note, NoteResponse>()
-			.ForSourceMember(src => src.CustomerId, o => o.DoNotValidate())
-			.ForSourceMember(src => src.NoteId, o => o.DoNotValidate())
 			.ForMember(dest => dest.Self, o => o.MapFrom((src, dest) =>
 			{
 				return LinkHelper.Note(src.CustomerId, src.NoteId);
@@ -67,16 +65,17 @@ namespace CustomerLibCore.Api.Dtos
 
 			// IEnumerable<Note> -> NoteListResponse
 			CreateMap<IEnumerable<Note>, NoteListResponse>()
-			.ForMember(dest => dest.Self, o => o.Ignore())
+			.ForMember(dest => dest.Self, o => o.MapFrom((src, dest) =>
+			{
+				return LinkHelper.Notes(src.First().CustomerId);
+			}))
 			.ForMember(dest => dest.Items, o => o.MapFrom((src, dest, destMember, context) =>
 			{
 				return context.Mapper.Map<IEnumerable<NoteResponse>>(src);
 			}));
 
 			//NoteRequest -> Note
-			CreateMap<NoteRequest, Note>()
-			.ForMember(dest => dest.CustomerId, o => o.Ignore())
-			.ForMember(dest => dest.NoteId, o => o.Ignore());
+			CreateMap<NoteRequest, Note>();
 
 			#endregion
 
@@ -84,7 +83,6 @@ namespace CustomerLibCore.Api.Dtos
 
 			// Customer -> CustomerResponse
 			CreateMap<Customer, CustomerResponse>()
-			.ForSourceMember(src => src.CustomerId, o => o.DoNotValidate())
 			.ForMember(dest => dest.Self, o => o.MapFrom((src, dest) =>
 			{
 				return LinkHelper.Customer(src.CustomerId);
@@ -132,7 +130,7 @@ namespace CustomerLibCore.Api.Dtos
 			}))
 			.ForMember(dest => dest.Previous, o => o.MapFrom((src, dest) =>
 			{
-				return src.Page > 1
+				return src.Page != 1
 					? LinkHelper.CustomersPage(src.Page - 1, src.PageSize)
 					: null;
 			}))
@@ -149,15 +147,13 @@ namespace CustomerLibCore.Api.Dtos
 
 			// CustomerCreateRequest -> Customer
 			CreateMap<CustomerCreateRequest, Customer>()
-			.ForMember(dest => dest.CustomerId, o => o.Ignore())
 			.ForMember(dest => dest.TotalPurchasesAmount, o => o.MapFrom((src, dest) =>
 				ConvertToNullableDecimal(
 					src.TotalPurchasesAmount, nameof(src.TotalPurchasesAmount))
 			));
 
-			// CustomerUpdateRequest -> Customer
-			CreateMap<CustomerUpdateRequest, Customer>()
-			.ForMember(dest => dest.CustomerId, o => o.Ignore())
+			// CustomerEditRequest -> Customer
+			CreateMap<CustomerEditRequest, Customer>()
 			.ForMember(dest => dest.TotalPurchasesAmount, o => o.MapFrom((src, dest) =>
 				ConvertToNullableDecimal(
 					src.TotalPurchasesAmount, nameof(src.TotalPurchasesAmount))
@@ -179,7 +175,7 @@ namespace CustomerLibCore.Api.Dtos
 			{
 				throw new Exception(
 					$"the {propertyName} cannot contain whitespace and must be " +
-					$"either null or a decimal point number");
+					"either null or a decimal point number");
 			}
 
 			return decimalValue;

@@ -6,7 +6,7 @@ namespace CustomerLibCore.Domain.Exceptions
 	[Serializable]
 	public class ConflictWithExistingException : Exception
 	{
-		private static readonly string _email_taken = "Email is already taken";
+		private static readonly string _email_taken = "email is already taken";
 
 		public string IncomingPropertyName { get; }
 		public string IncomingPropertyValue { get; }

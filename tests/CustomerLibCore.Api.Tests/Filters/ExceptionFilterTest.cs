@@ -122,7 +122,35 @@ namespace CustomerLibCore.Api.Tests.Filters
 			Assert.Equal(statusCode, result.StatusCode);
 			Assert.Equal(statusCode, errorModel.Code);
 
-			Assert.Equal("Invalid route/query parameter 'MyProp' value (Cannot be equal to 5)",
+			Assert.Equal("Invalid route parameter 'MyProp' value (Cannot be equal to 5)",
+				errorModel.Message);
+		}
+
+		[Fact]
+		public void ShouldReturnBadRequestFromQueryArgumentException()
+		{
+			// Given
+			var paramName = "MyProp";
+			var message = "Cannot be equal to 5";
+
+			var ex = new QueryArgumentException(message, paramName);
+
+			var exceptionContext = GetExceptionContext(ex);
+
+			var filter = new ExceptionFilter();
+
+			// When
+			filter.OnException(exceptionContext);
+
+			// Then
+			var result = Assert.IsType<ObjectResult>(exceptionContext.Result);
+			var errorModel = Assert.IsType<ErrorModel>(result.Value);
+
+			var statusCode = 400;
+			Assert.Equal(statusCode, result.StatusCode);
+			Assert.Equal(statusCode, errorModel.Code);
+
+			Assert.Equal("Invalid query parameter 'MyProp' value (Cannot be equal to 5)",
 				errorModel.Message);
 		}
 

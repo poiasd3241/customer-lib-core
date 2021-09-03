@@ -31,7 +31,7 @@ namespace CustomerLibCore.Api.Tests.Exceptions
 
 			Assert.Equal(incomingPropertyName, ex.IncomingPropertyName);
 			Assert.Equal(incomingPropertyValue, ex.IncomingPropertyValue);
-			Assert.Equal("Email is already taken", ex.ConflictMessage);
+			Assert.Equal("email is already taken", ex.ConflictMessage);
 		}
 
 		// TODO: test Serialization...

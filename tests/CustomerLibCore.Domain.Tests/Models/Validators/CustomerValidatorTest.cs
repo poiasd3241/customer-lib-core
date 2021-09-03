@@ -338,12 +338,12 @@ namespace CustomerLibCore.Domain.Tests.Models.Validators
 			IEnumerable<(string propertyName, string errorMessage)> details = new (string, string)[]
 			{
 				(nameof(Customer.FirstName),
-					ValidationErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
-				(nameof(Customer.LastName), ValidationErrorMessages.REQUIRED),
+					ErrorMessages.TEXT_EMPTY_OR_WHITESPACE),
+				(nameof(Customer.LastName), ErrorMessages.REQUIRED),
 				(nameof(Customer.PhoneNumber),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 				(nameof(Customer.Email),
-					ValidationErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
+					ErrorMessages.TEXT_EMPTY_OR_CONTAIN_WHITESPACE),
 			};
 
 			var (_, invalidAddressDetails) = new AddressValidatorFixture().MockInvalidWithDetails();

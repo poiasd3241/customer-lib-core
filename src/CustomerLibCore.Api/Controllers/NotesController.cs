@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using CustomerLibCore.Api.Dtos.Notes.Request;
 using CustomerLibCore.Api.Dtos.Notes.Response;
 using CustomerLibCore.Api.Dtos.Validators.Notes.Request;
 using CustomerLibCore.Api.Dtos.Validators.Notes.Response;
+using CustomerLibCore.Api.FluentValidation;
+using CustomerLibCore.Domain.FluentValidation;
 using CustomerLibCore.Domain.Models;
 using CustomerLibCore.ServiceLayer.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +15,18 @@ namespace CustomerLibCore.Api.Controllers
 	[ApiController]
 	public class NotesController : ControllerBase
 	{
+		#region Private Members
+
+		private readonly INoteService _noteService;
+		private readonly IMapper _mapper;
+
 		private readonly NoteRequestValidator _requestValidator = new();
 		private readonly NoteListResponseValidator _listResponseValidator = new();
 		private readonly NoteResponseValidator _responseValidator = new();
 
-		private readonly INoteService _noteService;
-		private readonly IMapper _mapper;
+		#endregion
+
+		#region Constructor
 
 		public NotesController(INoteService noteService, IMapper mapper)
 		{
@@ -25,16 +34,20 @@ namespace CustomerLibCore.Api.Controllers
 			_mapper = mapper;
 		}
 
+		#endregion
+
+		#region Public Methods
+
 		// GET: api/customers/5/notes
 		[HttpGet]
 		public ActionResult<NoteListResponse> FindAllForCustomer([FromRoute] int customerId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
 			var notes = _noteService.FindAllForCustomer(customerId);
 
 			var response = _mapper.Map<NoteListResponse>(notes);
-			response.Self = LinkHelper.Notes(customerId);
+			_listResponseValidator.Validate(response).WithInternalValidationException();
 
 			return Ok(response);
 		}
@@ -44,51 +57,48 @@ namespace CustomerLibCore.Api.Controllers
 		public ActionResult<NoteResponse> GetForCustomer(
 			[FromRoute] int customerId, [FromRoute] int noteId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(noteId, nameof(noteId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(noteId, nameof(noteId));
 
 			var note = _noteService.GetForCustomer(noteId, customerId);
 
-			var noteResponse = _mapper.Map<NoteResponse>(note);
+			var response = _mapper.Map<NoteResponse>(note);
+			_responseValidator.Validate(response).WithInternalValidationException();
 
-			//TODO: add validation
-
-			return Ok(noteResponse);
+			return Ok(response);
 		}
 
 		// POST api/customers/5/notes
 		[HttpPost]
-		public IActionResult Save(int customerId, [FromBody] NoteRequest noteRequest)
+		public IActionResult Create(int customerId, [FromBody] NoteRequest request)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
 
-			_noteRequestValidator.Validate(noteRequest).WithInvalidBodyException();
+			_requestValidator.Validate(request).WithInvalidBodyException();
 
-			var note = _mapper.Map<Note>(noteRequest);
-
+			var note = _mapper.Map<Note>(request);
 			note.CustomerId = customerId;
 
-			_noteService.Save(note);
+			_noteService.Create(note);
 
 			return Ok();
 		}
 
 		// PUT api/customers/5/notes/7
 		[HttpPut("{noteId:int}")]
-		public IActionResult Update([FromRoute] int customerId, [FromRoute] int noteId,
-			[FromBody] NoteDto noteDto)
+		public IActionResult Edit([FromRoute] int customerId, [FromRoute] int noteId,
+			[FromBody] NoteRequest request)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(noteId, nameof(noteId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(noteId, nameof(noteId));
 
-			_noteDtoValidator.Validate(noteDto).WithInvalidBodyException();
+			_requestValidator.Validate(request).WithInvalidBodyException();
 
-			var note = _mapper.Map<Note>(noteDto);
-
-			note.NoteId = noteId;
+			var note = _mapper.Map<Note>(request);
 			note.CustomerId = customerId;
+			note.NoteId = noteId;
 
-			_noteService.UpdateForCustomer(note);
+			_noteService.EditForCustomer(note);
 
 			return Ok();
 		}
@@ -97,12 +107,14 @@ namespace CustomerLibCore.Api.Controllers
 		[HttpDelete("{noteId:int}")]
 		public IActionResult Delete([FromRoute] int customerId, [FromRoute] int noteId)
 		{
-			CheckRouteArgument.Id(customerId, nameof(customerId));
-			CheckRouteArgument.Id(noteId, nameof(noteId));
+			CheckUrlArgument.Id(customerId, nameof(customerId));
+			CheckUrlArgument.Id(noteId, nameof(noteId));
 
 			_noteService.DeleteForCustomer(noteId, customerId);
 
 			return Ok();
 		}
+
+		#endregion
 	}
 }

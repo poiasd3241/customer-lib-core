@@ -5,7 +5,6 @@ using CustomerLibCore.Data.Entities;
 using CustomerLibCore.Data.Entities.Validators;
 using CustomerLibCore.Domain.Extensions;
 using CustomerLibCore.Domain.FluentValidation;
-using CustomerLibCore.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerLibCore.Data.Repositories.EF
@@ -15,11 +14,12 @@ namespace CustomerLibCore.Data.Repositories.EF
 		#region Private Members
 
 		private readonly CustomerLibDataContext _context;
+
 		private readonly NoteEntityValidator _validator = new();
 
 		#endregion
 
-		#region Constructors
+		#region Constructor
 
 		public NoteRepository(CustomerLibDataContext context)
 		{
@@ -29,15 +29,6 @@ namespace CustomerLibCore.Data.Repositories.EF
 		#endregion
 
 		#region Public Methods
-
-		public bool Exists(int noteId) =>
-			_context.Notes.Any(note => note.NoteId == noteId);
-
-		public bool ExistsForCustomer(int noteId, int customerId) =>
-			_context.Notes.Any(note =>
-				note.NoteId == noteId &&
-				note.CustomerId == customerId
-			);
 
 		public int Create(NoteEntity note)
 		{
@@ -52,24 +43,26 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		public void CreateManyForCustomer(IEnumerable<NoteEntity> notes, int customerId)
 		{
-			notes.PreventNull(nameof(notes));
-
 			foreach (var note in notes)
 			{
 				ValidateEntity(note);
 
-				if (note.CustomerId != customerId)
-				{
-					throw new ArgumentException(
-						$"all items must have the same {nameof(NoteEntity.CustomerId)} value, " +
-						$"{nameof(customerId)} = {customerId}", nameof(notes));
-				}
+				note.CustomerId = customerId;
 			}
 
 			_context.Notes.AddRange(notes);
 
 			_context.SaveChanges();
 		}
+
+		public bool Exists(int noteId) =>
+			_context.Notes.Any(note => note.NoteId == noteId);
+
+		public bool ExistsForCustomer(int noteId, int customerId) =>
+			_context.Notes.Any(note =>
+				note.NoteId == noteId &&
+				note.CustomerId == customerId
+			);
 
 		public int GetCountForCustomer(int customerId) =>
 			_context.Notes.Where(note => note.CustomerId == customerId).Count();
@@ -121,12 +114,8 @@ namespace CustomerLibCore.Data.Repositories.EF
 
 		#region Private Methods
 
-		private void ValidateEntity(NoteEntity note)
-		{
-			note.PreventNull(nameof(note));
-
+		private void ValidateEntity(NoteEntity note) =>
 			_validator.Validate(note).WithInternalValidationException();
-		}
 
 		#endregion
 	}
